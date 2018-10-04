@@ -34,6 +34,7 @@ using Toggl.PrimeRadiant.Settings;
 using UIKit;
 using static Toggl.Foundation.MvvmCross.Helper.Animation;
 using Toggl.Daneel.ExtensionKit;
+using Toggl.Foundation.MvvmCross.Parameters;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -661,8 +662,15 @@ namespace Toggl.Daneel.ViewControllers
                 return null;
             }
 
+            previewingContext.SourceRect = suggestionView.Frame;
+
+            var suggestion = suggestionView.Suggestion;
+                var param = new StartTimeEntryParameters(DateTimeOffset.Now, suggestion.TaskName,
+                    suggestion.Duration, suggestion.WorkspaceId, suggestion.Description, suggestion.ProjectId,
+                    suggestion.TagIds);
+
             previewViewModelRequest = new MvxViewModelInstanceRequest(typeof(StartTimeEntryViewModel));
-            previewViewModelRequest.ViewModelInstance = viewModelLoader.LoadViewModel(previewViewModelRequest, null);
+            previewViewModelRequest.ViewModelInstance = viewModelLoader.LoadViewModel(previewViewModelRequest, param, null);
 
             var viewController =
                 viewPresenter.CreateViewControllerFor<StartTimeEntryViewModel>(previewViewModelRequest) as
