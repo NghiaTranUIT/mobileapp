@@ -28,7 +28,7 @@ namespace Toggl.Daneel.Suggestions
         private const float distanceBetweenSuggestions = 12;
 
         private readonly UILabel titleLabel = new UILabel();
-        private readonly List<SuggestionView> suggestionViews
+        public readonly List<SuggestionView> suggestionViews
             = new List<SuggestionView>(suggestionCount);
 
         public IMvxCommand<Suggestion> SuggestionTappedCommad { get; set; }
