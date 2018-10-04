@@ -5,10 +5,14 @@ using System.Reactive.Linq;
 using System.Threading;
 using CoreGraphics;
 using Foundation;
+using MvvmCross;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Binding;
+using MvvmCross.Platforms.Ios.Presenters;
+using MvvmCross.Platforms.Ios.Views;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using MvvmCross.Plugin.Visibility;
+using MvvmCross.ViewModels;
 using Toggl.Daneel.Combiners;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
@@ -33,7 +37,7 @@ using Toggl.Daneel.ExtensionKit;
 namespace Toggl.Daneel.ViewControllers
 {
     [TabPresentation]
-    public partial class MainViewController : ReactiveViewController<MainViewModel>
+    public partial class MainViewController : ReactiveViewController<MainViewModel>, IUIViewControllerPreviewingDelegate
     {
         private const float showCardDelay = 0.1f;
 
@@ -77,6 +81,10 @@ namespace Toggl.Daneel.ViewControllers
         private SnackBar snackBar;
         private RatingView ratingView;
 
+        private MvxViewModelInstanceRequest previewViewModelRequest;
+        private IMvxViewModelLoader viewModelLoader;
+        private IMvxIosViewPresenter viewPresenter;
+
         public MainViewController()
             : base(nameof(MainViewController))
         {
@@ -86,9 +94,17 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
+            viewModelLoader = Mvx.Resolve<IMvxViewModelLoader>();
+            viewPresenter = Mvx.Resolve<IMvxIosViewPresenter>();
+
             prepareViews();
             prepareOnboarding();
             setupTableViewHeader();
+
+            if (TraitCollection.ForceTouchCapability == UIForceTouchCapability.Available)
+            {
+                RegisterForPreviewingWithDelegate(this, suggestionsView);
+            }
 
             var visibilityConverter = new MvxVisibilityValueConverter();
             var projectTaskClientCombiner = new ProjectTaskClientValueCombiner(
@@ -629,6 +645,27 @@ namespace Toggl.Daneel.ViewControllers
             var range = new NSRange(0, TimeEntriesLogTableView.NumberOfSections());
             var indexSet = NSIndexSet.FromNSRange(range);
             TimeEntriesLogTableView.ReloadSections(indexSet, UITableViewRowAnimation.None);
+        }
+
+        public UIViewController GetViewControllerForPreview(IUIViewControllerPreviewing previewingContext, CGPoint location)
+        {
+            previewViewModelRequest = new MvxViewModelInstanceRequest(typeof(StartTimeEntryViewModel));
+            previewViewModelRequest.ViewModelInstance = viewModelLoader.LoadViewModel(previewViewModelRequest, null);
+
+            var viewController =
+                viewPresenter.CreateViewControllerFor<StartTimeEntryViewModel>(previewViewModelRequest) as
+                    UIViewController;
+
+            return viewController;
+        }
+
+        public void CommitViewController(IUIViewControllerPreviewing previewingContext, UIViewController viewControllerToCommit)
+        {
+            if (previewViewModelRequest != null)
+            {
+                viewPresenter.Show(previewViewModelRequest);
+                previewViewModelRequest = null;
+            }
         }
     }
 }
