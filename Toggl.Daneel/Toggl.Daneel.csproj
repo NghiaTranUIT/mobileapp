@@ -648,8 +648,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Autocomplete\ImageTokenTextAttachment.cs" />
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
+    <Compile Include="Extensions\CGContextExtensions.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
     <Compile Include="Extensions\SectionedIndexExtensions.cs" />
     <Compile Include="Services\PermissionsService.cs" />
