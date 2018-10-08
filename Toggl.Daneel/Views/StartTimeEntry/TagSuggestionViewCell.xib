@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14313.13.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.9"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -18,8 +18,15 @@
                 <rect key="frame" x="0.0" y="0.0" width="320" height="43.5"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="icTags" translatesAutoresizingMaskIntoConstraints="NO" id="FcN-tU-xu9">
+                        <rect key="frame" x="16" y="16" width="12" height="12"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="12" id="Jvz-OB-3Wz"/>
+                            <constraint firstAttribute="width" constant="12" id="PJn-Xn-qb8"/>
+                        </constraints>
+                    </imageView>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="X5g-yZ-UGQ">
-                        <rect key="frame" x="16" y="14" width="33" height="16"/>
+                        <rect key="frame" x="32" y="14" width="33" height="16"/>
                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
@@ -32,10 +39,14 @@
                         </constraints>
                     </view>
                 </subviews>
+                <constraints>
+                    <constraint firstItem="FcN-tU-xu9" firstAttribute="leading" secondItem="YTl-1W-gDM" secondAttribute="leading" constant="16" id="SF6-Ge-lq6"/>
+                    <constraint firstItem="FcN-tU-xu9" firstAttribute="centerY" secondItem="YTl-1W-gDM" secondAttribute="centerY" id="lX4-Uf-PKC"/>
+                </constraints>
             </tableViewCellContentView>
             <constraints>
                 <constraint firstItem="wn4-JZ-hoh" firstAttribute="leading" secondItem="cxk-wN-pdQ" secondAttribute="leading" id="3ZW-df-dc1"/>
-                <constraint firstItem="X5g-yZ-UGQ" firstAttribute="leading" secondItem="cxk-wN-pdQ" secondAttribute="leading" constant="16" id="TLO-0V-j99"/>
+                <constraint firstItem="X5g-yZ-UGQ" firstAttribute="leading" secondItem="FcN-tU-xu9" secondAttribute="trailing" constant="4" id="TLO-0V-j99"/>
                 <constraint firstAttribute="bottom" secondItem="wn4-JZ-hoh" secondAttribute="bottom" id="j1N-ho-asJ"/>
                 <constraint firstAttribute="trailing" secondItem="wn4-JZ-hoh" secondAttribute="trailing" id="p2z-WE-tnR"/>
                 <constraint firstItem="X5g-yZ-UGQ" firstAttribute="centerY" secondItem="cxk-wN-pdQ" secondAttribute="centerY" id="r6w-lh-sxb"/>
@@ -45,4 +56,7 @@
             </connections>
         </tableViewCell>
     </objects>
+    <resources>
+        <image name="icTags" width="14" height="13"/>
+    </resources>
 </document>
