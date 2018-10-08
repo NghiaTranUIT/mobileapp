@@ -25,14 +25,22 @@ namespace Toggl.Daneel.Extensions
             CGImage image,
             CGColor color)
         {
-            // prevent the image from being flipped vertically
-            context.TranslateCTM(0, 2 * rect.Y + rect.Height);
-            context.ScaleCTM(1.0f, -1.0f);
-            context.ClipToMask(rect, image);
-            context.SetFillColor(color);
-            context.FillRect(rect);
-            context.TranslateCTM(0.0f, 0.0f);
-            context.ScaleCTM(1.0f, 1.0f);
+            try
+            {
+                // prevent the image from being flipped vertically
+                context.TranslateCTM(0, 2 * rect.Y + rect.Height);
+                context.ScaleCTM(1.0f, -1.0f);
+
+                context.ClipToMask(rect, image);
+                context.SetFillColor(color);
+                context.FillRect(rect);
+            }
+            finally
+            {
+                // reset translation and scaling in the global context
+                context.TranslateCTM(0.0f, 0.0f);
+                context.ScaleCTM(1.0f, 1.0f);
+            }
         }
     }
 }
