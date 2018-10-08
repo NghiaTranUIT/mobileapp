@@ -1,8 +1,23 @@
-﻿namespace Toggl.Foundation.Helper
+﻿using System.Text.RegularExpressions;
+using System.Threading;
+
+namespace Toggl.Foundation.Helper
 {
     public static class Color
     {
+        private const string pattern = @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$";
+        private static readonly Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
+
         public const string NoProject = "#B5BCC0";
+
+        public static bool IsValidHexColor(string hex)
+        {
+            if (hex == null)
+            {
+                return false;
+            }
+            return regex.Match(hex).Length > 0;
+        }
 
         public static readonly string[] DefaultProjectColors =
         {

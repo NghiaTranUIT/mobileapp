@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Toggl.Multivac.Extensions
 {
@@ -16,6 +15,10 @@ namespace Toggl.Multivac.Extensions
         public static bool NotNull(object obj) => obj != null;
 
         public static void DoNothing<T>(T x) { }
+
+        public static T1 First<T1, T2>(T1 result, T2 _) => result;
+
+        public static T2 Second<T1, T2>(T1 _, T2 result) => result;
     }
 
     public static class FunctionalExtensions

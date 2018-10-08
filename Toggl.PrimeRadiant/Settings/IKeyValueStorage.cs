@@ -12,6 +12,8 @@ namespace Toggl.PrimeRadiant.Settings
       
         DateTimeOffset? GetDateTimeOffset(string key);
 
+        TimeSpan? GetTimeSpan(string key);
+
         void SetBool(string key, bool value);
 
         void SetString(string key, string value);
@@ -19,6 +21,8 @@ namespace Toggl.PrimeRadiant.Settings
         void SetInt(string key, int value);
       
         void SetDateTimeOffset(string key, DateTimeOffset value);
+
+        void SetTimeSpan(string key, TimeSpan timeSpan);
 
         void Remove(string key);
 

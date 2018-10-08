@@ -32,9 +32,12 @@ namespace Toggl.Foundation.MvvmCross
         public IBackgroundService BackgroundService { get; }
         public ISchedulerProvider SchedulerProvider { get; }
         public IPlatformConstants PlatformConstants { get; }
+        public INotificationService NotificationService { get; }
         public IRemoteConfigService RemoteConfigService { get; }
         public IApplicationShortcutCreator ShortcutCreator { get; }
         public ISuggestionProviderContainer SuggestionProviderContainer { get; }
+        public IIntentDonationService IntentDonationService { get; }
+        public IPrivateSharedStorageService PrivateSharedStorageService { get; }
 
         public PlatformInfo PlatformInfo { get; }
         public IDialogService DialogService { get; }
@@ -48,6 +51,8 @@ namespace Toggl.Foundation.MvvmCross
         public IErrorHandlingService ErrorHandlingService { get; }
         public IAccessRestrictionStorage AccessRestrictionStorage { get; }
         public ILastTimeUsageStorage LastTimeUsageStorage { get; }
+        public IPermissionsService PermissionsService { get; }
+        public ICalendarService CalendarService { get; }
 
         private MvvmCrossFoundation(Builder builder)
         {
@@ -64,6 +69,8 @@ namespace Toggl.Foundation.MvvmCross
             ErrorHandlingService = builder.ErrorHandlingService;
             AccessRestrictionStorage = builder.AccessRestrictionStorage;
             LastTimeUsageStorage = builder.LastTimeUsageStorage;
+            PermissionsService = builder.PermissionsService;
+            CalendarService = builder.CalendarService;
 
             Version = builder.Foundation.Version;
             Database = builder.Foundation.Database;
@@ -82,8 +89,11 @@ namespace Toggl.Foundation.MvvmCross
             PlatformConstants = builder.Foundation.PlatformConstants;
             SchedulerProvider = builder.Foundation.SchedulerProvider;
             BackgroundService = builder.Foundation.BackgroundService;
+            NotificationService = builder.Foundation.NotificationService;
             RemoteConfigService = builder.Foundation.RemoteConfigService;
+            IntentDonationService = builder.Foundation.IntentDonationService;
             SuggestionProviderContainer = builder.Foundation.SuggestionProviderContainer;
+            PrivateSharedStorageService = builder.Foundation.PrivateSharedStorageService;
         }
 
         public class Builder
@@ -100,6 +110,8 @@ namespace Toggl.Foundation.MvvmCross
             public IErrorHandlingService ErrorHandlingService { get; private set; }
             public IAccessRestrictionStorage AccessRestrictionStorage { get; private set; }
             public ILastTimeUsageStorage LastTimeUsageStorage { get; private set; }
+            public IPermissionsService PermissionsService { get; private set; }
+            public ICalendarService CalendarService { get; private set; }
 
             public Builder(TogglFoundation foundation)
             {
@@ -168,6 +180,18 @@ namespace Toggl.Foundation.MvvmCross
                 return this;
             }
 
+            public Builder WithPermissionsService(IPermissionsService permissionsService)
+            {
+                PermissionsService = permissionsService;
+                return this;
+            }
+
+            public Builder WithCalendarService(ICalendarService calendarService)
+            {
+                CalendarService = calendarService;
+                return this;
+            }
+
             public Builder WithFeedbackService(IFeedbackService feedbackService)
             {
                 FeedbackService = feedbackService;
@@ -210,6 +234,14 @@ namespace Toggl.Foundation.MvvmCross
                 where TErrorHandlingService : IErrorHandlingService, new()
                 => WithErrorHandlingService(new TErrorHandlingService());
 
+            public Builder WithPermissionsService<TPermissionsService>()
+                where TPermissionsService : IPermissionsService, new()
+                => WithPermissionsService(new TPermissionsService());
+
+            public Builder WithCalendarService<TCalendarService>()
+                where TCalendarService : ICalendarService, new()
+                => WithCalendarService(new TCalendarService());
+
             public Builder WithFeedbackService<TFeedbackService>()
                 where TFeedbackService : IFeedbackService, new()
                 => WithFeedbackService(new TFeedbackService());
@@ -229,6 +261,8 @@ namespace Toggl.Foundation.MvvmCross
                 Ensure.Argument.IsNotNull(ErrorHandlingService, nameof(ErrorHandlingService));
                 Ensure.Argument.IsNotNull(AccessRestrictionStorage, nameof(AccessRestrictionStorage));
                 Ensure.Argument.IsNotNull(LastTimeUsageStorage, nameof(LastTimeUsageStorage));
+                Ensure.Argument.IsNotNull(PermissionsService, nameof(PermissionsService));
+                Ensure.Argument.IsNotNull(CalendarService, nameof(CalendarService));
             }
         }
     }

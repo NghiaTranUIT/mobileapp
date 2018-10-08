@@ -397,7 +397,6 @@ namespace Toggl.PrimeRadiant.Realm
             Rounding = entity.Rounding;
             RoundingMinutes = entity.RoundingMinutes;
             LogoUrl = entity.LogoUrl;
-            IsGhost = entity.IsGhost;
         }
     }
 

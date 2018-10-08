@@ -87,6 +87,8 @@ namespace Toggl.Giskard
             var settingsStorage = new SettingsStorage(appVersion, keyValueStorage);
             var feedbackService = new FeedbackService(userAgent, mailService, dialogService, platformConstants);
             var schedulerProvider = new AndroidSchedulerProvider();
+            var permissionsService = new PermissionsService();
+            var calendarService = new CalendarService(permissionsService);
 
             ApplicationContext.RegisterReceiver(new TimezoneChangedBroadcastReceiver(timeService),
                 new IntentFilter(Intent.ActionTimezoneChanged));
@@ -105,22 +107,27 @@ namespace Toggl.Giskard
                     .WithAnalyticsService(analyticsService)
                     .WithSchedulerProvider(schedulerProvider)
                     .WithPlatformConstants(platformConstants)
+                    .WithNotificationService<NotificationService>()
                     .WithRemoteConfigService<RemoteConfigService>()
                     .WithApiFactory(new ApiFactory(environment, userAgent))
                     .WithBackgroundService(new BackgroundService(timeService))
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator(ApplicationContext))
                     .WithPlatformInfo(platformInfo)
+                    .WithIntentDonationService(new NoopIntentDonationService())
+                    .WithPrivateSharedStorageService(new NoopPrivateSharedStorageService())
 
                     .StartRegisteringPlatformServices()
                     .WithDialogService(dialogService)
                     .WithFeedbackService(feedbackService)
                     .WithLastTimeUsageStorage(settingsStorage)
                     .WithBrowserService<BrowserService>()
+                    .WithCalendarService(calendarService)
                     .WithKeyValueStorage(keyValueStorage)
                     .WithUserPreferences(settingsStorage)
                     .WithOnboardingStorage(settingsStorage)
                     .WithNavigationService(navigationService)
+                    .WithPermissionsService(permissionsService)
                     .WithAccessRestrictionStorage(settingsStorage)
                     .WithErrorHandlingService(new ErrorHandlingService(navigationService, settingsStorage))
                     .Build();

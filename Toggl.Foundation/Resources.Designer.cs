@@ -845,21 +845,129 @@ namespace Toggl.Foundation {
             }
         }
         
-        public static string DiscardMessage {
-            get {
-                return ResourceManager.GetString("DiscardMessage", resourceCulture);
-            }
-        }
-        
         public static string SelectWorkspace {
             get {
                 return ResourceManager.GetString("SelectWorkspace", resourceCulture);
             }
         }
         
+        public static string On {
+            get {
+                return ResourceManager.GetString("On", resourceCulture);
+            }
+        }
+        
+        public static string Off {
+            get {
+                return ResourceManager.GetString("Off", resourceCulture);
+            }
+        }
+        
+        public static string NewTimeEntry {
+            get {
+                return ResourceManager.GetString("NewTimeEntry", resourceCulture);
+            }
+        }
+        
+        public static string EventReminder {
+            get {
+                return ResourceManager.GetString("EventReminder", resourceCulture);
+            }
+        }
+        
+        public static string Oops {
+            get {
+                return ResourceManager.GetString("Oops", resourceCulture);
+            }
+        }
+        
+        public static string NoCalendarsFoundMessage {
+            get {
+                return ResourceManager.GetString("NoCalendarsFoundMessage", resourceCulture);
+            }
+        }
+        
+        public static string Disabled {
+            get {
+                return ResourceManager.GetString("Disabled", resourceCulture);
+            }
+        }
+        
+        public static string WhenEventStarts {
+            get {
+                return ResourceManager.GetString("WhenEventStarts", resourceCulture);
+            }
+        }
+        
+        public static string FiveMinutes {
+            get {
+                return ResourceManager.GetString("FiveMinutes", resourceCulture);
+            }
+        }
+        
+        public static string TenMinutes {
+            get {
+                return ResourceManager.GetString("TenMinutes", resourceCulture);
+            }
+        }
+        
+        public static string FifteenMinutes {
+            get {
+                return ResourceManager.GetString("FifteenMinutes", resourceCulture);
+            }
+        }
+        
+        public static string ThirtyMinutes {
+            get {
+                return ResourceManager.GetString("ThirtyMinutes", resourceCulture);
+            }
+        }
+        
+        public static string OneHour {
+            get {
+                return ResourceManager.GetString("OneHour", resourceCulture);
+            }
+        }
+        
+        public static string CalendarSettingsTitle {
+            get {
+                return ResourceManager.GetString("CalendarSettingsTitle", resourceCulture);
+            }
+        }
+        
+        public static string NotificationSettingsTitle {
+            get {
+                return ResourceManager.GetString("NotificationSettingsTitle", resourceCulture);
+            }
+        }
+        
+        public static string OpenAppAndStartAction {
+            get {
+                return ResourceManager.GetString("OpenAppAndStartAction", resourceCulture);
+            }
+        }
+        
+        public static string StartInBackgroundAction {
+            get {
+                return ResourceManager.GetString("StartInBackgroundAction", resourceCulture);
+            }
+        }
+        
+        public static string OpenAppAction {
+            get {
+                return ResourceManager.GetString("OpenAppAction", resourceCulture);
+            }
+        }
+        
         public static string IdleTimerNotification {
             get {
                 return ResourceManager.GetString("IdleTimerNotification", resourceCulture);
+            }
+        }
+        
+        public static string DiscardMessage {
+            get {
+                return ResourceManager.GetString("DiscardMessage", resourceCulture);
             }
         }
     }

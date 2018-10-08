@@ -17,6 +17,7 @@ namespace Toggl.Foundation.Interactors
                 timeService,
                 dataSource,
                 analyticsService,
+                intentDonationService,
                 prototype,
                 prototype.StartTime,
                 prototype.Duration);
@@ -27,6 +28,7 @@ namespace Toggl.Foundation.Interactors
                 timeService,
                 dataSource,
                 analyticsService,
+                intentDonationService,
                 prototype,
                 timeService.CurrentDateTime,
                 null,
@@ -38,6 +40,7 @@ namespace Toggl.Foundation.Interactors
                 timeService,
                 dataSource,
                 analyticsService,
+                intentDonationService,
                 suggestion,
                 timeService.CurrentDateTime,
                 null,
@@ -49,15 +52,15 @@ namespace Toggl.Foundation.Interactors
                 timeService,
                 dataSource,
                 analyticsService);
-        
+
         public IInteractor<IObservable<Unit>> DeleteTimeEntry(long id)
             => new DeleteTimeEntryInteractor(timeService, dataSource.TimeEntries, id);
-        
+
         public IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetAllNonDeletedTimeEntries()
             => new GetAllNonDeletedInteractor(dataSource.TimeEntries);
 
         public IInteractor<IObservable<IThreadSafeTimeEntry>> UpdateTimeEntry(EditTimeEntryDto dto)
-            => new UpdateTimeEntryInteractor(timeService, dataSource.TimeEntries, dto);
+            => new UpdateTimeEntryInteractor(timeService, dataSource, dto);
 
         public IInteractor<IObservable<IThreadSafeTimeEntry>> StopTimeEntry(DateTimeOffset currentDateTime)
             => new StopTimeEntryInteractor(timeService, dataSource.TimeEntries, currentDateTime);

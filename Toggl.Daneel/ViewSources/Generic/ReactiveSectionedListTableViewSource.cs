@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CoreGraphics;
-using Foundation;
 using Toggl.Daneel.Cells;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Collections.Changes;

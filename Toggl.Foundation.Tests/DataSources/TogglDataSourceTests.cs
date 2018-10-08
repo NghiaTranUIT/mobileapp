@@ -36,6 +36,7 @@ namespace Toggl.Foundation.Tests.DataSources
             protected ITimeService TimeService { get; } = Substitute.For<ITimeService>();
             protected ISyncManager SyncManager { get; } = Substitute.For<ISyncManager>();
             protected IBackgroundService BackgroundService { get; } = Substitute.For<IBackgroundService>();
+            protected INotificationService NotificationService { get; } = Substitute.For<INotificationService>();
             protected IErrorHandlingService ErrorHandlingService { get; } = Substitute.For<IErrorHandlingService>();
             protected ISubject<SyncProgress> ProgressSubject = new Subject<SyncProgress>();
             protected TimeSpan MinimumTimeInBackgroundForFullSync = TimeSpan.FromMinutes(5);
@@ -53,6 +54,7 @@ namespace Toggl.Foundation.Tests.DataSources
                     BackgroundService,
                     _ => SyncManager,
                     MinimumTimeInBackgroundForFullSync,
+                    NotificationService,
                     ApplicationShortcutCreator,
                     AnalyticsService);
             }
@@ -87,6 +89,14 @@ namespace Toggl.Foundation.Tests.DataSources
                 scheduler.AdvanceBy(TimeSpan.FromDays(1).Ticks);
 
                 Database.DidNotReceive().Clear();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask UnschedulesAllNotifications()
+            {
+                await DataSource.Logout();
+
+                await NotificationService.Received().UnscheduleAllNotifications();
             }
 
             [Fact, LogIfTooSlow]

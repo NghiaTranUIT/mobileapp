@@ -21,6 +21,7 @@ using Toggl.PrimeRadiant.Settings;
 using static Toggl.Foundation.Helper.Constants;
 using SelectTimeOrigin = Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 using System.Reactive.Subjects;
+using System.Reactive;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -300,7 +301,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
                 analyticsService.DeleteTimeEntry.Track();
                 dataSource.SyncManager.InitiatePushSync();
-                await navigationService.Close(this);
+                await close();
             }
             catch
             {

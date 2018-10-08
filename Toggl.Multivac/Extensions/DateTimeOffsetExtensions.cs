@@ -1,4 +1,5 @@
 ﻿using System;
+using SystemMath = System.Math;
 using static Toggl.Multivac.Math;
 
 namespace Toggl.Multivac.Extensions
@@ -20,12 +21,34 @@ namespace Toggl.Multivac.Extensions
                 ? time + TimeSpan.FromSeconds(SecondsInAMinute - time.Second)
                 : time - TimeSpan.FromSeconds(time.Second);
 
-        public static DateTimeOffset WithDate(this DateTimeOffset original, DateTimeOffset date) 
+        public static DateTimeOffset WithDate(this DateTimeOffset original, DateTimeOffset date)
             => new DateTimeOffset(date.Year, date.Month, date.Day,
                                   original.Hour, original.Minute, original.Second, original.Offset);
 
         public static DateTimeOffset WithTime(this DateTimeOffset original, DateTimeOffset time)
             => new DateTimeOffset(original.Year, original.Month, original.Day,
                                   time.Hour, time.Minute, time.Second, original.Offset);
+
+        public static DateTimeOffset RoundDownToClosestQuarter(this DateTimeOffset time)
+        {
+            var offset = time.Minute % 15;
+            var minute = time.Minute - offset;
+            return new DateTimeOffset(time.Year, time.Month, time.Day, time.Hour, minute, 0, time.Offset);
+        }
+
+        public static DateTimeOffset RoundUpToClosestQuarter(this DateTimeOffset time)
+        {
+            if (time.Minute >= 45)
+            {
+                var nextHour = time.AddHours(1);
+                return new DateTimeOffset(nextHour.Year, nextHour.Month, nextHour.Day, nextHour.Hour, 0, 0, nextHour.Offset);
+            }
+            else
+            {
+                var offset = 15 - time.Minute % 15;
+                var minute = time.Minute + offset;
+                return new DateTimeOffset(time.Year, time.Month, time.Day, time.Hour, minute, 0, time.Offset);
+            }
+        }
     }
 }

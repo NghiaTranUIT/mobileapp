@@ -6,17 +6,19 @@ using Foundation;
 using MvvmCross.Binding.BindingContext;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Daneel.Extensions.AnimationExtensions;
-using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 
 namespace Toggl.Daneel.ViewControllers
 {
+    [TabPresentation]
     public sealed partial class ReportsViewController : ReactiveViewController<ReportsViewModel>
     {
         private const string boundsKey = "bounds";

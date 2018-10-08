@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.13.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="ObA-dk-sSI">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.9"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Intent View Controller-->
+        <scene sceneID="7MM-of-jgj">
+            <objects>
+                <viewController id="ObA-dk-sSI" customClass="IntentViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="qkL-Od-lgU"/>
+                        <viewControllerLayoutGuide type="bottom" id="n38-gi-rB5"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="zMn-AG-sqS">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="60"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lj9-zW-6PO">
+                                <rect key="frame" x="16" y="12" width="39" height="18"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0:45:00" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dE5-hs-Ydw">
+                                <rect key="frame" x="188" y="12" width="116" height="39"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hhs-9i-IaT">
+                                <rect key="frame" x="16" y="31" width="37.5" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="hhs-9i-IaT" firstAttribute="top" secondItem="lj9-zW-6PO" secondAttribute="bottom" constant="1" id="7vG-CF-Yud"/>
+                            <constraint firstItem="lj9-zW-6PO" firstAttribute="top" secondItem="qkL-Od-lgU" secondAttribute="bottom" constant="12" id="9at-CV-b6L"/>
+                            <constraint firstAttribute="trailing" secondItem="dE5-hs-Ydw" secondAttribute="trailing" constant="16" id="JKd-8r-Qbx"/>
+                            <constraint firstItem="hhs-9i-IaT" firstAttribute="leading" secondItem="zMn-AG-sqS" secondAttribute="leading" constant="16" id="Q4m-jO-ETx"/>
+                            <constraint firstItem="dE5-hs-Ydw" firstAttribute="top" secondItem="qkL-Od-lgU" secondAttribute="bottom" constant="12" id="QGN-rB-rKn"/>
+                            <constraint firstItem="dE5-hs-Ydw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="hhs-9i-IaT" secondAttribute="trailing" constant="5" id="dv6-H6-QIx"/>
+                            <constraint firstItem="lj9-zW-6PO" firstAttribute="leading" secondItem="zMn-AG-sqS" secondAttribute="leading" constant="16" id="h3n-xT-m2b"/>
+                            <constraint firstItem="dE5-hs-Ydw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="lj9-zW-6PO" secondAttribute="trailing" constant="5" id="n74-2S-JAJ"/>
+                        </constraints>
+                    </view>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="320" height="60"/>
+                    <connections>
+                        <outlet property="descriptionLabel" destination="lj9-zW-6PO" id="rin-bc-IGY"/>
+                        <outlet property="timeFrameLabel" destination="hhs-9i-IaT" id="uz3-Ka-A6m"/>
+                        <outlet property="timeLabel" destination="dE5-hs-Ydw" id="Ckb-Ng-Dho"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="X47-rx-isc" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+</document>

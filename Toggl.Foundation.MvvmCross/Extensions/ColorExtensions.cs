@@ -1,4 +1,5 @@
 ﻿using MvvmCross.UI;
+using Toggl.Foundation.Calendar;
 using static System.Math;
 
 namespace Toggl.Foundation.MvvmCross.Extensions
@@ -59,6 +60,14 @@ namespace Toggl.Foundation.MvvmCross.Extensions
                 hue += 360.0f;
             }
             return hue / 360;
+        }
+
+        public static MvxColor ForegroundColor(this CalendarItem calendarItem)
+        {
+            var color = MvxColor.ParseHexString(calendarItem.Color);
+            var luma = (0.2126 * color.R + 0.7152 * color.G + 0.0722 * color.B) / 255;
+
+            return luma < 0.5 ? MvxColors.White : MvxColors.Black;
         }
     }
 }

@@ -47,10 +47,13 @@ namespace Toggl.Foundation.Tests.MvvmCross
         private readonly IFeedbackService feedbackService = Substitute.For<IFeedbackService>();
         private readonly IUserPreferences userPreferences = Substitute.For<IUserPreferences>();
         private readonly IOnboardingStorage onboardingStorage = Substitute.For<IOnboardingStorage>();
+        private readonly INotificationService notificationService = Substitute.For<INotificationService>();
         private readonly IForkingNavigationService navigationService = Substitute.For<IForkingNavigationService>();
         private readonly IErrorHandlingService errorHandlingService = Substitute.For<IErrorHandlingService>();
         private readonly IAccessRestrictionStorage accessRestrictionStorage = Substitute.For<IAccessRestrictionStorage>();
         private readonly ILastTimeUsageStorage lastTimeUsageStorage = Substitute.For<ILastTimeUsageStorage>();
+        private readonly IPermissionsService permissionsService = Substitute.For<IPermissionsService>();
+        private readonly ICalendarService calendarService = Substitute.For<ICalendarService>();
 
         public FoundationExtensionsTests()
         {
@@ -66,6 +69,8 @@ namespace Toggl.Foundation.Tests.MvvmCross
                     .WithErrorHandlingService(errorHandlingService)
                     .WithAccessRestrictionStorage(accessRestrictionStorage)
                     .WithLastTimeUsageStorage(lastTimeUsageStorage)
+                    .WithPermissionsService(permissionsService)
+                    .WithCalendarService(calendarService)
                     .Build();
         }
 
@@ -82,7 +87,9 @@ namespace Toggl.Foundation.Tests.MvvmCross
             bool useNavigationService,
             bool useApiErrorHandlingService,
             bool useAccessRestrictionStorage,
-            bool useLastTimeUsageStorage)
+            bool useLastTimeUsageStorage,
+            bool usePermissionsService,
+            bool useCalendarService)
         {
             var foundation = useFoundation ? constructFoundation() : null;
             var actualDialogService = useDialogService ? Substitute.For<IDialogService>() : null;
@@ -92,9 +99,11 @@ namespace Toggl.Foundation.Tests.MvvmCross
             var actualFeedbackService = useFeedbackService ? Substitute.For<IFeedbackService>() : null;
             var actualOnboardingStorage = useOnboardingStorage ? Substitute.For<IOnboardingStorage>() : null;
             var actualNavigationService = useNavigationService ? Substitute.For<IForkingNavigationService>() : null;
+            var actualLastTimeUsageStorage = useLastTimeUsageStorage ? Substitute.For<ILastTimeUsageStorage>() : null;
             var actualApiErrorHandlingService = useApiErrorHandlingService ? Substitute.For<IErrorHandlingService>() : null;
             var actualAccessRestrictionStorage = useAccessRestrictionStorage ? Substitute.For<IAccessRestrictionStorage>() : null;
-            var actualLastTimeUsageStorage = useLastTimeUsageStorage ? Substitute.For<ILastTimeUsageStorage>() : null;
+            var actualPermissionsService = usePermissionsService ? Substitute.For<IPermissionsService>() : null;
+            var actualCalendarService = useCalendarService ? Substitute.For<ICalendarService>() : null;
 
             Action tryingToConstructWithEmptyParameters = () =>
                 foundation.StartRegisteringPlatformServices()
@@ -108,6 +117,8 @@ namespace Toggl.Foundation.Tests.MvvmCross
                     .WithErrorHandlingService(actualApiErrorHandlingService)
                     .WithAccessRestrictionStorage(actualAccessRestrictionStorage)
                     .WithLastTimeUsageStorage(actualLastTimeUsageStorage)
+                    .WithPermissionsService(actualPermissionsService)
+                    .WithCalendarService(actualCalendarService)
                     .Build();
 
             tryingToConstructWithEmptyParameters
@@ -128,6 +139,8 @@ namespace Toggl.Foundation.Tests.MvvmCross
             var actualApiErrorHandlingService = Substitute.For<IErrorHandlingService>();
             var actualAccessRestrictionStorage = Substitute.For<IAccessRestrictionStorage>();
             var actualLastTimeUsageStorage = Substitute.For<ILastTimeUsageStorage>();
+            var actualPermissionsService = Substitute.For<IPermissionsService>();
+            var actualCalendarService = Substitute.For<ICalendarService>();
 
             Action tryingToConstructWithEmptyParameters = () =>
                 foundation.StartRegisteringPlatformServices()
@@ -141,6 +154,8 @@ namespace Toggl.Foundation.Tests.MvvmCross
                     .WithErrorHandlingService(actualApiErrorHandlingService)
                     .WithAccessRestrictionStorage(actualAccessRestrictionStorage)
                     .WithLastTimeUsageStorage(actualLastTimeUsageStorage)
+                    .WithPermissionsService(actualPermissionsService)
+                    .WithCalendarService(actualCalendarService)
                     .Build();
 
             tryingToConstructWithEmptyParameters.Should().NotThrow<Exception>();
@@ -175,9 +190,12 @@ namespace Toggl.Foundation.Tests.MvvmCross
                     .WithBackgroundService(backgroundService)
                     .WithSchedulerProvider(schedulerProvider)
                     .WithPlatformConstants(platformConstants)
+                    .WithNotificationService(notificationService)
                     .WithRemoteConfigService(remoteConfigService)
+                    .WithIntentDonationService(IntentDonationService)
                     .WithApplicationShortcutCreator(applicationShortcutCreator)
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
+                    .WithPrivateSharedStorageService(PrivateSharedStorageService)
                     .Build();
     }
 }

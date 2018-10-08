@@ -21,19 +21,17 @@ namespace Toggl.Foundation.DataSources
     public sealed class TogglDataSource : ITogglDataSource
     {
         private readonly ITogglDatabase database;
-        private readonly IErrorHandlingService errorHandlingService;
-        private readonly IBackgroundService backgroundService;
         private readonly ITimeService timeService;
+        private readonly IBackgroundService backgroundService;
+        private readonly INotificationService notificationService;
+        private readonly IErrorHandlingService errorHandlingService;
         private readonly IApplicationShortcutCreator shortcutCreator;
-
         private readonly TimeSpan minimumTimeInBackgroundForFullSync;
 
-        private IDisposable errorHandlingDisposable;
+        private bool isLoggedIn;
         private IDisposable signalDisposable;
         private IDisposable midnightDisposable;
-
-        private bool isLoggedIn;
-
+        private IDisposable errorHandlingDisposable;
         private Func<ITogglDataSource, ISyncManager> createSyncManager;
 
         public TogglDataSource(
@@ -44,12 +42,14 @@ namespace Toggl.Foundation.DataSources
             IBackgroundService backgroundService,
             Func<ITogglDataSource, ISyncManager> createSyncManager,
             TimeSpan minimumTimeInBackgroundForFullSync,
+            INotificationService notificationService,
             IApplicationShortcutCreator shortcutCreator,
             IAnalyticsService analyticsService)
         {
             Ensure.Argument.IsNotNull(api, nameof(api));
             Ensure.Argument.IsNotNull(database, nameof(database));
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
+            Ensure.Argument.IsNotNull(notificationService, nameof(notificationService));
             Ensure.Argument.IsNotNull(errorHandlingService, nameof(errorHandlingService));
             Ensure.Argument.IsNotNull(backgroundService, nameof(backgroundService));
             Ensure.Argument.IsNotNull(createSyncManager, nameof(createSyncManager));
@@ -57,11 +57,11 @@ namespace Toggl.Foundation.DataSources
             Ensure.Argument.IsNotNull(analyticsService, nameof(analyticsService));
 
             this.database = database;
-            this.errorHandlingService = errorHandlingService;
-            this.backgroundService = backgroundService;
             this.timeService = timeService;
             this.shortcutCreator = shortcutCreator;
-
+            this.backgroundService = backgroundService;
+            this.notificationService = notificationService;
+            this.errorHandlingService = errorHandlingService;
             this.minimumTimeInBackgroundForFullSync = minimumTimeInBackgroundForFullSync;
 
             User = new UserDataSource(database.User);
@@ -151,6 +151,10 @@ namespace Toggl.Foundation.DataSources
                 .Do(stopSyncingOnSignal)
                 .SelectMany(_ => database.Clear())
                 .Do(shortcutCreator.OnLogout)
+                .SelectMany(_ => 
+                    notificationService
+                        .UnscheduleAllNotifications()
+                        .Catch(Observable.Return(Unit.Default)))
                 .FirstAsync();
 
         private IObservable<bool> hasUnsyncedData<TModel>(IBaseStorage<TModel> repository)

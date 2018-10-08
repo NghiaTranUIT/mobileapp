@@ -4,6 +4,7 @@ using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Services;
+using Toggl.Foundation.Services;
 using Toggl.Foundation.Shortcuts;
 using Toggl.Multivac;
 using Toggl.PrimeRadiant;
@@ -17,12 +18,16 @@ namespace Toggl.Foundation.Tests.MvvmCross
         protected ITimeService TimeService { get; } = Substitute.For<ITimeService>();
         protected ITogglDataSource DataSource { get; } = Substitute.For<ITogglDataSource>();
         protected IUserPreferences UserPreferences { get; } = Substitute.For<IUserPreferences>();
+        protected ICalendarService CalendarService { get; } = Substitute.For<ICalendarService>();
         protected IAnalyticsService AnalyticsService { get; } = Substitute.For<IAnalyticsService>();
         protected IInteractorFactory InteractorFactory { get; } = Substitute.For<IInteractorFactory>();
+        protected IPermissionsService PermissionsService { get; } = Substitute.For<IPermissionsService>();
         protected IApplicationShortcutCreator ApplicationShortcutCreator { get; }
             = Substitute.For<IApplicationShortcutCreator>();
 
         protected IForkingNavigationService NavigationService { get; } = Substitute.For<IForkingNavigationService>();
         protected TestSchedulerProvider SchedulerProvider { get; } = new TestSchedulerProvider();
+        protected IIntentDonationService IntentDonationService { get; } = Substitute.For<IIntentDonationService>();
+        protected IPrivateSharedStorageService PrivateSharedStorageService { get; } = Substitute.For<IPrivateSharedStorageService>();
     }
 }

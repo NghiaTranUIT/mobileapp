@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Xamarin.Build.Download.0.4.11\build\Xamarin.Build.Download.props" Condition="Exists('..\packages\Xamarin.Build.Download.0.4.11\build\Xamarin.Build.Download.props')" />
   <PropertyGroup>
@@ -30,6 +30,7 @@
     <MtouchArch>x86_64</MtouchArch>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchExtraArgs>--linkskip Toggl.Daneel --registrar:static</MtouchExtraArgs>
+    <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -524,6 +525,18 @@
     <ImageAsset Include="Resources\Images.xcassets\icWarning.imageset\icWarning.png" />
     <ImageAsset Include="Resources\Images.xcassets\icWarning.imageset\icWarning%402x.png" />
     <ImageAsset Include="Resources\Images.xcassets\icWarning.imageset\icWarning%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendar.imageset\Contents.json" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendar.imageset\icCalendar.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendar.imageset\icCalendar%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendar.imageset\icCalendar%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationCalendar.imageset\Contents.json" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationCalendar.imageset\icIllustrationCalendar.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationCalendar.imageset\icIllustrationCalendar%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationCalendar.imageset\icIllustrationCalendar%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorSpider.imageset\Contents.json" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorSpider.imageset\icIllustrationErrorSpider.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorSpider.imageset\icIllustrationErrorSpider%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorSpider.imageset\icIllustrationErrorSpider%403x.png" />
     <ImageAsset Include="Resources\Images.xcassets\icTime.imageset\Contents.json" />
     <ImageAsset Include="Resources\Images.xcassets\icTime.imageset\icTime.png" />
     <ImageAsset Include="Resources\Images.xcassets\icTime.imageset\icTime%402x.png" />
@@ -536,6 +549,10 @@
     <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorWorkspace.imageset\icIllustrationErrorWorkspace.png" />
     <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorWorkspace.imageset\icIllustrationErrorWorkspace%402x.png" />
     <ImageAsset Include="Resources\Images.xcassets\icIllustrationErrorWorkspace.imageset\icIllustrationErrorWorkspace%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\Contents.json" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\icCalendarSmall.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\icCalendarSmall%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\icCalendarSmall%403x.png" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -600,7 +617,21 @@
     <InterfaceDefinition Include="Cells\Settings\LicensesViewCell.xib" />
     <InterfaceDefinition Include="ViewControllers\NoWorkspaceViewController.xib" />
     <InterfaceDefinition Include="ViewControllers\Settings\SendFeedbackViewController.xib" />
+    <InterfaceDefinition Include="ViewControllers\Calendar\CalendarViewController.xib" />
+    <InterfaceDefinition Include="ViewControllers\Calendar\CalendarPermissionDeniedViewController.xib" />
+    <InterfaceDefinition Include="Cells\Calendar\CalendarItemView.xib" />
+    <InterfaceDefinition Include="Cells\Calendar\CurrentTimeSupplementaryView.xib" />
+    <InterfaceDefinition Include="Cells\Calendar\HourSupplementaryView.xib" />
     <InterfaceDefinition Include="Views\SnackBar.xib" />
+    <InterfaceDefinition Include="ViewControllers\Calendar\SelectUserCalendarsViewController.xib" />
+    <InterfaceDefinition Include="Cells\Calendar\SelectableUserCalendarViewCell.xib" />
+    <InterfaceDefinition Include="Cells\Calendar\UserCalendarListHeaderViewCell.xib" />
+    <InterfaceDefinition Include="Views\Settings\CalendarSettingsTableViewHeader.xib" />
+    <InterfaceDefinition Include="ViewControllers\Settings\CalendarSettingsViewController.xib" />
+    <InterfaceDefinition Include="Cells\Calendar\EditingHourSupplementaryView.xib" />
+    <InterfaceDefinition Include="ViewControllers\Settings\NotificationSettingsViewController.xib" />
+    <InterfaceDefinition Include="ViewControllers\Settings\UpcomingEventsNotificationSettingsViewController.xib" />
+    <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -619,7 +650,10 @@
   <ItemGroup>
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
+    <Compile Include="Extensions\IntentPeriod.cs" />
     <Compile Include="Extensions\SectionedIndexExtensions.cs" />
+    <Compile Include="Services\PermissionsService.cs" />
+    <Compile Include="Services\CalendarService.cs" />
     <Compile Include="Extensions\Reactive\NSConstraintExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIApplicationExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIButtonExtensions.cs" />
@@ -629,6 +663,7 @@
     <Compile Include="Extensions\Reactive\UITableViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\UITextViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIViewExtensions.cs" />
+    <Compile Include="Services\IntentDonationService.cs" />
     <Compile Include="Services\UserDefaultsStorage.cs" />
     <Compile Include="Startup\IOSSchedulerProvider.cs" />
     <Compile Include="Startup\Setup.cs" />
@@ -706,6 +741,8 @@
     </Compile>
     <Compile Include="ViewSources\SelectTagsTableViewSource.cs" />
     <Compile Include="ViewSources\GroupedCollectionTableViewSource.cs" />
+    <Compile Include="Views\Calendar\CalendarCollectionViewItemLayoutAttributes.cs" />
+    <Compile Include="Views\Calendar\CalendarCollectionViewLayout.cs" />
     <Compile Include="Views\EditDuration\DurationFieldTextFormatter.cs" />
     <Compile Include="Views\Log\RefreshControl.cs" />
     <Compile Include="Views\Log\TimeEntriesLogTableView.cs" />
@@ -844,7 +881,7 @@
     <Compile Include="ReportsCalendarCollectionViewLayout.cs" />
     <Compile Include="Binding\ScrollViewCurrentPageTargetBinding.cs" />
     <Compile Include="Binding\LayoutConstraintAnimatedConstantTargetBinding.cs" />
-    <Compile Include="Converters\CalendarRowCountToCalendarHeightConverter.cs" />
+    <Compile Include="Converters\ReportsCalendarRowCountToCalendarHeightConverter.cs" />
     <Compile Include="Views\Reports\ReportsCalendarViewCell.cs" />
     <Compile Include="Views\Reports\ReportsCalendarViewCell.designer.cs">
       <DependentUpon>ReportsCalendarViewCell.cs</DependentUpon>
@@ -855,7 +892,7 @@
       <DependentUpon>ReportsCalendarQuickSelectViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\RoundedView.cs" />
-    <Compile Include="Combiners\CalendarCellTextColorValueCombiner.cs" />
+    <Compile Include="Combiners\ReportsCalendarCellTextColorValueCombiner.cs" />
     <Compile Include="Views\Reports\PieChartView.cs" />
     <Compile Include="Converters\ReportTimeSpanLabelValueConverter.cs" />
     <Compile Include="Converters\ReportPercentageLabelValueConverter.cs" />
@@ -1011,6 +1048,28 @@
       <DependentUpon>SendFeedbackViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Binding\TextViewWithPlaceholderDidBecomeFirstResponderTargetBinding.cs" />
+    <Compile Include="Views\ReactiveCollectionViewCell.cs" />
+    <Compile Include="ViewControllers\Calendar\CalendarViewController.cs" />
+    <Compile Include="ViewControllers\Calendar\CalendarViewController.designer.cs">
+      <DependentUpon>CalendarViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewControllers\Calendar\CalendarPermissionDeniedViewController.cs" />
+    <Compile Include="ViewControllers\Calendar\CalendarPermissionDeniedViewController.designer.cs">
+      <DependentUpon>CalendarPermissionDeniedViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\ICalendarCollectionViewLayoutDataSource.cs" />
+    <Compile Include="Cells\Calendar\CalendarItemView.cs" />
+    <Compile Include="Cells\Calendar\CalendarItemView.designer.cs">
+      <DependentUpon>CalendarItemView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\Calendar\CurrentTimeSupplementaryView.cs" />
+    <Compile Include="Cells\Calendar\CurrentTimeSupplementaryView.designer.cs">
+      <DependentUpon>CurrentTimeSupplementaryView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\Calendar\HourSupplementaryView.cs" />
+    <Compile Include="Cells\Calendar\HourSupplementaryView.designer.cs">
+      <DependentUpon>HourSupplementaryView.cs</DependentUpon>
+    </Compile>
     <Compile Include="ViewControllers\MainTabBarController.cs" />
     <Compile Include="Startup\NSRunLoopScheduler.cs" />
     <Compile Include="Views\SnackBar.cs" />
@@ -1021,9 +1080,57 @@
     <Compile Include="ViewControllers\NoWorkspaceViewController.designer.cs">
       <DependentUpon>NoWorkspaceViewController.cs</DependentUpon>
     </Compile>
+    <Compile Include="ViewControllers\Calendar\SelectUserCalendarsViewController.cs" />
+    <Compile Include="ViewControllers\Calendar\SelectUserCalendarsViewController.designer.cs">
+      <DependentUpon>SelectUserCalendarsViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewSources\SelectUserCalendarsTableViewSource.cs" />
+    <Compile Include="Cells\Calendar\SelectableUserCalendarViewCell.cs" />
+    <Compile Include="Cells\Calendar\SelectableUserCalendarViewCell.designer.cs">
+      <DependentUpon>SelectableUserCalendarViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\Calendar\UserCalendarListHeaderViewCell.cs" />
+    <Compile Include="Cells\Calendar\UserCalendarListHeaderViewCell.designer.cs">
+      <DependentUpon>UserCalendarListHeaderViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewSources\CalendarCollectionViewSource.cs" />
+    <Compile Include="Extensions\ColorExtensions.cs" />
+    <Compile Include="Views\Settings\CalendarSettingsTableViewHeader.cs" />
+    <Compile Include="Views\Settings\CalendarSettingsTableViewHeader.designer.cs">
+      <DependentUpon>CalendarSettingsTableViewHeader.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewControllers\Settings\CalendarSettingsViewController.cs" />
+    <Compile Include="ViewControllers\Settings\CalendarSettingsViewController.designer.cs">
+      <DependentUpon>CalendarSettingsViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\CalendarCollectionViewCreateFromSpanHelper.cs" />
+    <Compile Include="Views\Calendar\CalendarCollectionViewEditItemHelper.cs" />
+    <Compile Include="Cells\Calendar\EditingHourSupplementaryView.cs" />
+    <Compile Include="Cells\Calendar\EditingHourSupplementaryView.designer.cs">
+      <DependentUpon>EditingHourSupplementaryView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Services\NotificationService.cs" />
+    <Compile Include="Extensions\NotificationExtensions.cs" />
+    <Compile Include="ViewControllers\Settings\NotificationSettingsViewController.cs" />
+    <Compile Include="ViewControllers\Settings\NotificationSettingsViewController.designer.cs">
+      <DependentUpon>NotificationSettingsViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewControllers\Settings\UpcomingEventsNotificationSettingsViewController.cs" />
+    <Compile Include="ViewControllers\Settings\UpcomingEventsNotificationSettingsViewController.designer.cs">
+      <DependentUpon>UpcomingEventsNotificationSettingsViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\Settings\UpcomingEventsOptionCell.cs" />
+    <Compile Include="Cells\Settings\UpcomingEventsOptionCell.designer.cs">
+      <DependentUpon>UpcomingEventsOptionCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewSources\UpcomingEventsNotificationSettingsSource.cs" />
+    <Compile Include="Extensions\ScrollViewExtensions.cs" />
+    <Compile Include="Presentation\Attributes\TabPresentationAttribute.cs" />
+    <Compile Include="Views\Calendar\CalendarCollectionViewAutoScrollHelper.cs" />
     <Compile Include="Extensions\Reactive\UIControlExtensions.cs" />
     <Compile Include="Binding\LayoutConstraintActiveTargetBinding.cs" />
     <Compile Include="ViewControllers\IDismissableViewController.cs" />
+    <Compile Include="Services\PrivateSharedStorageService.cs" />
     <Compile Include="Extensions\Reactive\FadeViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\NSObjectExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIStackViewExtensions.cs" />
@@ -1057,6 +1164,24 @@
       <Project>{6AF7BE5E-AF9D-4EA7-AF7F-28D07B8DEF24}</Project>
       <Name>Toggl.Multivac</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Toggl.Daneel.IntentBinding\Toggl.Daneel.IntentBinding.csproj">
+      <Project>{A1BBF640-E712-4E35-8E3F-AE07C7C7EDB0}</Project>
+      <Name>Toggl.Daneel.IntentBinding</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Toggl.Daneel.SiriExtension\Toggl.Daneel.SiriExtension.csproj">
+      <IsAppExtension>true</IsAppExtension>
+      <Project>{48C970FE-E13F-4664-A2FD-4EBFD2DD131E}</Project>
+      <Name>Toggl.Daneel.SiriExtension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Toggl.Daneel.ExtensionKit\Toggl.Daneel.ExtensionKit.csproj">
+      <Project>{ACA2821E-0FF9-4036-BFF6-E775BB4E6732}</Project>
+      <Name>Toggl.Daneel.ExtensionKit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Toggl.Daneel.SiriExtension.UI\Toggl.Daneel.SiriExtension.UI.csproj">
+      <IsAppExtension>true</IsAppExtension>
+      <Project>{BC329A24-95D6-4D02-95B5-2AA699D8873A}</Project>
+      <Name>Toggl.Daneel.SiriExtension.UI</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\Images.xcassets\line.imageset\" />
@@ -1086,8 +1211,17 @@
     <Folder Include="Resources\Images.xcassets\paws.imageset\" />
     <Folder Include="Resources\Images.xcassets\icBackNoPadding.imageset\" />
     <Folder Include="Resources\Images.xcassets\icWarning.imageset\" />
+    <Folder Include="Resources\Images.xcassets\icCalendar.imageset\" />
+    <Folder Include="Resources\Images.xcassets\icIllustrationCalendar.imageset\" />
+    <Folder Include="ViewControllers\Calendar\" />
+    <Folder Include="Resources\Images.xcassets\icIllustrationErrorSpider.imageset\" />
+    <Folder Include="Cells\Calendar\" />
     <Folder Include="Resources\Images.xcassets\icTime.imageset\" />
     <Folder Include="Resources\Images.xcassets\icIllustrationErrorWorkspace.imageset\" />
+    <Folder Include="Views\Calendar\" />
+    <Folder Include="ViewControllers\Calendar\" />
+    <Folder Include="Cells\Calendar\" />
+    <Folder Include="Resources\Images.xcassets\icCalendarSmall.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="GoogleService-Info.plist" />

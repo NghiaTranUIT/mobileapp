@@ -13,6 +13,7 @@ using Toggl.Foundation.DTOs;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.MvvmCross.ViewModels.Settings;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Tests.Generators;
@@ -56,7 +57,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     InteractorFactory,
                     PlatformConstants,
                     OnboardingStorage,
-                    NavigationService);
+                    NavigationService,
+                    PrivateSharedStorageService,
+                    IntentDonationService);
             }
 
             protected virtual void SetupObservables()
@@ -79,7 +82,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useInteractorFactory,
                 bool usePlatformConstants,
                 bool useOnboardingStorage,
-                bool useNavigationService)
+                bool useNavigationService,
+                bool usePrivateSharedStorageService,
+                bool useIntentDonationService)
             {
                 var userAgent = useUserAgent ? UserAgent : null;
                 var dataSource = useDataSource ? DataSource : null;
@@ -92,6 +97,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var navigationService = useNavigationService ? NavigationService : null;
                 var platformConstants = usePlatformConstants ? PlatformConstants : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
+                var privateSharedStorageService = usePrivateSharedStorageService ? PrivateSharedStorageService : null;
+                var intentDonationService = useIntentDonationService ? IntentDonationService : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new SettingsViewModel(
@@ -105,7 +112,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         interactorFactory,
                         platformConstants,
                         onboardingStorage,
-                        navigationService);
+                        navigationService,
+                        privateSharedStorageService,
+                        intentDonationService);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -354,6 +363,24 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 DataSource.HasUnsyncedData().Returns(Observable.Return(false));
                 ProgressSubject.OnNext(SyncProgress.Synced);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ClearsPrivateSharedStorage()
+            {
+                doNotShowConfirmationDialog();
+                await ViewModel.TryLogout();
+
+                PrivateSharedStorageService.Received().ClearAll();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ClearsDonatedIntents()
+            {
+                doNotShowConfirmationDialog();
+                await ViewModel.TryLogout();
+
+                IntentDonationService.Received().ClearAll();
             }
         }
 
@@ -793,6 +820,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.SubmitFeedbackUsingEmail();
                 await FeedbackService.Received().SubmitFeedback();
+            }
+        }
+
+        public sealed class TheOpenCalendarSettingsAction : SettingsViewModelTest
+        {
+            [Fact, LogIfTooSlow]
+            public async Task NavigatesToCalendarSettingsViewModel()
+            {
+                await ViewModel.OpenCalendarSettingsAction.Execute(Unit.Default);
+
+                await NavigationService.Received().Navigate<CalendarSettingsViewModel>();
             }
         }
     }

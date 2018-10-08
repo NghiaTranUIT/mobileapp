@@ -3,25 +3,23 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
-using PropertyChanged;
 using Toggl.Foundation;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Experiments;
 using Toggl.Foundation.Extensions;
-using Toggl.Foundation.Helper;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Foundation.MvvmCross.ViewModels.Hints;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 using Toggl.Foundation.Services;
@@ -86,10 +84,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public IMvxCommand ToggleManualMode { get; }
 
         // Inputs
-        public InputAction<TimeEntryViewModel> ContinueTimeEntry { get; }
-        public InputAction<TimeEntryViewModel> SelectTimeEntry { get; }
-
         public UIAction RefreshAction { get; }
+        public InputAction<TimeEntryViewModel> DeleteTimeEntry { get; }
+        public InputAction<TimeEntryViewModel> SelectTimeEntry { get; }
+        public InputAction<TimeEntryViewModel> ContinueTimeEntry { get; }
 
         // Private
         private const int ratingViewTimeout = 5;
@@ -102,6 +100,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
         private readonly ISchedulerProvider schedulerProvider;
+        private readonly IIntentDonationService intentDonationService;
         private readonly IAccessRestrictionStorage accessRestrictionStorage;
 
         private CompositeDisposable disposeBag = new CompositeDisposable();
@@ -133,6 +132,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IMvxNavigationService navigationService,
             IRemoteConfigService remoteConfigService,
             ISuggestionProviderContainer suggestionProviders,
+            IIntentDonationService intentDonationService,
             IAccessRestrictionStorage accessRestrictionStorage,
             ISchedulerProvider schedulerProvider)
         {
@@ -146,6 +146,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             Ensure.Argument.IsNotNull(remoteConfigService, nameof(remoteConfigService));
             Ensure.Argument.IsNotNull(suggestionProviders, nameof(suggestionProviders));
+            Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(accessRestrictionStorage, nameof(accessRestrictionStorage));
 
@@ -157,6 +158,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.onboardingStorage = onboardingStorage;
             this.schedulerProvider = schedulerProvider;
+            this.intentDonationService = intentDonationService;
             this.accessRestrictionStorage = accessRestrictionStorage;
 
             SuggestionsViewModel = new SuggestionsViewModel(dataSource, interactorFactory, onboardingStorage, suggestionProviders);
@@ -176,14 +178,27 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             StartTimeEntryCommand = new MvxAsyncCommand(startTimeEntry, () => CurrentTimeEntryId.HasValue == false);
             AlternativeStartTimeEntryCommand = new MvxAsyncCommand(alternativeStartTimeEntry, () => CurrentTimeEntryId.HasValue == false);
 
-            ContinueTimeEntry = new InputAction<TimeEntryViewModel>(continueTimeEntry);
-            SelectTimeEntry = new InputAction<TimeEntryViewModel>(timeEntrySelected);
             RefreshAction = new UIAction(refresh);
+            DeleteTimeEntry = new InputAction<TimeEntryViewModel>(deleteTimeEntry);
+            SelectTimeEntry = new InputAction<TimeEntryViewModel>(timeEntrySelected);
+            ContinueTimeEntry = new InputAction<TimeEntryViewModel>(continueTimeEntry);
         }
 
-        public void Init(string action)
+        public void Init(string action, string description)
         {
             urlNavigationAction = action;
+
+            if (description != null)
+            {
+                interactorFactory
+                    .GetDefaultWorkspace()
+                    .Execute()
+                    .SelectMany(workspace => interactorFactory
+                        .CreateTimeEntry(description.AsTimeEntryPrototype(timeService.CurrentDateTime, workspace.Id))
+                        .Execute())
+                    .Subscribe()
+                    .DisposedBy(disposeBag);
+            }
         }
 
         public override async Task Initialize()
@@ -383,9 +398,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return interactorFactory
                 .ContinueTimeEntry(timeEntry)
                 .Execute()
-                .Do( _ => {
-                    onboardingStorage.SetTimeEntryContinued();
-                })
+                .Do( _ => onboardingStorage.SetTimeEntryContinued())
                 .SelectUnit();
         }
 
@@ -404,6 +417,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .SelectUnit();
         }
 
+        private IObservable<Unit> deleteTimeEntry(TimeEntryViewModel timeEntry)
+        {
+            return interactorFactory
+                .DeleteTimeEntry(timeEntry.Id)
+                .Execute()
+                .Do( _ => {
+                    analyticsService.DeleteTimeEntry.Track();
+                    dataSource.SyncManager.PushSync();
+                });
+        }
+
         private async Task stopTimeEntry()
         {
             OnboardingStorage.StopButtonWasTapped();
@@ -414,6 +438,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             await interactorFactory
                 .StopTimeEntry(timeService.CurrentDateTime)
                 .Execute()
+                .Do(_ => intentDonationService.DonateStopCurrentTimeEntry())
                 .Do(dataSource.SyncManager.InitiatePushSync);
 
             CurrentTimeEntryElapsedTime = TimeSpan.Zero;

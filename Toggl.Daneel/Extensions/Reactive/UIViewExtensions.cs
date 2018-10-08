@@ -55,5 +55,16 @@ namespace Toggl.Daneel.Extensions.Reactive
                     }
                 );
             };
+
+        public static Action<float> AnimatedAlpha(this IReactive<UIView> reactive)
+            => alpha =>
+            {
+                AnimationExtensions.Animate(
+                    Animation.Timings.EnterTiming,
+                    Animation.Curves.SharpCurve,
+                    () => reactive.Base.Alpha = alpha
+                );
+            };
+
     }
 }

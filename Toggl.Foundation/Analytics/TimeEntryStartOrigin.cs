@@ -6,6 +6,8 @@
         Manual,
         Continue,
         Suggestion,
-        ContinueMostRecent
+        ContinueMostRecent,
+        CalendarEvent,
+        CalendarTapAndDrag
     }
 }

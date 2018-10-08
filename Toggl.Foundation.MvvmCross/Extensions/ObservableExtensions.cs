@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Toggl.Foundation.Exceptions;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 
@@ -16,5 +18,19 @@ namespace Toggl.Foundation.MvvmCross.Extensions
 
         public static IDisposable Subscribe(this IObservable<Unit> observable, Func<Task> onNext)
             => observable.Subscribe(async (Unit _) => await onNext());
+
+        public static IObservable<T> DeferAndThrowIfPermissionNotGranted<T>(this IObservable<bool> permissionGrantedObservable, Func<IObservable<T>> implementation)
+            => Observable.DeferAsync(async cancellationToken =>
+            {
+                var isAuthorized = await permissionGrantedObservable;
+                if (!isAuthorized)
+                {
+                    return Observable.Throw<T>(
+                        new NotAuthorizedException("You don't have permission to schedule notifications")
+                    );
+                }
+
+                return implementation();
+            });
     }
 }

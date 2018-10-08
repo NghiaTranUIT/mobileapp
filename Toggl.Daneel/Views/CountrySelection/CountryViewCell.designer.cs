@@ -1,34 +1,36 @@
 // WARNING
 //
-// This file has been generated automatically by Visual Studio to store outlets and
-// actions made in the UI designer. If it is removed, they will be lost.
-// Manual changes to this file may not be handled correctly.
+// This file has been generated automatically by Visual Studio from the outlets and
+// actions declared in your storyboard file.
+// Manual changes to this file will not be maintained.
 //
 using Foundation;
+using System;
 using System.CodeDom.Compiler;
 
 namespace Toggl.Daneel.Views.CountrySelection
 {
-	[Register ("CountryViewCell")]
-	partial class CountryViewCell
-	{
-		[Outlet]
-		UIKit.UIImageView CheckBoxImageView { get; set; }
+    [Register ("CountryViewCell")]
+    partial class CountryViewCell
+    {
+        [Outlet]
+        UIKit.UIImageView CheckBoxImageView { get; set; }
 
-		[Outlet]
-		UIKit.UILabel NameLabel { get; set; }
-		
-		void ReleaseDesignerOutlets ()
-		{
-			if (NameLabel != null) {
-				NameLabel.Dispose ();
-				NameLabel = null;
-			}
 
-			if (CheckBoxImageView != null) {
-				CheckBoxImageView.Dispose ();
-				CheckBoxImageView = null;
-			}
-		}
-	}
+        [Outlet]
+        UIKit.UILabel NameLabel { get; set; }
+
+        void ReleaseDesignerOutlets ()
+        {
+            if (CheckBoxImageView != null) {
+                CheckBoxImageView.Dispose ();
+                CheckBoxImageView = null;
+            }
+
+            if (NameLabel != null) {
+                NameLabel.Dispose ();
+                NameLabel = null;
+            }
+        }
+    }
 }

@@ -9,5 +9,8 @@ namespace Toggl.Giskard.Services
     {
         public IObservable<RatingViewConfiguration> RatingViewConfiguration { get; }
             = Observable.Return(new RatingViewConfiguration(int.MaxValue, RatingViewCriterion.None));
+
+        public IObservable<bool> IsCalendarFeatureEnabled
+            => Observable.Return(false);
     }
 }

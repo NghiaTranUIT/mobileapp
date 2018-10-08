@@ -17,6 +17,7 @@ using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.Transformations;
+using Toggl.Foundation.MvvmCross.ViewModels.Settings;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Sync;
 using Toggl.Multivac;
@@ -47,6 +48,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IOnboardingStorage onboardingStorage;
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
+        private readonly IPrivateSharedStorageService privateSharedStorageService;
+        private readonly IIntentDonationService intentDonationService;
 
         private bool isSyncing;
         private bool isLoggingOut;
@@ -87,7 +90,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool> IsFeedbackSuccessViewShowing { get; }
 
+        public bool CalendarSettingsEnabled => onboardingStorage.CompletedCalendarOnboarding();
+
         public string Version => $"{userAgent.Version} ({platformConstants.BuildNumber})";
+
+        public UIAction OpenCalendarSettingsAction { get; }
+
+        public UIAction OpenNotificationSettingsAction { get; }
 
         public SettingsViewModel(
             UserAgent userAgent,
@@ -100,7 +109,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IInteractorFactory interactorFactory,
             IPlatformConstants platformConstants,
             IOnboardingStorage onboardingStorage,
-            IMvxNavigationService navigationService)
+            IMvxNavigationService navigationService,
+            IPrivateSharedStorageService privateSharedStorageService,
+            IIntentDonationService intentDonationService)
         {
             Ensure.Argument.IsNotNull(userAgent, nameof(userAgent));
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
@@ -113,6 +124,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             Ensure.Argument.IsNotNull(platformConstants, nameof(platformConstants));
+            Ensure.Argument.IsNotNull(privateSharedStorageService, nameof(privateSharedStorageService));
+            Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
 
             this.userAgent = userAgent;
             this.dataSource = dataSource;
@@ -125,6 +138,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.platformConstants = platformConstants;
             this.onboardingStorage = onboardingStorage;
+            this.privateSharedStorageService = privateSharedStorageService;
+            this.intentDonationService = intentDonationService;
 
             IsSynced = dataSource.SyncManager.ProgressObservable.SelectMany(checkSynced);
 
@@ -205,6 +220,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DisposedBy(disposeBag);
 
             IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsObservable();
+
+            OpenCalendarSettingsAction = new UIAction(openCalendarSettings);
+
+            OpenNotificationSettingsAction = new UIAction(openNotificationSettings);
         }
 
         public void CloseFeedbackSuccessView()
@@ -333,12 +352,21 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             await updatePreferences(newDurationFormat);
         }
 
+        private IObservable<Unit> openCalendarSettings()
+            => Observable.FromAsync(async () => await navigationService.Navigate<CalendarSettingsViewModel>());
+
+        private IObservable<Unit> openNotificationSettings()
+            => Observable.FromAsync(async () => await navigationService.Navigate<NotificationSettingsViewModel>());
+
         private IObservable<Unit> logout()
         {
             isLoggingOut = true;
             loggingOutSubject.OnNext(Unit.Default);
             analyticsService.Logout.Track(LogoutSource.Settings);
             userPreferences.Reset();
+
+            privateSharedStorageService.ClearAll();
+            intentDonationService.ClearAll();
 
             return dataSource.Logout().Do(_ => navigationService.Navigate<LoginViewModel>());
         }

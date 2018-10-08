@@ -17,5 +17,7 @@ namespace Toggl.Foundation.Helper
         public static TimeSpan MaxTimeEntryDuration => TimeSpan.FromHours(MaxTimeEntryDurationInHours);
 
         public static TimeSpan UndoTime => TimeSpan.FromSeconds(5);
+
+        public static TimeSpan CalendarItemViewDefaultDuration => TimeSpan.FromMinutes(15);
     }
 }

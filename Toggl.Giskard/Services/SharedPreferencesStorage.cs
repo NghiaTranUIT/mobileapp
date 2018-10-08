@@ -55,6 +55,18 @@ namespace Toggl.Giskard.Services
             SetString(key, value.ToString());
         }
 
+        public TimeSpan? GetTimeSpan(string key)
+            => sharedPreferences.Contains(key)
+                ? (TimeSpan?)TimeSpan.FromTicks(sharedPreferences.GetLong(key, 0))
+                : null;
+
+        public void SetTimeSpan(string key, TimeSpan timeSpan)
+        {
+            var editor = sharedPreferences.Edit();
+            editor.PutLong(key, timeSpan.Ticks);
+            editor.Commit();
+        }
+
         public void Remove(string key)
         {
             var editor = sharedPreferences.Edit();

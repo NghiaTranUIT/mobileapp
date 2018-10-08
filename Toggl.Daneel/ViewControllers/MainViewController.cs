@@ -12,6 +12,7 @@ using MvvmCross.Plugin.Visibility;
 using Toggl.Daneel.Combiners;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.Suggestions;
 using Toggl.Daneel.Views;
 using Toggl.Daneel.ViewSources;
@@ -27,9 +28,11 @@ using Toggl.PrimeRadiant.Onboarding;
 using Toggl.PrimeRadiant.Settings;
 using UIKit;
 using static Toggl.Foundation.MvvmCross.Helper.Animation;
+using Toggl.Daneel.ExtensionKit;
 
 namespace Toggl.Daneel.ViewControllers
 {
+    [TabPresentation]
     public partial class MainViewController : ReactiveViewController<MainViewModel>
     {
         private const float showCardDelay = 0.1f;
@@ -43,7 +46,7 @@ namespace Toggl.Daneel.ViewControllers
 
         private readonly UIView spiderContainerView = new UIView();
         private readonly SpiderOnARopeView spiderBroView = new SpiderOnARopeView();
-        private readonly UIButton settingsButton = new UIButton(new CGRect(0, 0, 30, 40));
+        private readonly UIButton settingsButton = new UIButton(new CGRect(0, 0, 40, 50));
         private readonly UIButton syncFailuresButton = new UIButton(new CGRect(0, 0, 30, 40));
         private readonly UIImageView titleImage = new UIImageView(UIImage.FromBundle("togglLogo"));
         private readonly TimeEntriesEmptyLogView emptyStateView = TimeEntriesEmptyLogView.Create();
@@ -216,6 +219,8 @@ namespace Toggl.Daneel.ViewControllers
 
             View.SetNeedsLayout();
             View.LayoutIfNeeded();
+
+            NSNotificationCenter.DefaultCenter.AddObserver(UIApplication.DidBecomeActiveNotification, onApplicationDidBecomeActive);
         }
 
         private void setupTableViewHeader()
@@ -247,7 +252,7 @@ namespace Toggl.Daneel.ViewControllers
             NavigationItem.TitleView = titleImage;
             NavigationItem.RightBarButtonItems = new[]
             {
-                new UIBarButtonItem(settingsButton),
+                new UIBarButtonItem(settingsButton)
             };
 
 #if DEBUG
@@ -256,6 +261,15 @@ namespace Toggl.Daneel.ViewControllers
                 new UIBarButtonItem(syncFailuresButton)
             };
 #endif
+        }
+
+        private void onApplicationDidBecomeActive(NSNotification notification)
+        {
+            if (SharedStorage.instance.GetNeedsSync())
+            {
+                SharedStorage.instance.SetNeedsSync(false);
+                ViewModel.RefreshAction.Execute();
+            }
         }
 
         private void toggleUndoDeletion(bool show)

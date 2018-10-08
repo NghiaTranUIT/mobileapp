@@ -18,17 +18,24 @@ using UIKit;
 using MvvmCross.Presenters.Attributes;
 using MvvmCross.Platforms.Ios.Presenters;
 using MvvmCross.Presenters;
+using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 
 namespace Toggl.Daneel.Presentation
 {
     public sealed class TogglPresenter : MvxIosViewPresenter, ITopViewControllerProvider
     {
-        private ModalTransitionDelegate modalTransitionDelegate = new ModalTransitionDelegate();
+        private readonly ModalTransitionDelegate modalTransitionDelegate = new ModalTransitionDelegate();
 
         private readonly Dictionary<Type, INestedPresentationInfo> nestedPresentationInfo;
+        private readonly List<Type> tabViewModelTypes = new List<Type>
+        {
+            typeof(MainViewModel),
+            typeof(ReportsViewModel),
+            typeof(CalendarViewModel)
+        };
 
-        private CATransition FadeAnimation = new CATransition
+        private readonly CATransition fadeAnimation = new CATransition
         {
             Duration = Animation.Timings.EnterTiming,
             Type = CAAnimation.TransitionFade,
@@ -78,6 +85,28 @@ namespace Toggl.Daneel.Presentation
                     ShowAction = showModalDialogViewController,
                     CloseAction = (viewModel, attribute) => CloseModalViewController(viewModel, (MvxModalPresentationAttribute)attribute)
                 });
+
+            AttributeTypesToActionsDictionary.Add(
+                typeof(TabPresentationAttribute),
+                new MvxPresentationAttributeAction
+                {
+                    ShowAction = showTabViewController,
+                    CloseAction = (viewModel, attribute) => false
+                });
+        }
+
+        private void showTabViewController(Type viewType, MvxBasePresentationAttribute attribute, MvxViewModelRequest request)
+        {
+            var tabIndex = tabViewModelTypes.IndexOf(request.ViewModelType);
+            if (tabIndex < 0)
+                return;
+
+            mainTabBarController.SelectedIndex = tabIndex;
+
+            if (mainTabBarController.ViewControllers[tabIndex] is UINavigationController navigationController)
+            {
+                navigationController.PopToRootViewController(false);
+            }
         }
 
         private void showNestedViewController(Type viewType, MvxBasePresentationAttribute attribute, MvxViewModelRequest request)
@@ -129,7 +158,7 @@ namespace Toggl.Daneel.Presentation
         {
             if (request.ViewModelType == typeof(LoginViewModel))
             {
-                MasterNavigationController.View.Layer.AddAnimation(FadeAnimation, CALayer.Transition);
+                MasterNavigationController.View.Layer.AddAnimation(fadeAnimation, CALayer.Transition);
                 MasterNavigationController.PushViewController(viewController, false);
                 return;
             }
@@ -158,20 +187,6 @@ namespace Toggl.Daneel.Presentation
             if (topViewController?.ViewModel?.GetType() == request.ViewModelType)
                 return;
 
-            if (request.ViewModelType == typeof(MainViewModel))
-            {
-                mainTabBarController.SelectedIndex = 0;
-                (mainTabBarController.ViewControllers[0] as UINavigationController).PopToRootViewController(false);
-                return;
-            }
-
-            if (request.ViewModelType == typeof(ReportsViewModel))
-            {
-                mainTabBarController.SelectedIndex = 1;
-                (mainTabBarController.ViewControllers[1] as UINavigationController).PopToRootViewController(false);
-                return;
-            }
-
             base.Show(request);
         }
 
@@ -179,7 +194,7 @@ namespace Toggl.Daneel.Presentation
         {
             if (viewModel is LoginViewModel)
             {
-                MasterNavigationController.View.Window.Layer.AddAnimation(FadeAnimation, CALayer.Transition);
+                MasterNavigationController.View.Window.Layer.AddAnimation(fadeAnimation, CALayer.Transition);
                 MasterNavigationController.PopViewController(false);
                 return;
             }
@@ -199,7 +214,7 @@ namespace Toggl.Daneel.Presentation
         {
             switch (hint)
             {
-                case ToggleCalendarVisibilityHint calendarHint:
+                case ToggleReportsCalendarVisibilityHint calendarHint:
 
                     if ((mainTabBarController.SelectedViewController as UINavigationController).TopViewController is ReportsViewController reportsViewController)
                     {

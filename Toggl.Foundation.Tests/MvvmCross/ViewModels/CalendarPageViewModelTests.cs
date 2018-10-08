@@ -5,16 +5,16 @@ using System.Linq;
 using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
-using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
+using Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar;
 using Toggl.Multivac;
 using Xunit;
 using Math = System.Math;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
-    public sealed class CalendarPageViewModelTests
+    public sealed class ReportsCalendarPageViewModelTests
     {
-        private class CalendarPageTestDataFiveParameters : IEnumerable<object[]>
+        private class ReportsCalendarPageTestDataFiveParameters : IEnumerable<object[]>
         {
             protected virtual List<object[]> getData() => new List<object[]>
             {
@@ -32,7 +32,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 => GetEnumerator();
         }
 
-        private sealed class CalendarPageTestDataFourParameters : CalendarPageTestDataFiveParameters
+        private sealed class ReportsCalendarPageTestDataFourParameters : ReportsCalendarPageTestDataFiveParameters
         {
             protected override List<object[]> getData()
                 => base.getData().Select(o => o.Take(4).ToArray()).ToList();
@@ -41,17 +41,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheDaysProperty
         {
             private CalendarMonth calendarMonth;
-            private CalendarPageViewModel viewModel;
+            private ReportsCalendarPageViewModel viewModel;
 
             private void prepare(
                 int year, int month, BeginningOfWeek beginningOfWeek, DateTimeOffset? today = null)
             {
                 calendarMonth = new CalendarMonth(year, month);
-                viewModel = new CalendarPageViewModel(calendarMonth, beginningOfWeek, today ?? DateTimeOffset.Now);
+                viewModel = new ReportsCalendarPageViewModel(calendarMonth, beginningOfWeek, today ?? DateTimeOffset.Now);
             }
 
             [Theory, LogIfTooSlow]
-            [ClassData(typeof(CalendarPageTestDataFourParameters))]
+            [ClassData(typeof(ReportsCalendarPageTestDataFourParameters))]
             public void ContainsFewDaysFromPreviousMonthAtTheBeginning(
                 int year,
                 int month,
@@ -71,7 +71,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Theory, LogIfTooSlow]
-            [ClassData(typeof(CalendarPageTestDataFourParameters))]
+            [ClassData(typeof(ReportsCalendarPageTestDataFourParameters))]
             public void ConainsAllDaysFromCurrentMonthInTheMiddle(
                 int year,
                 int month,
@@ -89,7 +89,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Theory, LogIfTooSlow]
-            [ClassData(typeof(CalendarPageTestDataFiveParameters))]
+            [ClassData(typeof(ReportsCalendarPageTestDataFiveParameters))]
             public void ContainsFewDaysFromNextMonthAtTheEnd(
                 int year,
                 int month,

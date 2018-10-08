@@ -64,5 +64,20 @@ namespace Toggl.Daneel.Services
                 Remove(key);
             }
         }
+
+        public TimeSpan? GetTimeSpan(string key)
+        {
+            var storedTicks = NSUserDefaults.StandardUserDefaults.ValueForKey(new NSString(key));
+            if (storedTicks == null)
+                return null;
+            var ticks = ((NSNumber)storedTicks).LongValue;
+            return TimeSpan.FromTicks(ticks);
+        }
+
+        public void SetTimeSpan(string key, TimeSpan timeSpan)
+        {
+            var ticks = new NSNumber(timeSpan.Ticks);
+            NSUserDefaults.StandardUserDefaults.SetValueForKey(ticks, new NSString(key));
+        }
     }
 }

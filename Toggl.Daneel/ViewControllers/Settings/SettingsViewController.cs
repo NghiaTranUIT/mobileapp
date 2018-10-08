@@ -41,13 +41,13 @@ namespace Toggl.Daneel.ViewControllers
             this.Bind(ViewModel.IsRunningSync, SyncingView.Rx().IsVisible());
             this.Bind(ViewModel.DateFormat, DateFormatLabel.Rx().Text());
             this.Bind(ViewModel.BeginningOfWeek, BeginningOfWeekLabel.Rx().Text());
+            this.Bind(ViewModel.IsFeedbackSuccessViewShowing, SendFeedbackSuccessView.Rx().AnimatedIsVisible());
             this.BindVoid(ViewModel.LoggingOut, () =>
             {
                 LoggingOutView.Hidden = false;
                 SyncingView.Hidden = true;
                 SyncedView.Hidden = true;
             });
-            this.Bind(ViewModel.IsFeedbackSuccessViewShowing, SendFeedbackSuccessView.Rx().AnimatedIsVisible());
 
             this.Bind(HelpView.Rx().Tap(), ViewModel.OpenHelpView);
             this.Bind(LogoutButton.Rx().Tap(), ViewModel.TryLogout);
@@ -55,15 +55,20 @@ namespace Toggl.Daneel.ViewControllers
             this.Bind(FeedbackView.Rx().Tap(), ViewModel.SubmitFeedback);
             this.Bind(DateFormatView.Rx().Tap(), ViewModel.SelectDateFormat);
             this.Bind(WorkspaceView.Rx().Tap(), ViewModel.PickDefaultWorkspace);
-            this.BindVoid(ManualModeSwitch.Rx().Changed(), ViewModel.ToggleManualMode);
             this.Bind(DurationFormatView.Rx().Tap(), ViewModel.SelectDurationFormat);
+            this.BindVoid(ManualModeSwitch.Rx().Changed(), ViewModel.ToggleManualMode);
             this.Bind(BeginningOfWeekView.Rx().Tap(), ViewModel.SelectBeginningOfWeek);
-            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleUseTwentyFourHourClock);
+            this.Bind(CalendarSettingsView.Rx().Tap(), ViewModel.OpenCalendarSettingsAction);
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.CloseFeedbackSuccessView);
+            this.Bind(NotificationSettingsView.Rx().Tap(), ViewModel.OpenNotificationSettingsAction);
+            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleUseTwentyFourHourClock);
 
             UIApplication.Notifications
                 .ObserveWillEnterForeground((sender, e) => startAnimations())
                 .DisposedBy(DisposeBag);
+
+            if (!ViewModel.CalendarSettingsEnabled)
+                hideCalendarSettingsSection();
 
             ViewModel.IsManualModeEnabled
                 .FirstAsync()
@@ -94,6 +99,13 @@ namespace Toggl.Daneel.ViewControllers
             setIndicatorSyncColor(SyncedIcon);
             setIndicatorSyncColor(SyncingIndicator);
             setIndicatorSyncColor(LoggingOutIndicator);
+        }
+
+        private void hideCalendarSettingsSection()
+        {
+            CalendarSettingsSection.Hidden = true;
+            CalendarSectionTopConstraint.Constant = 0;
+            CalendarSettingsSection.HeightAnchor.ConstraintEqualTo(0).Active = true;
         }
 
         private void setIndicatorSyncColor(UIImageView imageView)

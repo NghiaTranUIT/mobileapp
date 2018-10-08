@@ -10,7 +10,6 @@ using Toggl.Ultrawave;
 
 namespace Toggl.Foundation.MvvmCross
 {
-
     public static class FoundationExtensions
     {
         private const int newUserThreshold = 60;
@@ -54,6 +53,7 @@ namespace Toggl.Foundation.MvvmCross
                         foundation.BackgroundService,
                         createSyncManager(api),
                         TimeSpan.FromMinutes(5),
+                        foundation.NotificationService,
                         foundation.ShortcutCreator,
                         foundation.AnalyticsService)
                     .RegisterServices();
@@ -65,7 +65,7 @@ namespace Toggl.Foundation.MvvmCross
             }
 
             var loginManager =
-                new LoginManager(foundation.ApiFactory, foundation.Database, foundation.GoogleService, foundation.ShortcutCreator, foundation.AccessRestrictionStorage, foundation.AnalyticsService, createDataSource, foundation.Scheduler);
+                new LoginManager(foundation.ApiFactory, foundation.Database, foundation.GoogleService, foundation.ShortcutCreator, foundation.AccessRestrictionStorage, foundation.AnalyticsService, foundation.PrivateSharedStorageService, createDataSource, foundation.Scheduler);
 
             Mvx.RegisterSingleton<ILoginManager>(loginManager);
         }
@@ -88,6 +88,7 @@ namespace Toggl.Foundation.MvvmCross
             Mvx.RegisterSingleton(foundation.ShortcutCreator);
             Mvx.RegisterSingleton(foundation.AnalyticsService);
             Mvx.RegisterSingleton(foundation.PlatformConstants);
+            Mvx.RegisterSingleton(foundation.NotificationService);
             Mvx.RegisterSingleton(foundation.Database.IdProvider);
             Mvx.RegisterSingleton(foundation.RemoteConfigService);
             Mvx.RegisterSingleton(foundation.SuggestionProviderContainer);
@@ -96,9 +97,19 @@ namespace Toggl.Foundation.MvvmCross
             Mvx.RegisterSingleton(foundation.AccessRestrictionStorage);
             Mvx.RegisterSingleton(foundation.LastTimeUsageStorage);
             Mvx.RegisterSingleton(foundation.ErrorHandlingService);
-            Mvx.RegisterSingleton(foundation.PasswordManagerService ?? new StubPasswordManagerService());
+            Mvx.RegisterSingleton(foundation.PermissionsService);
+            Mvx.RegisterSingleton(foundation.CalendarService);
             Mvx.RegisterSingleton(foundation.SchedulerProvider);
             Mvx.RegisterSingleton(foundation.PlatformInfo);
+            Mvx.RegisterSingleton(foundation.IntentDonationService);
+            Mvx.RegisterSingleton(foundation.PrivateSharedStorageService);
+            Mvx.RegisterSingleton(foundation.PasswordManagerService ?? new StubPasswordManagerService());
+
+            // Feedback service is obsolete and is used only in the Android App and should be removed soon
+            if (foundation.FeedbackService != null)
+            {
+                Mvx.RegisterSingleton(foundation.FeedbackService);
+            }
         }
     }
 }

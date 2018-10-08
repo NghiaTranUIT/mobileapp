@@ -423,6 +423,63 @@ account is not set up</value>
     <data name="SelectWorkspace">
         <value>Select workspace</value>
     </data>
+    <data name="On">
+        <value>On</value>
+    </data>
+    <data name="Off">
+        <value>Off</value>
+    </data>
+    <data name="NoDescription">
+        <value>No description</value>
+    </data>
+    <data name="NewTimeEntry">
+        <value>New Time Entry</value>
+    </data>
+    <data name="EventReminder">
+        <value>Event reminder</value>
+    </data>
+    <data name="Oops">
+        <value>Oops</value>
+    </data>
+    <data name="NoCalendarsFoundMessage">
+        <value>It looks like you don't have any calendars</value>
+    </data>
+    <data name="Disabled">
+        <value>Disabled</value>
+    </data>
+    <data name="WhenEventStarts">
+        <value>When event starts</value>
+    </data>
+    <data name="FiveMinutes">
+        <value>5 minutes before</value>
+    </data>
+    <data name="TenMinutes">
+        <value>10 minutes before</value>
+    </data>
+    <data name="FifteenMinutes">
+        <value>15 minutes before</value>
+    </data>
+    <data name="ThirtyMinutes">
+        <value>30 minutes before</value>
+    </data>
+    <data name="OneHour">
+        <value>1 hour before</value>
+    </data>
+    <data name="CalendarSettingsTitle">
+        <value>Calendar Settings</value>
+    </data>
+    <data name="NotificationSettingsTitle">
+        <value>Smart Alerts</value>
+    </data>
+    <data name="OpenAppAndStartAction">
+        <value>Open app and start</value>
+    </data>
+    <data name="StartInBackgroundAction">
+        <value>Start in background</value>
+    </data>
+    <data name="OpenAppAction">
+        <value>Open app</value>
+    </data>
     <data name="IdleTimerNotification">
         <value>What are you working on?</value>
     </data>

@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using NSubstitute;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.DTOs;
+using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
+using Toggl.Foundation.Sync;
 using Toggl.PrimeRadiant;
 using Xunit;
 
@@ -57,7 +59,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.Description == dto.Description));
         }
@@ -67,7 +69,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.SyncStatus == SyncStatus.SyncNeeded));
         }
@@ -78,7 +80,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
             var dto = prepareTest();
             TimeService.CurrentDateTime.Returns(DateTimeOffset.UtcNow);
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.At > timeEntry.At));
         }
@@ -88,7 +90,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.ProjectId == dto.ProjectId));
         }
@@ -98,7 +100,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.Billable == dto.Billable));
         }
@@ -108,7 +110,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.TagIds.SequenceEqual(dto.TagIds)));
         }
@@ -118,7 +120,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.WorkspaceId == dto.WorkspaceId));
         }
@@ -128,9 +130,21 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         {
             var dto = prepareTest();
 
-            await new UpdateTimeEntryInteractor(TimeService, DataSource.TimeEntries, dto).Execute();
+            await new UpdateTimeEntryInteractor(TimeService, DataSource, dto).Execute();
 
             await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => ensurePropertiesDidNotChange(te)));
+        }
+
+        [Fact, LogIfTooSlow]
+        public async Task TriggersPushSync()
+        {
+            var syncManager = Substitute.For<ISyncManager>();
+            DataSource.SyncManager.Returns(syncManager);
+            var dto = prepareTest();
+
+            await InteractorFactory.UpdateTimeEntry(dto).Execute();
+
+            syncManager.Received().InitiatePushSync();
         }
     }
 }

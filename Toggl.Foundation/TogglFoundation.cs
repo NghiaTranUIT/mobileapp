@@ -30,8 +30,11 @@ namespace Toggl.Foundation
         public IBackgroundService BackgroundService { get; }
         public ISchedulerProvider SchedulerProvider { get; }
         public IPlatformConstants PlatformConstants { get; }
+        public INotificationService NotificationService { get; }
         public IRemoteConfigService RemoteConfigService { get; }
         public IApplicationShortcutCreator ShortcutCreator { get; }
+        public IIntentDonationService IntentDonationService { get; }
+        public IPrivateSharedStorageService PrivateSharedStorageService { get; }
         public ISuggestionProviderContainer SuggestionProviderContainer { get; }
 
         public static Builder ForClient(UserAgent userAgent, Version version)
@@ -58,7 +61,10 @@ namespace Toggl.Foundation
             PlatformConstants = builder.PlatformConstants;
             BackgroundService = builder.BackgroundService;
             SchedulerProvider = builder.SchedulerProvider;
+            NotificationService = builder.NotificationService;
             RemoteConfigService = builder.RemoteConfigService;
+            IntentDonationService = builder.IntentDonationService;
+            PrivateSharedStorageService = builder.PrivateSharedStorageService;
             SuggestionProviderContainer = builder.SuggestionProviderContainer;
         }
 
@@ -79,11 +85,14 @@ namespace Toggl.Foundation
             public ILicenseProvider LicenseProvider { get; internal set; }
             public IAnalyticsService AnalyticsService { get; internal set; }
             public ISchedulerProvider SchedulerProvider { get; internal set; }
+            public INotificationService NotificationService { get; internal set; }
             public IRemoteConfigService RemoteConfigService { get; internal set; }
             public IApplicationShortcutCreator ShortcutCreator { get; internal set; }
             public IBackgroundService BackgroundService { get; internal set; }
             public IPlatformConstants PlatformConstants { get; internal set; }
+            public IIntentDonationService IntentDonationService { get; internal set; }
             public ISuggestionProviderContainer SuggestionProviderContainer { get; internal set; }
+            public IPrivateSharedStorageService PrivateSharedStorageService { get; internal set; }
 
             public Builder(UserAgent agent, Version version)
             {
@@ -175,6 +184,18 @@ namespace Toggl.Foundation
                 return this;
             }
 
+            public Builder WithIntentDonationService(IIntentDonationService intentDonationService)
+            {
+                IntentDonationService = intentDonationService;
+                return this;
+            }
+
+            public Builder WithPrivateSharedStorageService(IPrivateSharedStorageService privateSharedStorageService)
+            {
+                PrivateSharedStorageService = privateSharedStorageService;
+                return this;
+            }
+
             public Builder WithRemoteConfigService(IRemoteConfigService remoteConfigService)
             {
                 RemoteConfigService = remoteConfigService;
@@ -190,6 +211,12 @@ namespace Toggl.Foundation
             public Builder WithPlatformInfo(PlatformInfo platformInfo)
             {
                 PlatformInfo = platformInfo;
+                return this;
+            }
+
+            public Builder WithNotificationService(INotificationService notificationService)
+            {
+                NotificationService = notificationService;
                 return this;
             }
 
@@ -245,6 +272,10 @@ namespace Toggl.Foundation
                 where TRatingService : IRatingService, new()
                 => WithRatingService(new TRatingService());
 
+            public Builder WithNotificationService<TNotificationService>()
+                where TNotificationService : INotificationService, new()
+                => WithNotificationService(new TNotificationService());
+
             public TogglFoundation Build()
                 => new TogglFoundation(this);
 
@@ -266,8 +297,11 @@ namespace Toggl.Foundation
                 Ensure.Argument.IsNotNull(BackgroundService, nameof(BackgroundService));
                 Ensure.Argument.IsNotNull(SchedulerProvider, nameof(SchedulerProvider));
                 Ensure.Argument.IsNotNull(PlatformConstants, nameof(PlatformConstants));
+                Ensure.Argument.IsNotNull(NotificationService, nameof(NotificationService));
                 Ensure.Argument.IsNotNull(RemoteConfigService, nameof(RemoteConfigService));
+                Ensure.Argument.IsNotNull(IntentDonationService, nameof(IntentDonationService));
                 Ensure.Argument.IsNotNull(SuggestionProviderContainer, nameof(SuggestionProviderContainer));
+                Ensure.Argument.IsNotNull(PrivateSharedStorageService, nameof(PrivateSharedStorageService));
             }
         }
     }

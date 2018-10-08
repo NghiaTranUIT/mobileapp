@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Reactive.Linq;
-using Toggl.Foundation.DataSources.Interfaces;
+using Toggl.Foundation.DataSources;
 using Toggl.Foundation.DTOs;
+using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant;
-using Toggl.PrimeRadiant.Models;
 
 namespace Toggl.Foundation.Interactors
 {
@@ -14,11 +15,11 @@ namespace Toggl.Foundation.Interactors
     {
         private readonly EditTimeEntryDto dto;
         private readonly ITimeService timeService;
-        private readonly IObservableDataSource<IThreadSafeTimeEntry, IDatabaseTimeEntry> dataSource;
+        private readonly ITogglDataSource dataSource;
 
         public UpdateTimeEntryInteractor(
             ITimeService timeService, 
-            IObservableDataSource<IThreadSafeTimeEntry, IDatabaseTimeEntry> dataSource, 
+            ITogglDataSource dataSource, 
             EditTimeEntryDto dto)
         {
             Ensure.Argument.IsNotNull(dto, nameof(dto));
@@ -31,9 +32,10 @@ namespace Toggl.Foundation.Interactors
         }
 
         public IObservable<IThreadSafeTimeEntry> Execute()
-            => dataSource.GetById(dto.Id)
-                 .Select(createUpdatedTimeEntry)
-                 .SelectMany(dataSource.Update);
+            => dataSource.TimeEntries.GetById(dto.Id)
+                .Select(createUpdatedTimeEntry)
+                .SelectMany(dataSource.TimeEntries.Update)
+                .Do(dataSource.SyncManager.InitiatePushSync);
 
         private TimeEntry createUpdatedTimeEntry(IThreadSafeTimeEntry timeEntry)
             => TimeEntry.Builder.Create(dto.Id)

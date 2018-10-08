@@ -70,7 +70,7 @@ namespace Toggl.Foundation.Tests.Mocks
 
         public IThreadSafeUser User { get; }
 
-        public IThreadSafeProject Project { get; }
+        public IThreadSafeProject Project { get; set; }
 
         public IThreadSafeWorkspace Workspace { get; set; }
 

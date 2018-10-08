@@ -11,8 +11,9 @@ using PropertyChanged;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.MvvmCross.Parameters;
-using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
-using Toggl.Foundation.MvvmCross.ViewModels.Calendar.QuickSelectShortcuts;
+using Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar;
+using Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar.QuickSelectShortcuts;
+using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 
@@ -26,6 +27,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         //Fields
         private readonly ITimeService timeService;
         private readonly ITogglDataSource dataSource;
+        private readonly IIntentDonationService intentDonationService;
         private readonly ISubject<ReportsDateRangeParameter> selectedDateRangeSubject = new Subject<ReportsDateRangeParameter>();
         private readonly string[] dayHeaders =
         {
@@ -38,11 +40,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Resources.SaturdayInitial
         };
 
+        private bool isInitialized;
         private CalendarMonth initialMonth;
-        private CalendarDayViewModel startOfSelection;
-
         private CompositeDisposable disposableBag;
-
+        private ReportsCalendarDayViewModel startOfSelection;
+        private ReportPeriod reportPeriod = ReportPeriod.ThisWeek;
 
         public BeginningOfWeek BeginningOfWeek { get; private set; }
 
@@ -55,33 +57,37 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         [DependsOn(nameof(Months), nameof(CurrentPage))]
         public int RowsInCurrentMonth => Months[CurrentPage].RowCount;
 
-        public List<CalendarPageViewModel> Months { get; } = new List<CalendarPageViewModel>();
+        public List<ReportsCalendarPageViewModel> Months { get; } = new List<ReportsCalendarPageViewModel>();
 
         public IObservable<ReportsDateRangeParameter> SelectedDateRangeObservable
             => selectedDateRangeSubject.AsObservable();
 
-        public List<CalendarBaseQuickSelectShortcut> QuickSelectShortcuts { get; private set; }
+        public List<ReportsCalendarBaseQuickSelectShortcut> QuickSelectShortcuts { get; private set; }
 
-        public IMvxCommand<CalendarDayViewModel> CalendarDayTappedCommand { get; }
+        public IMvxCommand<ReportsCalendarDayViewModel> CalendarDayTappedCommand { get; }
 
-        public IMvxCommand<CalendarBaseQuickSelectShortcut> QuickSelectCommand { get; }
+        public IMvxCommand<ReportsCalendarBaseQuickSelectShortcut> QuickSelectCommand { get; }
 
         public ReportsCalendarViewModel(
-            ITimeService timeService, ITogglDataSource dataSource)
+            ITimeService timeService,
+            ITogglDataSource dataSource,
+            IIntentDonationService intentDonationService)
         {
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
+            Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
 
             this.timeService = timeService;
             this.dataSource = dataSource;
+            this.intentDonationService = intentDonationService;
 
-            CalendarDayTappedCommand = new MvxCommand<CalendarDayViewModel>(calendarDayTapped);
-            QuickSelectCommand = new MvxCommand<CalendarBaseQuickSelectShortcut>(quickSelect);
+            CalendarDayTappedCommand = new MvxCommand<ReportsCalendarDayViewModel>(calendarDayTapped);
+            QuickSelectCommand = new MvxCommand<ReportsCalendarBaseQuickSelectShortcut>(quickSelect);
 
             disposableBag = new CompositeDisposable();
         }
 
-        private void calendarDayTapped(CalendarDayViewModel tappedDay)
+        private void calendarDayTapped(ReportsCalendarDayViewModel tappedDay)
         {
             if (startOfSelection == null)
             {
@@ -129,8 +135,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     quickSelectShortcut.OnDateRangeChanged))
                 .ForEach(disposableBag.Add);
 
-            var initialShortcut = QuickSelectShortcuts.Single(shortcut => shortcut is CalendarThisWeekQuickSelectShortcut);
+            var initialShortcut = QuickSelectShortcuts.Single(shortcut => shortcut.Period == reportPeriod);
             changeDateRange(initialShortcut.GetDateRange().WithSource(ReportsSource.Initial));
+            isInitialized = true;
         }
 
         public void OnToggleCalendar() => selectStartOfSelectionIfNeeded();
@@ -139,6 +146,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public string DayHeaderFor(int index)
             => dayHeaders[(index + (int)BeginningOfWeek + 7) % 7];
+
+        public void SelectPeriod(ReportPeriod period)
+        {
+            reportPeriod = period;
+
+            if (isInitialized)
+            {
+                var initialShortcut = QuickSelectShortcuts.Single(shortcut => shortcut.Period == period);
+                changeDateRange(initialShortcut.GetDateRange().WithSource(ReportsSource.Initial));
+            }
+        }
 
         private void selectStartOfSelectionIfNeeded()
         {
@@ -155,19 +173,19 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             var monthIterator = initialMonth;
             for (int i = 0; i < 12; i++, monthIterator = monthIterator.Next())
-                Months.Add(new CalendarPageViewModel(monthIterator, BeginningOfWeek, timeService.CurrentDateTime));
+                Months.Add(new ReportsCalendarPageViewModel(monthIterator, BeginningOfWeek, timeService.CurrentDateTime));
         }
 
-        private List<CalendarBaseQuickSelectShortcut> createQuickSelectShortcuts()
-            => new List<CalendarBaseQuickSelectShortcut>
+        private List<ReportsCalendarBaseQuickSelectShortcut> createQuickSelectShortcuts()
+            => new List<ReportsCalendarBaseQuickSelectShortcut>
             {
-                new CalendarTodayQuickSelectShortcut(timeService),
-                new CalendarYesterdayQuickSelectShortcut(timeService),
-                new CalendarThisWeekQuickSelectShortcut(timeService, BeginningOfWeek),
-                new CalendarLastWeekQuickSelectShortcut(timeService, BeginningOfWeek),
-                new CalendarThisMonthQuickSelectShortcut(timeService),
-                new CalendarLastMonthQuickSelectShortcut(timeService),
-                new CalendarThisYearQuickSelectShortcut(timeService)
+                new ReportsCalendarTodayQuickSelectShortcut(timeService),
+                new ReportsCalendarYesterdayQuickSelectShortcut(timeService),
+                new ReportsCalendarThisWeekQuickSelectShortcut(timeService, BeginningOfWeek),
+                new ReportsCalendarLastWeekQuickSelectShortcut(timeService, BeginningOfWeek),
+                new ReportsCalendarThisMonthQuickSelectShortcut(timeService),
+                new ReportsCalendarLastMonthQuickSelectShortcut(timeService),
+                new ReportsCalendarThisYearQuickSelectShortcut(timeService)
             };
 
         private CalendarMonth convertPageIndexTocalendarMonth(int pageIndex)
@@ -182,8 +200,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             selectedDateRangeSubject.OnNext(newDateRange);
         }
 
-        private void quickSelect(CalendarBaseQuickSelectShortcut quickSelectShortCut)
-            => changeDateRange(quickSelectShortCut.GetDateRange());
+        private void quickSelect(ReportsCalendarBaseQuickSelectShortcut quickSelectShortCut)
+        {
+            intentDonationService.DonateShowReport(quickSelectShortCut.Period);
+            changeDateRange(quickSelectShortCut.GetDateRange());
+        }
 
         private void highlightDateRange(ReportsDateRangeParameter dateRange)
         {
