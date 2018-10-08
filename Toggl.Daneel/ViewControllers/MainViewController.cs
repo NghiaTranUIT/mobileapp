@@ -661,7 +661,7 @@ namespace Toggl.Daneel.ViewControllers
             previewingContext.SourceRect = suggestionView.Frame;
 
             var suggestion = suggestionView.Suggestion;
-            var param = new StartTimeEntryParameters(DateTimeOffset.Now, suggestion.TaskName,
+            var param = new StartTimeEntryParameters(ViewModel.CurrentDateTime, suggestion.TaskName,
                     suggestion.Duration, suggestion.WorkspaceId, suggestion.Description, suggestion.ProjectId,
                     suggestion.TagIds);
 

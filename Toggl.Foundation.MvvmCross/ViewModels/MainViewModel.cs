@@ -61,6 +61,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool> IsTimeEntryRunning { get; private set; }
 
+        public DateTimeOffset CurrentDateTime => timeService.CurrentDateTime;
+
         public bool IsAddDescriptionLabelVisible =>
             string.IsNullOrEmpty(CurrentTimeEntryDescription)
             && string.IsNullOrEmpty(CurrentTimeEntryProject);
