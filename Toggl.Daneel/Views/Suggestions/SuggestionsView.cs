@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CoreGraphics;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Commands;
 using MvvmCross.Platforms.Ios.Binding;
@@ -28,7 +29,7 @@ namespace Toggl.Daneel.Suggestions
         private const float distanceBetweenSuggestions = 12;
 
         private readonly UILabel titleLabel = new UILabel();
-        public readonly List<SuggestionView> suggestionViews
+        private readonly List<SuggestionView> suggestionViews
             = new List<SuggestionView>(suggestionCount);
 
         public IMvxCommand<Suggestion> SuggestionTappedCommad { get; set; }
@@ -90,6 +91,15 @@ namespace Toggl.Daneel.Suggestions
                 }
 
                 bindingSet.Apply();
+            });
+        }
+
+        public SuggestionView SuggestionViewAtPoint(CGPoint point)
+        {
+            return suggestionViews.FirstOrDefault(subView =>
+            {
+                var convertedPoint = ConvertPointToView(point, subView);
+                return subView.PointInside(convertedPoint, null);
             });
         }
 

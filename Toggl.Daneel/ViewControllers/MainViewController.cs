@@ -651,11 +651,7 @@ namespace Toggl.Daneel.ViewControllers
 
         public UIViewController GetViewControllerForPreview(IUIViewControllerPreviewing previewingContext, CGPoint location)
         {
-            var suggestionView = suggestionsView.suggestionViews.FirstOrDefault(subView =>
-            {
-                var convertedPoint = suggestionsView.ConvertPointToView(location, subView);
-                return subView.PointInside(convertedPoint, null);
-            });
+            var suggestionView = suggestionsView.SuggestionViewAtPoint(location);
 
             if (suggestionView == null)
             {
