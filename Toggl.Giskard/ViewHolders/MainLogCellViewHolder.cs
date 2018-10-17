@@ -8,6 +8,8 @@ using Android.Animation;
 using Android.Graphics;
 using Android.Runtime;
 using Android.Support.Constraints;
+using Android.Text;
+using Android.Text.Style;
 using Android.Views;
 using Android.Widget;
 using Toggl.Foundation.MvvmCross.Transformations;
@@ -78,7 +80,7 @@ namespace Toggl.Giskard.ViewHolders
             hasTagsIcon = ItemView.FindViewById(TimeEntriesLogCellTags);
             whitePadding = ItemView.FindViewById(TimeEntriesLogCellDurationWhiteArea);
             MainLogContentView = ItemView.FindViewById(Resource.Id.MainLogContentView);
-            
+
             timeEntriesLogCellContinueButton.Click += onContinueClick;
         }
 
@@ -127,25 +129,52 @@ namespace Toggl.Giskard.ViewHolders
             layoutParameters.Width = whitePaddingWidth.DpToPixels(ItemView.Context);
             return layoutParameters;
         }
-        
+
         protected override void UpdateView()
         {
             StopAnimating();
+            var spannableString = new SpannableStringBuilder();
+
             timeEntriesLogCellDescription.Text = Item.Description;
             timeEntriesLogCellDescription.Visibility = Item.HasDescription.ToVisibility();
 
             addDescriptionLabel.Visibility = (!Item.HasDescription).ToVisibility();
 
-            timeEntriesLogCellProjectLabel.Text = Item.ProjectName;
-            timeEntriesLogCellProjectLabel.SetTextColor(Color.ParseColor(Item.ProjectColor));
-            timeEntriesLogCellProjectLabel.Visibility = Item.HasProject.ToVisibility();
+            if (Item.HasProject)
+            {
+                var foregroundColorSpan = new ForegroundColorSpan(Color.ParseColor(Item.ProjectColor));
+                spannableString.Append(Item.ProjectName, foregroundColorSpan, SpanTypes.ExclusiveExclusive);
 
-            timeEntriesLogCellTaskLabel.Text = $": {Item.TaskName}";
-            timeEntriesLogCellTaskLabel.SetTextColor(Color.ParseColor(Item.ProjectColor));
-            timeEntriesLogCellTaskLabel.Visibility = (!string.IsNullOrEmpty(Item.TaskName)).ToVisibility();
+                if (!string.IsNullOrEmpty(Item.TaskName))
+                {
+                    spannableString.Append($": {Item.TaskName}", foregroundColorSpan, SpanTypes.ExclusiveExclusive);
+                }
 
-            timeEntryLogCellClientLabel.Text = Item.ClientName;
-            timeEntryLogCellClientLabel.Visibility = Item.HasProject.ToVisibility();
+                if (!string.IsNullOrEmpty(Item.ClientName))
+                {
+                    spannableString.Append(Item.ClientName);
+                }
+
+                timeEntriesLogCellProjectLabel.TextFormatted = spannableString;
+                timeEntriesLogCellProjectLabel.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                timeEntriesLogCellProjectLabel.Visibility = ViewStates.Gone;
+            }
+
+//            timeEntriesLogCellProjectLabel.Text = Item.ProjectName;
+//            timeEntriesLogCellProjectLabel.SetTextColor(Color.ParseColor(Item.ProjectColor));
+//            timeEntriesLogCellProjectLabel.Visibility = Item.HasProject.ToVisibility();
+
+
+
+//            timeEntriesLogCellTaskLabel.Text = $": {Item.TaskName}";
+//            timeEntriesLogCellTaskLabel.SetTextColor(Color.ParseColor(Item.ProjectColor));
+            timeEntriesLogCellTaskLabel.Visibility = ViewStates.Gone;
+
+//            timeEntryLogCellClientLabel.Text = Item.ClientName;
+            timeEntryLogCellClientLabel.Visibility = ViewStates.Gone;
 
             timeEntriesLogCellDuration.Text = Item.Duration.HasValue
                 ? DurationAndFormatToString.Convert(Item.Duration.Value, Item.DurationFormat)
