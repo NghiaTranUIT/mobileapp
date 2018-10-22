@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
+        <PackageReference Include="Realm" Version="3.0.0" />
+        <PackageReference Include="xunit" Version="2.4.0" />
+        <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Toggl.Foundation.MvvmCross\Toggl.Foundation.MvvmCross.csproj" />
+      <ProjectReference Include="..\Toggl.Foundation.Tests\Toggl.Foundation.Tests.csproj" />
+      <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj" />
+      <ProjectReference Include="..\Toggl.PrimeRadiant.Realm\Toggl.PrimeRadiant.Realm.csproj" />
+      <ProjectReference Include="..\Toggl.Ultrawave.Tests.Integration\Toggl.Ultrawave.Tests.Integration.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="FluentAssertions, Version=5.3.2.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a">
+        <HintPath>..\..\..\..\..\.nuget\packages\fluentassertions\5.3.2\lib\netstandard2.0\FluentAssertions.dll</HintPath>
+      </Reference>
+      <Reference Include="NSubstitute, Version=3.1.0.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca">
+        <HintPath>..\..\..\..\..\.nuget\packages\nsubstitute\3.1.0\lib\netstandard1.3\NSubstitute.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Reactive, Version=4.1.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263">
+        <HintPath>..\..\..\..\..\.nuget\packages\system.reactive\4.1.2\lib\netstandard2.0\System.Reactive.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
