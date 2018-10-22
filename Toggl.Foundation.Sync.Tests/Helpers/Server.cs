@@ -23,6 +23,17 @@ namespace Toggl.Foundation.Sync.Tests
 
         public async Task<ServerState> Pull()
         {
+            var user = await Api.User.Get();
+            var clients = await Api.Clients.GetAll();
+            var projects = await Api.Projects.GetAll();
+            var preferences = await Api.Preferences.Get();
+            var tags = await Api.Tags.GetAll();
+            var tasks = await Api.Tasks.GetAll();
+            var timeEntries = await Api.TimeEntries.GetAll();
+            var workspaces = await Api.Workspaces.GetAll();
+
+            return new ServerState(
+                user, clients, projects, preferences, tags, tasks, timeEntries, workspaces);
         }
 
         public async Task Push(ServerState state)
