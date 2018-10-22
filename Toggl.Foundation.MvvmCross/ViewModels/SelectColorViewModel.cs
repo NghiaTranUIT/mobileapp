@@ -8,6 +8,7 @@ using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -17,7 +18,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
 
         private MvxColor defaultColor;
-        private readonly SelectableColorViewModel customColor =
+        private SelectableColorViewModel customColor =
             new SelectableColorViewModel(MvxColors.Transparent, false);
 
         public float Hue { get; set; } = 0.0f;
@@ -57,26 +58,29 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 Color.DefaultProjectColors.Select(color => new SelectableColorViewModel(color, color == defaultColor))
             );
 
-            var noColorsSelected = SelectableColors.All(color => !color.Selected);
+            var noColorsSelected = SelectableColors.None(color => color.Selected);
             if (AllowCustomColors)
             {
                 SelectableColors.Add(customColor);
                 if (noColorsSelected)
                 {
-                    customColor.Selected = true;
-                    customColor.Color = defaultColor;
-
+                    customColor = new SelectableColorViewModel(defaultColor, true);
                     (Hue, Saturation, Value) = defaultColor.GetHSV();
                 }
                 else
                 {
-                    customColor.Color = Color.FromHSV(Hue, Saturation, Value);
-                    
+                    customColor = customColor.WithColor(
+                        Color.FromHSV(Hue, Saturation, Value));
                 }
             }
             else if (noColorsSelected)
             {
-                SelectableColors.First().Selected = true;
+                var selectableColors = SelectableColors
+                    .Select((colorViewModel, index) => colorViewModel.Select(index == 0))
+                    .ToList();
+
+                SelectableColors.Clear();
+                SelectableColors.AddRange(selectableColors);
             }
         }
 
@@ -97,14 +101,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void updateColor()
         {
-            customColor.Color = Color.FromHSV(Hue, Saturation, Value);
+            customColor = customColor.WithColor(Color.FromHSV(Hue, Saturation, Value));
             selectColor(customColor);
         }
 
-        private void selectColor(SelectableColorViewModel color)
+        private void selectColor(SelectableColorViewModel selectedColorViewModel)
         {
-            foreach (var selectableColor in SelectableColors)
-                selectableColor.Selected = color.Color.ARGB == selectableColor.Color.ARGB;
+            var selectableColors = SelectableColors
+                .Select(colorViewModel => colorViewModel.Select(colorViewModel.IsSameColorAs(selectedColorViewModel)))
+                .ToList();
+
+            SelectableColors.Clear();
+            SelectableColors.AddRange(selectableColors);
 
             if (AllowCustomColors) return;
             save();
