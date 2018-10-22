@@ -10,37 +10,37 @@ namespace Toggl.Foundation.Sync.Tests
     public struct DatabaseState
     {
         public IThreadSafeUser User { get; }
-        public IList<IThreadSafeClient> Clients { get; }
-        public IList<IThreadSafeProject> Projects { get; }
+        public ISet<IThreadSafeClient> Clients { get; }
+        public ISet<IThreadSafeProject> Projects { get; }
         public IThreadSafePreferences Preferences { get; }
-        public IList<IThreadSafeTag> Tags { get; }
-        public IList<IThreadSafeTask> Tasks { get; }
-        public IList<IThreadSafeTimeEntry> TimeEntries { get; }
-        public IList<IThreadSafeWorkspace> Workspaces { get; }
-        public IList<IThreadSafeWorkspaceFeatureCollection> WorkspaceFeatures { get; }
+        public ISet<IThreadSafeTag> Tags { get; }
+        public ISet<IThreadSafeTask> Tasks { get; }
+        public ISet<IThreadSafeTimeEntry> TimeEntries { get; }
+        public ISet<IThreadSafeWorkspace> Workspaces { get; }
+        public ISet<IThreadSafeWorkspaceFeatureCollection> WorkspaceFeatures { get; }
         public IDictionary<Type, DateTimeOffset> SinceParameters { get; }
 
         public DatabaseState(
             IThreadSafeUser user,
-            IList<IThreadSafeClient> clients,
-            IList<IThreadSafeProject> projects,
+            IEnumerable<IThreadSafeClient> clients,
+            IEnumerable<IThreadSafeProject> projects,
             IThreadSafePreferences preferences,
-            IList<IThreadSafeTag> tags,
-            IList<IThreadSafeTask> tasks,
-            IList<IThreadSafeTimeEntry> timeEntries,
-            IList<IThreadSafeWorkspace> workspaces,
-            IList<IThreadSafeWorkspaceFeatureCollection> workspaceFeatures,
+            IEnumerable<IThreadSafeTag> tags,
+            IEnumerable<IThreadSafeTask> tasks,
+            IEnumerable<IThreadSafeTimeEntry> timeEntries,
+            IEnumerable<IThreadSafeWorkspace> workspaces,
+            IEnumerable<IThreadSafeWorkspaceFeatureCollection> workspaceFeatures,
             IDictionary<Type, DateTimeOffset> sinceParameters)
         {
             User = user;
-            Clients = clients;
-            Projects = projects;
+            Clients = new HashSet<IThreadSafeClient>(clients);
+            Projects = new HashSet<IThreadSafeProject>(projects);
             Preferences = preferences;
-            Tags = tags;
-            Tasks = tasks;
-            TimeEntries = timeEntries;
-            Workspaces = workspaces;
-            WorkspaceFeatures = workspaceFeatures;
+            Tags = new HashSet<IThreadSafeTag>(tags);
+            Tasks = new HashSet<IThreadSafeTask>(tasks);
+            TimeEntries = new HashSet<IThreadSafeTimeEntry>(timeEntries);
+            Workspaces = new HashSet<IThreadSafeWorkspace>(workspaces);
+            WorkspaceFeatures = new HashSet<IThreadSafeWorkspaceFeatureCollection>(workspaceFeatures);
             SinceParameters = sinceParameters;
         }
     }

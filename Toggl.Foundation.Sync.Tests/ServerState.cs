@@ -6,32 +6,32 @@ namespace Toggl.Foundation.Sync.Tests
     public struct ServerState
     {
         public IUser User { get; }
-        public IList<IClient> Clients { get; }
-        public IList<IProject> Projects { get; }
+        public ISet<IClient> Clients { get; }
+        public ISet<IProject> Projects { get; }
         public IPreferences Preferences { get; }
-        public IList<ITag> Tags { get; }
-        public IList<ITask> Tasks { get; }
-        public IList<ITimeEntry> TimeEntries { get; }
-        public IList<IWorkspace> Workspaces { get; }
+        public ISet<ITag> Tags { get; }
+        public ISet<ITask> Tasks { get; }
+        public ISet<ITimeEntry> TimeEntries { get; }
+        public ISet<IWorkspace> Workspaces { get; }
 
         public ServerState(
             IUser user,
-            IList<IClient> clients,
-            IList<IProject> projects,
+            IEnumerable<IClient> clients,
+            IEnumerable<IProject> projects,
             IPreferences preferences,
-            IList<ITag> tags,
-            IList<ITask> tasks,
-            IList<ITimeEntry> timeEntries,
-            IList<IWorkspace> workspaces)
+            IEnumerable<ITag> tags,
+            IEnumerable<ITask> tasks,
+            IEnumerable<ITimeEntry> timeEntries,
+            IEnumerable<IWorkspace> workspaces)
         {
             User = user;
-            Clients = clients;
-            Projects = projects;
+            Clients = new HashSet<IClient>(clients);
+            Projects = new HashSet<IProject>(projects);
             Preferences = preferences;
-            Tags = tags;
-            Tasks = tasks;
-            TimeEntries = timeEntries;
-            Workspaces = workspaces;
+            Tags = new HashSet<ITag>(tags);
+            Tasks = new HashSet<ITask>(tasks);
+            TimeEntries = new HashSet<ITimeEntry>(timeEntries);
+            Workspaces = new HashSet<IWorkspace>(workspaces);
         }
     }
 }
