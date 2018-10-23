@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac.Models;
 
 namespace Toggl.Foundation.Sync.Tests
@@ -16,22 +17,22 @@ namespace Toggl.Foundation.Sync.Tests
 
         public ServerState(
             IUser user,
-            IEnumerable<IClient> clients,
-            IEnumerable<IProject> projects,
-            IPreferences preferences,
-            IEnumerable<ITag> tags,
-            IEnumerable<ITask> tasks,
-            IEnumerable<ITimeEntry> timeEntries,
-            IEnumerable<IWorkspace> workspaces)
+            IEnumerable<IClient> clients = null,
+            IEnumerable<IProject> projects = null,
+            IPreferences preferences = null,
+            IEnumerable<ITag> tags = null,
+            IEnumerable<ITask> tasks = null,
+            IEnumerable<ITimeEntry> timeEntries = null,
+            IEnumerable<IWorkspace> workspaces = null)
         {
             User = user;
-            Clients = new HashSet<IClient>(clients);
-            Projects = new HashSet<IProject>(projects);
-            Preferences = preferences;
-            Tags = new HashSet<ITag>(tags);
-            Tasks = new HashSet<ITask>(tasks);
-            TimeEntries = new HashSet<ITimeEntry>(timeEntries);
-            Workspaces = new HashSet<IWorkspace>(workspaces);
+            Clients = new HashSet<IClient>(clients ?? new IClient[0]);
+            Projects = new HashSet<IProject>(projects ?? new IProject[0]);
+            Preferences = preferences ?? new MockPreferences();
+            Tags = new HashSet<ITag>(tags ?? new ITag[0]);
+            Tasks = new HashSet<ITask>(tasks ?? new ITask[0]);
+            TimeEntries = new HashSet<ITimeEntry>(timeEntries ?? new ITimeEntry[0]);
+            Workspaces = new HashSet<IWorkspace>(workspaces ?? new IWorkspace[0]);
         }
     }
 }

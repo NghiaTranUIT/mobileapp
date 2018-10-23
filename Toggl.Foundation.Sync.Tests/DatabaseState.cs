@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Toggl.Foundation.Models.Interfaces;
-using Toggl.PrimeRadiant;
-using Toggl.PrimeRadiant.Models;
+using Toggl.Foundation.Tests.Mocks;
 
 namespace Toggl.Foundation.Sync.Tests
 {
@@ -21,24 +19,24 @@ namespace Toggl.Foundation.Sync.Tests
 
         public DatabaseState(
             IThreadSafeUser user,
-            IEnumerable<IThreadSafeClient> clients,
-            IEnumerable<IThreadSafeProject> projects,
-            IThreadSafePreferences preferences,
-            IEnumerable<IThreadSafeTag> tags,
-            IEnumerable<IThreadSafeTask> tasks,
-            IEnumerable<IThreadSafeTimeEntry> timeEntries,
-            IEnumerable<IThreadSafeWorkspace> workspaces,
-            IDictionary<Type, DateTimeOffset?> sinceParameters)
+            IEnumerable<IThreadSafeClient> clients = null,
+            IEnumerable<IThreadSafeProject> projects = null,
+            IThreadSafePreferences preferences = null,
+            IEnumerable<IThreadSafeTag> tags = null,
+            IEnumerable<IThreadSafeTask> tasks = null,
+            IEnumerable<IThreadSafeTimeEntry> timeEntries = null,
+            IEnumerable<IThreadSafeWorkspace> workspaces = null,
+            IDictionary<Type, DateTimeOffset?> sinceParameters = null)
         {
             User = user;
-            Clients = new HashSet<IThreadSafeClient>(clients);
-            Projects = new HashSet<IThreadSafeProject>(projects);
-            Preferences = preferences;
-            Tags = new HashSet<IThreadSafeTag>(tags);
-            Tasks = new HashSet<IThreadSafeTask>(tasks);
-            TimeEntries = new HashSet<IThreadSafeTimeEntry>(timeEntries);
-            Workspaces = new HashSet<IThreadSafeWorkspace>(workspaces);
-            SinceParameters = sinceParameters;
+            Clients = new HashSet<IThreadSafeClient>(clients ?? new IThreadSafeClient[0]);
+            Projects = new HashSet<IThreadSafeProject>(projects ?? new IThreadSafeProject[0]);
+            Preferences = preferences ?? new MockPreferences();
+            Tags = new HashSet<IThreadSafeTag>(tags ?? new IThreadSafeTag[0]);
+            Tasks = new HashSet<IThreadSafeTask>(tasks ?? new IThreadSafeTask[0]);
+            TimeEntries = new HashSet<IThreadSafeTimeEntry>(timeEntries ?? new IThreadSafeTimeEntry[0]);
+            Workspaces = new HashSet<IThreadSafeWorkspace>(workspaces ?? new IThreadSafeWorkspace[0]);
+            SinceParameters = sinceParameters ?? new Dictionary<Type, DateTimeOffset?>();
         }
     }
 }
