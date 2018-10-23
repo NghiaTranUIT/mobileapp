@@ -1,12 +1,10 @@
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NSubstitute.Core;
 using Toggl.Foundation.Sync.Tests.Extensions;
 using Toggl.Multivac;
-using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
@@ -15,18 +13,40 @@ namespace Toggl.Foundation.Sync.Tests
 {
     public sealed class Server
     {
-        public ITogglApi Api { get; private set; }
+        public ITogglApi Api { get; }
 
-        public IUser User { get; private set; }
+        public ServerState InitialServerState { get; }
 
-        public async Task Initialize()
+        private Server(ITogglApi api, ServerState initialServerState)
         {
-            User = await Ultrawave.Tests.Integration.User.Create();
-            var credentials = Credentials.WithApiToken(User.ApiToken);
-            Api = Ultrawave.Tests.Integration.Helper.TogglApiFactory.TogglApiWith(credentials);
+            Api = api;
+            InitialServerState = initialServerState;
         }
 
-        public async Task<ServerState> Pull()
+        public static async Task<Server> Create()
+        {
+            IUser user = null;
+            do
+            {
+                if (user != null) await Task.Delay(TimeSpan.FromSeconds(1));
+                user = await Ultrawave.Tests.Integration.User.Create();
+            } while (user.DefaultWorkspaceId.HasValue == false);
+
+            var credentials = Credentials.WithApiToken(user.ApiToken);
+            var api = Ultrawave.Tests.Integration.Helper.TogglApiFactory.TogglApiWith(credentials);
+
+            var defaultWorkspace = await api.Workspaces.GetById(user.DefaultWorkspaceId.Value);
+            var preferences = await api.Preferences.Get();
+
+            var initialServerState = new ServerState(
+                user,
+                workspaces: new[] { defaultWorkspace },
+                preferences: preferences);
+
+            return new Server(api, initialServerState);
+        }
+
+        public async Task<ServerState> PullCurrentState()
         {
             var user = await Api.User.Get();
             var clients = await Api.Clients.GetAll();

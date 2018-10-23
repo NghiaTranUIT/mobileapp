@@ -20,7 +20,7 @@ namespace Toggl.Foundation.Sync.Tests
             Database = new Database();
         }
 
-        public async Task<DatabaseState> Load()
+        public async Task<DatabaseState> LoadCurrentState()
         {
             var user = Models.User.From(await Database.User.Single());
             var clients = await Database.Clients.GetAll().Select(c => c.Select(Models.Client.From));
