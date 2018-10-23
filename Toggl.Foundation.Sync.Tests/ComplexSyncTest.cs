@@ -1,26 +1,7 @@
-using System;
-using System.IO;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using FluentAssertions;
-using NSubstitute;
-using Realms.Sync;
-using Toggl.Foundation.Analytics;
-using Toggl.Foundation.DataSources;
-using Toggl.Foundation.MvvmCross.Services;
-using Toggl.Foundation.Services;
-using Toggl.Foundation.Shortcuts;
 using Toggl.Foundation.Sync.Tests.State;
-using Toggl.Multivac.Models;
-using Toggl.PrimeRadiant;
-using Toggl.PrimeRadiant.Realm;
-using Toggl.PrimeRadiant.Settings;
-using Toggl.Ultrawave;
 using Xunit;
-using Credentials = Toggl.Ultrawave.Network.Credentials;
-using TogglApiFactory = Toggl.Ultrawave.Tests.Integration.Helper.TogglApiFactory;
 
 namespace Toggl.Foundation.Sync.Tests
 {
