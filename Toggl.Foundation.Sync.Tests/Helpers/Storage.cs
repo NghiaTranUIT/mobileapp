@@ -44,8 +44,25 @@ namespace Toggl.Foundation.Sync.Tests
                 user, clients, projects, preferences, tags, tasks, timeEntries, workspaces, sinceParameters);
         }
 
-        public void Store(DatabaseState databaseState)
+        public async Task Store(DatabaseState databaseState)
         {
+            await databaseState.Workspaces.Select(Database.Workspaces.Create).Merge();
+            await Database.User.Create(databaseState.User);
+            await Database.Preferences.Create(databaseState.Preferences);
+            await databaseState.Tags.Select(Database.Tags.Create).Merge();
+            await databaseState.Clients.Select(Database.Clients.Create).Merge();
+            await databaseState.Projects.Select(Database.Projects.Create).Merge();
+            await databaseState.Tasks.Select(Database.Tasks.Create).Merge();
+            await databaseState.TimeEntries.Select(Database.TimeEntries.Create).Merge();
+
+            databaseState.SinceParameters?.Keys.ForEach(modelType =>
+            {
+                var sinceValue = databaseState.SinceParameters[modelType];
+                var setMethod = typeof(ISinceParameterRepository).GetMethod(nameof(ISinceParameterRepository.Set));
+                var genericSetMethod = setMethod.MakeGenericMethod(modelType);
+                genericSetMethod.Invoke(
+                    Database.SinceParameters, new object[] { sinceValue });
+            });
         }
     }
 }
