@@ -26,11 +26,9 @@ namespace Toggl.Foundation.Sync.Tests
             await Act(appServices.SyncManager);
 
             // Assert
-            AssertServices(appServices);
             var finalDatabaseState = await storage.LoadCurrentState();
-            AssertFinalDatabaseState(finalDatabaseState);
             var finalServerState = await server.PullCurrentState();
-            AssertFinalServerState(finalServerState);
+            AssertFinalState(appServices, finalServerState, finalDatabaseState);
         }
 
         protected virtual void ArrangeServices(AppServices services) { }
@@ -42,8 +40,6 @@ namespace Toggl.Foundation.Sync.Tests
             await syncManager.ForceFullSync();
         }
 
-        protected virtual void AssertServices(AppServices services) { }
-        protected abstract void AssertFinalServerState(ServerState finalServerStateBefore);
-        protected abstract void AssertFinalDatabaseState(DatabaseState finalDatabaseStateBefore);
+        protected abstract void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState);
     }
 }
