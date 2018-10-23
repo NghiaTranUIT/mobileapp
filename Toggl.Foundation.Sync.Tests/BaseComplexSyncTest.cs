@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Toggl.Foundation.Sync.Tests
 {
-    public abstract class ComplexSyncTest
+    public abstract class BaseComplexSyncTest
     {
         [Fact]
         public async Task Execute()
