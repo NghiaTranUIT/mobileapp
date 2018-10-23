@@ -21,7 +21,7 @@ namespace Toggl.Foundation.Sync.States.CleanUp
 
         public IObservable<ITransition> Start()
             => dataSource
-                .GetAll(suitableForDeletion, includeGhosts: true)
+                .GetAll(suitableForDeletion, includeInaccessibleEntities: true)
                 .SelectMany(dataSource.DeleteAll)
                 .Select(_ => FinishedDeleting.Transition());
 

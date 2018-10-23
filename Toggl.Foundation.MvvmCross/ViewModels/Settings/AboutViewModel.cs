@@ -24,26 +24,23 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             this.navigationService = navigationService;
 
-            OpenPrivacyPolicyView = new UIAction(openPrivacyPolicyView);
-            OpenTermsOfServiceView = new UIAction(openTermsOfServiceView);
-            OpenLicensesView = new UIAction(openLicensesView);
+            OpenPrivacyPolicyView = UIAction.FromAsync(openPrivacyPolicyView);
+            OpenTermsOfServiceView = UIAction.FromAsync(openTermsOfServiceView);
+            OpenLicensesView = UIAction.FromAsync(openLicensesView);
         }
 
-        private IObservable<Unit> openPrivacyPolicyView()
+        private Task openPrivacyPolicyView()
             => navigationService
                 .Navigate<BrowserViewModel, BrowserParameters>(
-                    BrowserParameters.WithUrlAndTitle(Resources.PrivacyPolicyUrl, Resources.PrivacyPolicy))
-                .ToObservable();
+                    BrowserParameters.WithUrlAndTitle(Resources.PrivacyPolicyUrl, Resources.PrivacyPolicy));
 
-        private IObservable<Unit> openTermsOfServiceView()
+        private Task openTermsOfServiceView()
             => navigationService
                 .Navigate<BrowserViewModel, BrowserParameters>(
-                    BrowserParameters.WithUrlAndTitle(Resources.TermsOfServiceUrl, Resources.TermsOfService))
-                .ToObservable();
+                    BrowserParameters.WithUrlAndTitle(Resources.TermsOfServiceUrl, Resources.TermsOfService));
 
-        private IObservable<Unit> openLicensesView()
+        private Task openLicensesView()
             => navigationService
-                .Navigate<LicensesViewModel>()
-                .ToObservable();
+                .Navigate<LicensesViewModel>();
     }
 }

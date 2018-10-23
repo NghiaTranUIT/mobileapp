@@ -69,7 +69,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             }
 
             [Fact]
-            public async Task MarksWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsGhosts()
+            public async Task MarksWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsInaccessible()
             {
                 prepareDatabase(new[]
                 {
@@ -93,7 +93,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             }
 
             [Fact]
-            public async Task TracksLoseOfAccessToWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsGhosts()
+            public async Task TracksLoseOfAccessToWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsInaccessible()
             {
                 prepareDatabase(new[]
                 {
@@ -135,7 +135,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             }
 
             [Fact]
-            public async Task IgnoresGhostWorkspaces()
+            public async Task IgnoresInaccessibleWorkspaces()
             {
                 prepareDatabase(new[]
                 {
@@ -157,7 +157,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             }
 
             [Fact]
-            public async Task DoesNotMarkAnyWorkspaceAsGhostWhenNoAccessIsLostSinceLastTime()
+            public async Task DoesNotMarkAnyWorkspaceAsInaccessibleWhenNoAccessIsLostSinceLastTime()
             {
                 prepareDatabase(new[]
                 {

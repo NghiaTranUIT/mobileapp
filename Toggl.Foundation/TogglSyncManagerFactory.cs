@@ -124,7 +124,7 @@ namespace Toggl.Foundation
 
             var updateProjectsSinceDate = new SinceDateUpdatingState<IProject, IDatabaseProject>(database.SinceParameters);
 
-            var createGhostProjects = new CreateGhostProjectsState(dataSource.Projects, analyticsService);
+            var createProjectPlaceholders = new CreateArchivedProjectPlaceholdersState(dataSource.Projects, analyticsService);
 
             var persistTimeEntries =
                 new PersistListState<ITimeEntry, IDatabaseTimeEntry, IThreadSafeTimeEntry>(dataSource.TimeEntries, TimeEntry.Clean);
@@ -175,9 +175,9 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(updateProjectsSinceDate.Finished, persistTasks);
 
             transitions.ConfigureTransition(persistTasks.FinishedPersisting, updateTasksSinceDate);
-            transitions.ConfigureTransition(updateTasksSinceDate.Finished, createGhostProjects);
+            transitions.ConfigureTransition(updateTasksSinceDate.Finished, createProjectPlaceholders);
 
-            transitions.ConfigureTransition(createGhostProjects.FinishedPersisting, persistTimeEntries);
+            transitions.ConfigureTransition(createProjectPlaceholders.FinishedPersisting, persistTimeEntries);
             transitions.ConfigureTransition(persistTimeEntries.FinishedPersisting, updateTimeEntriesSinceDate);
             transitions.ConfigureTransition(updateTimeEntriesSinceDate.Finished, refetchInaccessibleProjects);
 
@@ -197,7 +197,7 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(persistClients.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(persistProjects.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(persistTasks.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(createGhostProjects.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(createProjectPlaceholders.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(persistTimeEntries.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(refetchInaccessibleProjects.ErrorOccured, retryOrThrow);
 
@@ -234,10 +234,10 @@ namespace Toggl.Foundation
             StateResult entryPoint)
         {
             var deleteOlderEntries = new DeleteOldEntriesState(timeService, dataSource.TimeEntries);
-            var deleteNonReferencedGhostProjects = new DeleteNonReferencedProjectGhostsState(dataSource.Projects, dataSource.TimeEntries);
+            var deleteUnsnecessaryProjectPlaceholders = new DeleteUnnecessaryProjectPlaceholdersState(dataSource.Projects, dataSource.TimeEntries);
 
             transitions.ConfigureTransition(entryPoint, deleteOlderEntries);
-            transitions.ConfigureTransition(deleteOlderEntries.FinishedDeleting, deleteNonReferencedGhostProjects);
+            transitions.ConfigureTransition(deleteOlderEntries.FinishedDeleting, deleteUnsnecessaryProjectPlaceholders);
         }
 
         private static IStateResult configurePush<TModel, TDatabase, TThreadsafe>(

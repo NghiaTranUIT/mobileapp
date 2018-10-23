@@ -32,13 +32,14 @@ namespace Toggl.Foundation.Interactors
         public IObservable<Unit> Execute()
             => userDataSource
                 .Current
+                .FirstAsync()
                 .Select(User.Builder.FromExisting)
                 .Select(user => user
                     .SetDefaultWorkspaceId(workspaceId)
                     .SetSyncStatus(SyncStatus.SyncNeeded)
                     .SetAt(timeService.CurrentDateTime)
                     .Build())
-                .Select(userDataSource.Update)
+                .SelectMany(userDataSource.Update)
                 .SelectUnit();
     }
 }

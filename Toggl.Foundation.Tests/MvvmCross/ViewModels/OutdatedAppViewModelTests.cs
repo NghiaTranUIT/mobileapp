@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.Services;
@@ -28,12 +30,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheUpdateAppCommand : OutdatedAppViewModelTest
+        public sealed class TheUpdateAppAction : OutdatedAppViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void CallsTheOpenStoreMethodOfTheBrowserService()
+            public async Task CallsTheOpenStoreMethodOfTheBrowserService()
             {
-                ViewModel.UpdateAppCommand.Execute();
+                await ViewModel.UpdateAppAction.Execute();
 
                 BrowserService.Received().OpenStore();
             }
@@ -42,11 +44,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheOpenWebsiteCommand : OutdatedAppViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void TogglesTheCurrentValueOfTheToggleUseTwentyFourHourClockProperty()
+            public async Task CallsTheOpenWebsiteMethodOfTheBrowserService()
             {
                 const string togglWebsiteUrl = "https://toggl.com";
 
-                ViewModel.OpenWebsiteCommand.Execute();
+                await ViewModel.OpenWebsiteAction.Execute();
 
                 BrowserService.Received().OpenUrl(Arg.Is(togglWebsiteUrl));
             }

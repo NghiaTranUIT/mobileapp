@@ -17,6 +17,7 @@ using Toggl.PrimeRadiant.Settings;
 using static Toggl.Foundation.Sync.SyncState;
 using Toggl.Ultrawave.Exceptions;
 using Toggl.Ultrawave.Network;
+using Toggl.Foundation.Exceptions;
 
 namespace Toggl.Foundation.Tests.Sync
 {
@@ -648,6 +649,30 @@ namespace Toggl.Foundation.Tests.Sync
 
                 emitted.Should().NotBeNull();
                 emitted.Should().Be(SyncProgress.Failed);
+            }
+
+            [Fact, LogIfTooSlow]
+            public void EmitsNoWorkspaceErrorWhenSyncFailsWithNoWorkspaceException()
+            {
+                Exception caughtException = null;
+                var thrownException = new NoWorkspaceException();
+                SyncManager.ProgressObservable.Subscribe(_ => { }, e => caughtException = e);
+
+                OrchestratorSyncComplete.OnNext(new Error(thrownException));
+
+                caughtException.Should().BeSameAs(thrownException);
+            }
+
+            [Fact, LogIfTooSlow]
+            public void EmitsNoDefaultWorkspaceErrorWhenSyncFailsWithNoDefaultWorkspaceException()
+            {
+                Exception caughtException = null;
+                var thrownException = new NoDefaultWorkspaceException();
+                SyncManager.ProgressObservable.Subscribe(_ => { }, e => caughtException = e);
+
+                OrchestratorSyncComplete.OnNext(new Error(thrownException));
+
+                caughtException.Should().BeSameAs(thrownException);
             }
 
             public static IEnumerable<object[]> ExceptionsRethrownByProgressObservableOnError()

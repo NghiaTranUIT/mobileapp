@@ -17,16 +17,16 @@ using Xunit;
 
 namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 {
-    public sealed class DeleteNonReferencedProjectGhostsStateTests
+    public sealed class DeleteUnsnecessaryProjectPlaceholdersStateTests
     {
-        private readonly DeleteNonReferencedProjectGhostsState state;
+        private readonly DeleteUnnecessaryProjectPlaceholdersState state;
         private readonly ITimeEntriesSource timeEntriesDataSource = Substitute.For<ITimeEntriesSource>();
-        private readonly IDataSource<IThreadSafeProject, IDatabaseProject> projectsDataSource = 
+        private readonly IDataSource<IThreadSafeProject, IDatabaseProject> projectsDataSource =
             Substitute.For<IDataSource<IThreadSafeProject, IDatabaseProject>>();
 
-        public DeleteNonReferencedProjectGhostsStateTests()
+        public DeleteUnsnecessaryProjectPlaceholdersStateTests()
         {
-            state = new DeleteNonReferencedProjectGhostsState(projectsDataSource, timeEntriesDataSource);
+            state = new DeleteUnnecessaryProjectPlaceholdersState(projectsDataSource, timeEntriesDataSource);
         }
 
         [Fact, LogIfTooSlow]
@@ -55,7 +55,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
         }
 
         [Fact, LogIfTooSlow]
-        public async Task DeletesProjectGhostWhenItIsNotReferencedByAnyTimeEntry()
+        public async Task DeletesProjectPlaceholderWhenItIsNotReferencedByAnyTimeEntry()
         {
             var project = new MockProject { Id = 123, SyncStatus = SyncStatus.RefetchingNeeded };
             projectsDataSource.GetAll(Arg.Any<Func<IDatabaseProject, bool>>())
@@ -70,7 +70,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
         }
 
         [Fact, LogIfTooSlow]
-        public async Task IgnoresProjectGhostsWhichAreReferencedBySomeTimeEntries()
+        public async Task IgnoresProjectPlaceholdersWhichAreReferencedBySomeTimeEntries()
         {
             var project = new MockProject { Id = 123, SyncStatus = SyncStatus.RefetchingNeeded };
             var timeEntry = new MockTimeEntry { ProjectId = project.Id };
@@ -86,7 +86,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
         }
 
         [Fact, LogIfTooSlow]
-        public async Task FiltersOutNonGhostProjectsAndProjectReferencedBySomeTimeEntries()
+        public async Task FiltersOutNonPlaceholderProjectsAndProjectReferencedBySomeTimeEntries()
         {
             var projects = new[]
             {

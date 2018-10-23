@@ -30,12 +30,13 @@ namespace Toggl.Ultrawave.ApiClients
             this.credentials = credentials;
         }
 
-        public IObservable<ITimeEntriesTotals> GetTotals(long workspaceId, DateTimeOffset startDate, DateTimeOffset endDate)
+        public IObservable<ITimeEntriesTotals> GetTotals(
+            long userId, long workspaceId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             if (endDate.Date - startDate.Date > maximumRange)
                 throw new ArgumentOutOfRangeException(nameof(endDate));
 
-            var parameters = new TimeEntriesTotalsParameters(startDate, endDate);
+            var parameters = new TimeEntriesTotalsParameters(userId, startDate, endDate);
             var json = serializer.Serialize(parameters, SerializationReason.Post, null);
 
             return Observable.Create<ITimeEntriesTotals>(async observer =>
@@ -64,17 +65,20 @@ namespace Toggl.Ultrawave.ApiClients
         [Preserve(AllMembers = true)]
         private sealed class TimeEntriesTotalsParameters
         {
-            public string StartDate { get; set; }
+            public string StartDate { get; }
 
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public string EndDate { get; set; }
+            public string EndDate { get; }
+
+            public long[] UserIds => new[] { userId };
 
             public bool WithGraph => true;
 
-            public TimeEntriesTotalsParameters() { }
+            private readonly long userId;
 
-            public TimeEntriesTotalsParameters(DateTimeOffset startDate, DateTimeOffset? endDate)
+            public TimeEntriesTotalsParameters(long userId, DateTimeOffset startDate, DateTimeOffset? endDate)
             {
+                this.userId = userId;
                 StartDate = startDate.ToString("yyyy-MM-dd");
                 EndDate = endDate?.ToString("yyyy-MM-dd");
             }

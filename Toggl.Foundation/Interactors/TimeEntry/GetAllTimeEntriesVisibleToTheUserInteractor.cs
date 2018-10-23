@@ -19,6 +19,6 @@ namespace Toggl.Foundation.Interactors
         }
 
         public IObservable<IEnumerable<IThreadSafeTimeEntry>> Execute()
-            => dataSource.GetAll(te => !te.IsDeleted && (!te.IsInaccessible || te.Id < 0), includeGhosts: true);
+            => dataSource.GetAll(te => !te.IsDeleted && (!te.IsInaccessible || te.Id < 0), includeInaccessibleEntities: true);
     }
 }

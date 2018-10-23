@@ -11,7 +11,7 @@ using Toggl.PrimeRadiant.Models;
 
 namespace Toggl.Foundation.Sync.States.CleanUp
 {
-    public sealed class DeleteNonReferencedProjectGhostsState : ISyncState
+    public sealed class DeleteUnnecessaryProjectPlaceholdersState : ISyncState
     {
         private readonly IDataSource<IThreadSafeProject, IDatabaseProject> projectsDataSource;
 
@@ -19,7 +19,7 @@ namespace Toggl.Foundation.Sync.States.CleanUp
 
         public StateResult FinishedDeleting { get; } = new StateResult();
 
-        public DeleteNonReferencedProjectGhostsState(IDataSource<IThreadSafeProject, IDatabaseProject> projectsDataSource, IObservableDataSource<IThreadSafeTimeEntry, IDatabaseTimeEntry> timeEntriesDataSource)
+        public DeleteUnnecessaryProjectPlaceholdersState(IDataSource<IThreadSafeProject, IDatabaseProject> projectsDataSource, IObservableDataSource<IThreadSafeTimeEntry, IDatabaseTimeEntry> timeEntriesDataSource)
         {
             Ensure.Argument.IsNotNull(projectsDataSource, nameof(projectsDataSource));
             Ensure.Argument.IsNotNull(timeEntriesDataSource, nameof(timeEntriesDataSource));

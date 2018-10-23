@@ -42,7 +42,7 @@ namespace Toggl.Foundation.Tests.Interactors
             }
 
             [Fact]
-            public async Task RemovesGhostTimeEntriesThatAreOwnedByTheWorkSpace()
+            public async Task RemovesInaccessibleTimeEntriesThatAreOwnedByTheWorkspace()
             {
                 DataSource.TimeEntries.GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>(), true)
                     .Returns(callInfo => Observable.Return(timeEntries.Where<IThreadSafeTimeEntry>(

@@ -2,17 +2,14 @@ using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace Toggl.Multivac.Extensions
 {
     public sealed class UIAction : RxAction<Unit, Unit>
     {
-        public UIAction(Func<IObservable<Unit>> workFactory)
-            : base(_ => workFactory())
-        {
-        }
-
-        public UIAction(Func<IObservable<Unit>> workFactory, IObservable<bool> enabledIf)
+        private UIAction(Func<IObservable<Unit>> workFactory, IObservable<bool> enabledIf)
             : base(_ => workFactory(), enabledIf)
         {
         }
@@ -20,7 +17,7 @@ namespace Toggl.Multivac.Extensions
         public IObservable<Unit> Execute()
             => Execute(Unit.Default);
 
-        public static UIAction FromAction(Action action)
+        public static UIAction FromAction(Action action, IObservable<bool> enabledIf = null)
         {
             IObservable<Unit> workFactory()
                 => Observable.Create<Unit>(observer =>
@@ -30,8 +27,19 @@ namespace Toggl.Multivac.Extensions
                     return Disposable.Empty;
                 });
 
-            return new UIAction(workFactory);
+            return new UIAction(workFactory, enabledIf);
         }
+
+        public static UIAction FromAsync(Func<Task> asyncAction, IObservable<bool> enabledIf = null)
+        {
+            IObservable<Unit> workFactory()
+                => asyncAction().ToObservable();
+
+            return new UIAction(workFactory, enabledIf);
+        }
+
+        public static UIAction FromObservable(Func<IObservable<Unit>> workFactory, IObservable<bool> enabledIf = null)
+            => new UIAction(workFactory, enabledIf);
     }
 
     public static class RxActionExtensions

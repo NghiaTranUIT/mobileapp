@@ -18,7 +18,7 @@ using Toggl.PrimeRadiant.Models;
 
 namespace Toggl.Foundation.Sync.States.Pull
 {
-    public sealed class CreateGhostProjectsState : IPersistState
+    public sealed class CreateArchivedProjectPlaceholdersState : IPersistState
     {
         private readonly IDataSource<IThreadSafeProject, IDatabaseProject> dataSource;
 
@@ -28,7 +28,7 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         public StateResult<ApiException> ErrorOccured { get; } = new StateResult<ApiException>();
 
-        public CreateGhostProjectsState(
+        public CreateArchivedProjectPlaceholdersState(
             IDataSource<IThreadSafeProject, IDatabaseProject> dataSource,
             IAnalyticsService analyticsService)
         {
@@ -44,23 +44,23 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SingleAsync()
                 .SelectMany(Identity)
                 .Distinct(timeEntry => timeEntry.ProjectId)
-                .WhereAsync(needsGhostProject)
-                .SelectMany(createGhostProject)
+                .WhereAsync(hasUnknownProject)
+                .SelectMany(createProjectPlaceholder)
                 .Count()
-                .Track(analyticsService.ProjectGhostsCreated)
+                .Track(analyticsService.ProjectPlaceholdersCreated)
                 .Select(FinishedPersisting.Transition(fetch))
                 .OnErrorReturnResult(ErrorOccured);
 
-        private IObservable<bool> needsGhostProject(ITimeEntry timeEntry)
+        private IObservable<bool> hasUnknownProject(ITimeEntry timeEntry)
             => timeEntry.ProjectId.HasValue
                 ? dataSource.GetAll(project => project.Id == timeEntry.ProjectId.Value)
                     .SingleAsync()
                     .Select(projects => projects.None())
                 : Observable.Return(false);
 
-        private IObservable<IThreadSafeProject> createGhostProject(ITimeEntry timeEntry)
+        private IObservable<IThreadSafeProject> createProjectPlaceholder(ITimeEntry timeEntry)
         {
-            var ghost = Project.Builder.Create(timeEntry.ProjectId.Value)
+            var placeholder = Project.Builder.Create(timeEntry.ProjectId.Value)
                 .SetName(Resources.InaccessibleProject)
                 .SetWorkspaceId(timeEntry.WorkspaceId)
                 .SetColor(Color.NoProject)
@@ -69,7 +69,7 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SetSyncStatus(SyncStatus.RefetchingNeeded)
                 .Build();
 
-            return dataSource.Create(ghost);
+            return dataSource.Create(placeholder);
         }
     }
 }

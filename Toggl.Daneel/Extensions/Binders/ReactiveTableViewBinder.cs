@@ -39,10 +39,17 @@ namespace Toggl.Daneel.ViewSources
         {
             lock (animationLock)
             {
+                if (change is ReloadCollectionChange)
+                {
+                    dataSource.ChangeDisplayedCollection(change);
+                    updateTable(change);
+                    return;
+                }
+
                 tableView.BeginUpdates();
 
-                var sectionsNeedingHeaderRefresh = updateTable(change);
                 dataSource.ChangeDisplayedCollection(change);
+                var sectionsNeedingHeaderRefresh = updateTable(change);
 
                 tableView.EndUpdates();
 

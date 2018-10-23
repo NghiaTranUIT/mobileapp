@@ -54,26 +54,6 @@ namespace Toggl.Multivac.Extensions
                 ? Observable.Return(value).Delay(delay)
                 : Observable.Return(value));
 
-        public static IObservable<T> RetryWhen<T, U>(this IObservable<T> source, Func<IObservable<Exception>, IObservable<U>> handler)
-        {
-            return Observable.Defer(() =>
-            {
-                var errorSignal = new Subject<Exception>();
-                var retrySignal = handler(errorSignal);
-                var sources = new BehaviorSubject<IObservable<T>>(source);
-
-                return Observable.Using(
-                        () => retrySignal.Select(s => source).Subscribe(sources),
-                        r => sources
-                            .Select(src =>
-                                src.Do(v => { }, e => errorSignal.OnNext(e), () => errorSignal.OnCompleted())
-                                   .OnErrorResumeNext(Observable.Empty<T>())
-                            )
-                            .Concat()
-                    );
-            });
-        }
-
         public static IObservable<T> Share<T>(this IObservable<T> observable)
             => observable.Publish().RefCount();
 

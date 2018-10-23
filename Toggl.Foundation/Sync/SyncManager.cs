@@ -139,7 +139,8 @@ namespace Toggl.Foundation.Sync
             queue.Clear();
             orchestrator.Start(Sleep);
 
-            if (error is NoWorkspaceException)
+            if (error is NoWorkspaceException
+                || error is NoDefaultWorkspaceException)
             {
                 progress.OnError(error);
                 return;

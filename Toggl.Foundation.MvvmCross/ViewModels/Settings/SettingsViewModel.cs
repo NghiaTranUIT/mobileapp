@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
@@ -221,9 +222,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsObservable();
 
-            OpenCalendarSettingsAction = new UIAction(openCalendarSettings);
+            OpenCalendarSettingsAction = UIAction.FromAsync(openCalendarSettings);
 
-            OpenNotificationSettingsAction = new UIAction(openNotificationSettings);
+            OpenNotificationSettingsAction = UIAction.FromAsync(openNotificationSettings);
         }
 
         public void CloseFeedbackSuccessView()
@@ -352,11 +353,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             await updatePreferences(newDurationFormat);
         }
 
-        private IObservable<Unit> openCalendarSettings()
-            => Observable.FromAsync(async () => await navigationService.Navigate<CalendarSettingsViewModel>());
+        private Task openCalendarSettings()
+            => navigationService.Navigate<CalendarSettingsViewModel>();
 
-        private IObservable<Unit> openNotificationSettings()
-            => Observable.FromAsync(async () => await navigationService.Navigate<NotificationSettingsViewModel>());
+        private Task openNotificationSettings()
+            => navigationService.Navigate<NotificationSettingsViewModel>();
 
         private IObservable<Unit> logout()
         {
