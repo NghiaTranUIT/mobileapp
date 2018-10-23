@@ -520,6 +520,9 @@ private string[] GetUITestFiles() => new []
 private string[] GetIntegrationTestProjects()
     => new [] { "./Toggl.Ultrawave.Tests.Integration/Toggl.Ultrawave.Tests.Integration.csproj" };
 
+private string[] GetSyncTestProjects()
+    => new [] { "./Toggl.Foundation.Sync.Tests/Toggl.Foundation.Sync.Tests.csproj" };
+
 Setup(context => transformations.ForEach(transformation => System.IO.File.WriteAllText(transformation.Path, transformation.Temporary)));
 Teardown(context =>
 {
@@ -545,6 +548,7 @@ Task("Clean")
             CleanDirectory("./Toggl.Foundation/obj");
             CleanDirectory("./Toggl.Foundation.MvvmCross/obj");
             CleanDirectory("./Toggl.Foundation.Tests/obj");
+            CleanDirectory("./Toggl.Foundation.Sync.Tests/obj");
             CleanDirectory("./Toggl.Multivac/obj");
             CleanDirectory("./Toggl.Multivac.Tests/obj");
             CleanDirectory("./Toggl.PrimeRadiant/obj");
@@ -576,6 +580,10 @@ Task("Build.Tests.Unit")
 Task("Build.Tests.Integration")
     .IsDependentOn("Nuget")
     .Does(BuildSolution("ApiTests"));
+
+Task("Build.Tests.Sync")
+    .IsDependentOn("Nuget")
+    .Does(BuildSolution("SyncTests"));
 
 Task("Build.Tests.UI")
     .IsDependentOn("Nuget")
@@ -611,6 +619,10 @@ Task("Build.Release.Android.PlayStore")
 Task("Tests.Unit")
     .IsDependentOn(buildAll ? "Build.Tests.All" : "Build.Tests.Unit")
     .Does(Test(GetUnitTestProjects()));
+
+Task("Tests.Sync")
+    .IsDependentOn(buildAll ? "Build.Tests.All" : "Build.Tests.Sync")
+    .Does(Test(GetSyncTestProjects()));
 
 //Integration Tests
 Task("Tests.Integration")
