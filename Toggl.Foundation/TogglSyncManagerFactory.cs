@@ -236,8 +236,28 @@ namespace Toggl.Foundation
             var deleteOlderEntries = new DeleteOldEntriesState(timeService, dataSource.TimeEntries);
             var deleteUnsnecessaryProjectPlaceholders = new DeleteUnnecessaryProjectPlaceholdersState(dataSource.Projects, dataSource.TimeEntries);
 
+            var deleteInaccessibleTimeEntries = new DeleteInaccessibleTimeEntriesState(dataSource.TimeEntries);
+            var deleteInaccessibleTags = new DeleteNonReferencedInaccessibleTagsState(dataSource.Tags, dataSource.TimeEntries);
+            var deleteInaccessibleTasks = new DeleteNonReferencedInaccessibleTasksState(dataSource.Tasks, dataSource.TimeEntries);
+            var deleteInaccessibleProjects = new DeleteNonReferencedInaccessibleProjectsState(dataSource.Projects, dataSource.Tasks, dataSource.TimeEntries);
+            var deleteInaccessibleClients = new DeleteNonReferencedInaccessibleClientsState(dataSource.Clients, dataSource.Projects);
+            var deleteInaccessibleWorkspaces = new DeleteNonReferencedInaccessibleWorkspacesState(
+                dataSource.Workspaces,
+                dataSource.TimeEntries,
+                dataSource.Projects,
+                dataSource.Tasks,
+                dataSource.Clients,
+                dataSource.Tags);
+
             transitions.ConfigureTransition(entryPoint, deleteOlderEntries);
             transitions.ConfigureTransition(deleteOlderEntries.FinishedDeleting, deleteUnsnecessaryProjectPlaceholders);
+
+            transitions.ConfigureTransition(deleteUnsnecessaryProjectPlaceholders.FinishedDeleting, deleteInaccessibleTimeEntries);
+            transitions.ConfigureTransition(deleteInaccessibleTimeEntries.FinishedDeleting, deleteInaccessibleTags);
+            transitions.ConfigureTransition(deleteInaccessibleTags.FinishedDeleting, deleteInaccessibleTasks);
+            transitions.ConfigureTransition(deleteInaccessibleTasks.FinishedDeleting, deleteInaccessibleProjects);
+            transitions.ConfigureTransition(deleteInaccessibleProjects.FinishedDeleting, deleteInaccessibleClients);
+            transitions.ConfigureTransition(deleteInaccessibleClients.FinishedDeleting, deleteInaccessibleWorkspaces);
         }
 
         private static IStateResult configurePush<TModel, TDatabase, TThreadsafe>(
