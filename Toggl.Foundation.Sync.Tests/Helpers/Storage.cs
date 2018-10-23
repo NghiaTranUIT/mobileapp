@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant;

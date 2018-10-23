@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Tests.Mocks;
 
-namespace Toggl.Foundation.Sync.Tests
+namespace Toggl.Foundation.Sync.Tests.State
 {
     public struct DatabaseState
     {

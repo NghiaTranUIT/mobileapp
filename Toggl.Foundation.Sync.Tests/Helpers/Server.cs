@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Sync.Tests.Extensions;
+using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
 using Toggl.Ultrawave;

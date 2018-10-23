@@ -12,6 +12,7 @@ using Toggl.Foundation.DataSources;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Shortcuts;
+using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Realm;

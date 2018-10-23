@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac.Models;
 
-namespace Toggl.Foundation.Sync.Tests
+namespace Toggl.Foundation.Sync.Tests.State
 {
     public struct ServerState
     {
