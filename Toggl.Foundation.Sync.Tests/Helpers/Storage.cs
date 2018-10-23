@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac.Extensions;
-using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
 using Toggl.PrimeRadiant.Realm;
