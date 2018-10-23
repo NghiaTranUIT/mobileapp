@@ -1,6 +1,5 @@
 using System;
 using System.Reactive.Concurrency;
-using System.Threading.Tasks;
 using NSubstitute;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
@@ -10,7 +9,7 @@ using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave;
 
-namespace Toggl.Foundation.Sync.Tests
+namespace Toggl.Foundation.Sync.Tests.Helpers
 {
     public sealed class AppServices
     {

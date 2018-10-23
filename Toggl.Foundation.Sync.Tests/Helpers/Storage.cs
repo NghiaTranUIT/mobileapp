@@ -10,7 +10,7 @@ using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
 using Toggl.PrimeRadiant.Realm;
 
-namespace Toggl.Foundation.Sync.Tests
+namespace Toggl.Foundation.Sync.Tests.Helpers
 {
     public sealed class Storage
     {

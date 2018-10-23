@@ -10,7 +10,7 @@ using Toggl.Multivac.Models;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
 
-namespace Toggl.Foundation.Sync.Tests
+namespace Toggl.Foundation.Sync.Tests.Helpers
 {
     public sealed class Server
     {
