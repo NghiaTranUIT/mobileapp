@@ -61,8 +61,7 @@ namespace Toggl.Foundation.Sync.Tests
             var storage = new Storage();
 
             var definedServerState = PrepareServerState(server.User);
-            await server.Push(definedServerState);
-            var actualServerStateBefore = await server.Pull();
+            var actualServerStateBefore = await server.Push(definedServerState);
             var definedDatabaseState = PrepareDatabaseState(actualServerStateBefore);
             storage.Store(definedDatabaseState);
 
