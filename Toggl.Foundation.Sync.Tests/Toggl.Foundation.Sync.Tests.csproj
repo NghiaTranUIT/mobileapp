@@ -15,7 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Toggl.Foundation.MvvmCross\Toggl.Foundation.csproj" />
       <ProjectReference Include="..\Toggl.Foundation.Tests\Toggl.Foundation.Tests.csproj" />
       <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj" />
       <ProjectReference Include="..\Toggl.Multivac\Toggl.Multivac.csproj" />
