@@ -5,6 +5,10 @@ namespace Toggl.Giskard.Services
 {
     public class NoopIntentDonationService: IIntentDonationService
     {
+        public void SetDefaultShortcutSuggestions(IWorkspace workspace)
+        {
+        }
+
         public void DonateStartTimeEntry(IWorkspace workspace, ITimeEntry timeEntry)
         {
         }

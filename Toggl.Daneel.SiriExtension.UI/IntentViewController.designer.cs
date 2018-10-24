@@ -13,29 +13,21 @@ namespace Toggl.Daneel.SiriExtension.UI
 	partial class IntentViewController
 	{
 		[Outlet]
-		UIKit.UILabel descriptionLabel { get; set; }
+		Toggl.Daneel.SiriExtension.UI.ConfirmationView confirmationView { get; set; }
 
 		[Outlet]
-		UIKit.UILabel timeFrameLabel { get; set; }
-
-		[Outlet]
-		UIKit.UILabel timeLabel { get; set; }
+		Toggl.Daneel.SiriExtension.UI.EntryInfoView entryInfoView { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (timeLabel != null) {
-				timeLabel.Dispose ();
-				timeLabel = null;
+			if (entryInfoView != null) {
+				entryInfoView.Dispose ();
+				entryInfoView = null;
 			}
 
-			if (descriptionLabel != null) {
-				descriptionLabel.Dispose ();
-				descriptionLabel = null;
-			}
-
-			if (timeFrameLabel != null) {
-				timeFrameLabel.Dispose ();
-				timeFrameLabel = null;
+			if (confirmationView != null) {
+				confirmationView.Dispose ();
+				confirmationView = null;
 			}
 		}
 	}

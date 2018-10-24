@@ -16,6 +16,8 @@ namespace Toggl.Giskard.ViewHolders
         private TextView mainLogHeaderTitle;
         private TextView mainLogHeaderDuration;
 
+        public DateTimeOffset Now { private get; set; }
+
         public MainLogSectionViewHolder(View itemView) : base(itemView)
         {
         }
@@ -36,7 +38,7 @@ namespace Toggl.Giskard.ViewHolders
                 return;
 
             var firstItem = Item.First();
-            mainLogHeaderTitle.Text = DateToTitleString.Convert(firstItem.StartTime.Date);
+            mainLogHeaderTitle.Text = DateToTitleString.Convert(firstItem.StartTime, Now);
 
             var totalDuration = Item.Sum(vm => vm.Duration);
             mainLogHeaderDuration.Text = totalDuration.ToFormattedString(firstItem.DurationFormat);

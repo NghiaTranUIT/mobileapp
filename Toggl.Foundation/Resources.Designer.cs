@@ -10,7 +10,6 @@
 
 namespace Toggl.Foundation {
     using System;
-    using System.Reflection;
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
@@ -104,6 +103,12 @@ namespace Toggl.Foundation {
         public static string Back {
             get {
                 return ResourceManager.GetString("Back", resourceCulture);
+            }
+        }
+        
+        public static string Ok {
+            get {
+                return ResourceManager.GetString("Ok", resourceCulture);
             }
         }
         
@@ -308,12 +313,6 @@ namespace Toggl.Foundation {
         public static string DifferentWorkspaceAlertMessage {
             get {
                 return ResourceManager.GetString("DifferentWorkspaceAlertMessage", resourceCulture);
-            }
-        }
-        
-        public static string Ok {
-            get {
-                return ResourceManager.GetString("Ok", resourceCulture);
             }
         }
         
@@ -815,6 +814,18 @@ namespace Toggl.Foundation {
             }
         }
         
+        public static string ReportTooLongTitle {
+            get {
+                return ResourceManager.GetString("ReportTooLongTitle", resourceCulture);
+            }
+        }
+        
+        public static string ReportTooLongDescription {
+            get {
+                return ResourceManager.GetString("ReportTooLongDescription", resourceCulture);
+            }
+        }
+        
         public static string ArchivedProjectDecorator {
             get {
                 return ResourceManager.GetString("ArchivedProjectDecorator", resourceCulture);
@@ -968,6 +979,12 @@ namespace Toggl.Foundation {
         public static string DiscardMessage {
             get {
                 return ResourceManager.GetString("DiscardMessage", resourceCulture);
+            }
+        }
+        
+        public static string InaccessibleTimeEntryErrorMessage {
+            get {
+                return ResourceManager.GetString("InaccessibleTimeEntryErrorMessage", resourceCulture);
             }
         }
     }

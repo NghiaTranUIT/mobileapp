@@ -12,12 +12,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
     {
         public sealed class TheConvertMethod
         {
+            private readonly DateTimeOffset now = new DateTimeOffset(2018, 10, 01, 23, 0, 0, TimeSpan.FromHours(-3));
+
             [Fact, LogIfTooSlow]
             public void ReturnsASpecialCaseStringForTheCurrentDay()
             {
-                var date = DateTimeOffset.Now;
+                var date = now;
 
-                var result = DateToTitleString.Convert(date);
+                var result = DateToTitleString.Convert(date, now);
 
                 result.Should().Be(Resources.Today);
             }
@@ -25,9 +27,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
             [Fact, LogIfTooSlow]
             public void ReturnsASpecialCaseStringForThePreviousDay()
             {
-                var date = DateTimeOffset.Now.AddDays(-1);
+                var date = now.AddDays(-1);
 
-                var result = DateToTitleString.Convert(date);
+                var result = DateToTitleString.Convert(date, now);
 
                 result.Should().Be(Resources.Yesterday);
             }
@@ -35,12 +37,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
             [Property]
             public Property ReturnsAFormattedStringForAnyOtherDate()
             {
-                var arb = Arb.Default.DateTimeOffset().Filter(d => d < DateTime.UtcNow.AddDays(-1));
+                var arb = Arb.Default.DateTimeOffset().Filter(d => d < now.AddDays(-1));
                 return Prop.ForAll(arb, date =>
                 {
-                    var result = DateToTitleString.Convert(date);
+                    var result = DateToTitleString.Convert(date, now);
                     var expectedCulture = CultureInfo.CreateSpecificCulture("en-US");
-                    result.Should().Be(date.ToString("ddd, dd MMM", expectedCulture));
+                    result.Should().Be(date.ToLocalTime().ToString("ddd, dd MMM", expectedCulture));
                 });
             }
         }

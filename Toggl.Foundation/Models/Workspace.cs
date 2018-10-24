@@ -55,16 +55,16 @@ namespace Toggl.Foundation.Models
             At = builder.At;
         }
 
-        internal Workspace(IThreadSafeWorkspace workspace, bool isGhost)
+        internal Workspace(IThreadSafeWorkspace workspace, bool isInaccessible)
             : this(workspace)
         {
-            IsGhost = isGhost;
+            IsInaccessible = isInaccessible;
         }
     }
 
     public static class ThreadSafeWorkspaceExtensions
     {
-        public static IThreadSafeWorkspace AsGhost(this IThreadSafeWorkspace workspace)
-            => new Workspace(workspace, isGhost: true);
+        public static IThreadSafeWorkspace AsInaccessible(this IThreadSafeWorkspace workspace)
+            => new Workspace(workspace, isInaccessible: true);
     }
 }

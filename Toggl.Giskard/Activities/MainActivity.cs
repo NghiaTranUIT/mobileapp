@@ -62,7 +62,7 @@ namespace Toggl.Giskard.Activities
             this.Bind(ViewModel.IsTimeEntryRunning, onTimeEntryCardVisibilityChanged);
             this.Bind(ViewModel.SyncProgressState, onSyncChanged);
 
-            mainRecyclerAdapter = new MainRecyclerAdapter(ViewModel.TimeEntries)
+            mainRecyclerAdapter = new MainRecyclerAdapter(ViewModel.TimeEntries, ViewModel.TimeService)
             {
                 SuggestionsViewModel = ViewModel.SuggestionsViewModel
             };
@@ -81,7 +81,7 @@ namespace Toggl.Giskard.Activities
                 .TimeEntries
                 .CollectionChange
                 .ObserveOn(SynchronizationContext.Current);
-            this.Bind(mainLogChange, mainRecyclerAdapter.UpdateChange);
+            this.Bind(mainLogChange, mainRecyclerAdapter.UpdateCollection);
 
             var isTimeEntryRunning = ViewModel
                 .IsTimeEntryRunning
@@ -215,6 +215,15 @@ namespace Toggl.Giskard.Activities
                 base.OnHidden(fab);
                 hideTaskCompletionSource.SetResult(null);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (!disposing) return;
+
+            DisposeBag?.Dispose();
         }
     }
 }

@@ -608,13 +608,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Theory, LogIfTooSlow]
-            [InlineData("1")]
-            [InlineData("4")]
-            [InlineData("  6    ")]
-            [InlineData("\t7  ")]
+            [InlineData("T")]
+            [InlineData("text")]
+            [InlineData("  Te    ")]
+            [InlineData("\tp  ")]
             public async Task IsFalseWhenSuchTagAlreadyExists(string text)
             {
-                var tags = CreateTags(10);
+                var textTags = new List<(long, string)> { (1, "t"), (2, "p"), (3, "Text"), (4, "te") };
+                    
+                var tags = textTags
+                    .AsEnumerable()
+                    .Select(tuple => CreateTagSubstitute(tuple.Item1, tuple.Item2))
+                    .Select(tag => new TagSuggestion(tag));
+
                 InteractorFactory
                     .GetTagsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()

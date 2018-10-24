@@ -7,7 +7,7 @@
 	<key>CFBundleName</key>
 	<string>Toggl.Daneel.SiriExtension.UI</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.toggl.daneel.debug.Toggl-Daneel-SiriExtension-UI</string>
+	<string>com.toggl.daneel.debug.SiriUIExtension</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.11</string>
+	<string>1.12.1</string>
 	<key>CFBundleVersion</key>
 	<string>IOS_BUNDLE_VERSION</string>
 	<key>MinimumOSVersion</key>

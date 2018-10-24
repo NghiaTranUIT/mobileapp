@@ -165,6 +165,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public bool SyncErrorMessageVisible { get; private set; }
 
+        public bool IsInaccessible { get; set; }
+
         public IMvxCommand ConfirmCommand { get; }
 
         public IMvxCommand SaveCommand { get; }
@@ -230,19 +232,22 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             StopCommand = new MvxCommand(stopTimeEntry, () => IsTimeEntryRunning);
             StopTimeEntryCommand = new MvxAsyncCommand<SelectTimeOrigin>(onStopTimeEntryCommand);
 
-            SelectStartTimeCommand = new MvxAsyncCommand(selectStartTime);
-            SelectStopTimeCommand = new MvxAsyncCommand(selectStopTime);
-            SelectStartDateCommand = new MvxAsyncCommand(selectStartDate);
-            SelectDurationCommand = new MvxAsyncCommand(selectDuration);
-            SelectTimeCommand = new MvxAsyncCommand<SelectTimeOrigin>(selectTime);
+            SelectStartTimeCommand = new MvxAsyncCommand(selectStartTime, canExecute);
+            SelectStopTimeCommand = new MvxAsyncCommand(selectStopTime, canExecute);
+            SelectStartDateCommand = new MvxAsyncCommand(selectStartDate, canExecute);
+            SelectDurationCommand = new MvxAsyncCommand(selectDuration, canExecute);
+            SelectTimeCommand = new MvxAsyncCommand<SelectTimeOrigin>(selectTime, _ => canExecute());
 
             SelectProjectCommand = new MvxAsyncCommand(selectProject);
-            SelectTagsCommand = new MvxAsyncCommand(selectTags);
+            SelectTagsCommand = new MvxAsyncCommand(selectTags, canExecute);
             DismissSyncErrorMessageCommand = new MvxCommand(dismissSyncErrorMessageCommand);
-            ToggleBillableCommand = new MvxCommand(toggleBillable);
-            StartEditingDescriptionCommand = new MvxCommand(startEditingDescriptionCommand);
+            ToggleBillableCommand = new MvxCommand(toggleBillable, canExecute);
+            StartEditingDescriptionCommand = new MvxCommand(startEditingDescriptionCommand, canExecute);
 
             HasProject = hasProjectSubject.AsObservable();
+
+            bool canExecute()
+                => !IsInaccessible;
         }
 
         public override void Prepare(long parameter)
@@ -265,9 +270,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Client = timeEntry.Project?.Client?.Name;
             projectId = timeEntry.Project?.Id;
             taskId = timeEntry.Task?.Id;
-            SyncErrorMessage = timeEntry.LastSyncErrorMessage;
             workspaceId = timeEntry.WorkspaceId;
-            SyncErrorMessageVisible = !string.IsNullOrEmpty(SyncErrorMessage);
+            setErrorMessage(timeEntry);
+            IsInaccessible = timeEntry.IsInaccessible;
 
             onTags(timeEntry.Tags);
             foreach (var tagId in timeEntry.TagIds)
@@ -602,6 +607,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private void OnProjectChanged()
         {
             hasProjectSubject.OnNext(!string.IsNullOrWhiteSpace(Project));
+        }
+
+        private void setErrorMessage(IThreadSafeTimeEntry timeEntry)
+        {
+            SyncErrorMessage = timeEntry.IsInaccessible ? Resources.InaccessibleTimeEntryErrorMessage : timeEntry.LastSyncErrorMessage;
+            SyncErrorMessageVisible = timeEntry.IsInaccessible || !string.IsNullOrEmpty(SyncErrorMessage);
         }
     }
 }

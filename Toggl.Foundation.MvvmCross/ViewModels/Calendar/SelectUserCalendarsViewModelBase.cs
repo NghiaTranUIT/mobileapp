@@ -35,7 +35,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
         public InputAction<SelectableUserCalendarViewModel> SelectCalendarAction { get; }
 
         protected SelectUserCalendarsViewModelBase(
-            IUserPreferences userPreferences, 
+            IUserPreferences userPreferences,
             IInteractorFactory interactorFactory)
         {
             Ensure.Argument.IsNotNull(userPreferences, nameof(userPreferences));
@@ -44,7 +44,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             this.userPreferences = userPreferences;
             InteractorFactory = interactorFactory;
 
-            SelectCalendarAction = new InputAction<SelectableUserCalendarViewModel>(selectCalendar);
+            SelectCalendarAction = InputAction<SelectableUserCalendarViewModel>.FromObservable(selectCalendar);
         }
 
         public override sealed void Prepare(bool parameter)

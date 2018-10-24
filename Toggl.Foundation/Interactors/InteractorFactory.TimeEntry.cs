@@ -56,13 +56,13 @@ namespace Toggl.Foundation.Interactors
         public IInteractor<IObservable<Unit>> DeleteTimeEntry(long id)
             => new DeleteTimeEntryInteractor(timeService, dataSource.TimeEntries, id);
 
-        public IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetAllNonDeletedTimeEntries()
-            => new GetAllNonDeletedInteractor(dataSource.TimeEntries);
+        public IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetAllTimeEntriesVisibleToTheUser()
+            => new GetAllTimeEntriesVisibleToTheUserInteractor(dataSource.TimeEntries);
 
         public IInteractor<IObservable<IThreadSafeTimeEntry>> UpdateTimeEntry(EditTimeEntryDto dto)
             => new UpdateTimeEntryInteractor(timeService, dataSource, dto);
 
-        public IInteractor<IObservable<IThreadSafeTimeEntry>> StopTimeEntry(DateTimeOffset currentDateTime)
-            => new StopTimeEntryInteractor(timeService, dataSource.TimeEntries, currentDateTime);
+        public IInteractor<IObservable<IThreadSafeTimeEntry>> StopTimeEntry(DateTimeOffset currentDateTime, TimeEntryStopOrigin origin)
+            => new StopTimeEntryInteractor(timeService, dataSource.TimeEntries, currentDateTime, analyticsService, origin);
     }
 }

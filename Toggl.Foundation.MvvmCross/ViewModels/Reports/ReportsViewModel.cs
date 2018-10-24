@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -70,6 +70,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
         private int projectsNotSyncedCount = 0;
         private DateTime reportSubjectStartTime;
         private long workspaceId;
+        private long userId;
         private DateFormat dateFormat;
         private IReadOnlyList<ChartSegment> segments = new ChartSegment[0];
         private IReadOnlyList<ChartSegment> groupedSegments = new ChartSegment[0];
@@ -168,10 +169,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
             this.dialogService = dialogService;
             this.intentDonationService = intentDonationService;
 
-            calendarViewModel = new ReportsCalendarViewModel(timeService, dataSource, intentDonationService);
+            calendarViewModel = new ReportsCalendarViewModel(timeService, dialogService, dataSource, intentDonationService);
 
             var totalsObservable = reportSubject
-                .SelectMany(_ => dataSource.ReportsProvider.GetTotals(workspaceId, startDate, endDate))
+                .SelectMany(_ => dataSource.ReportsProvider.GetTotals(userId, workspaceId, startDate, endDate))
                 .Catch<ITimeEntriesTotals, OfflineException>(_ => Observable.Return<ITimeEntriesTotals>(null))
                 .Where(report => report != null);
             BarChartViewModel = new ReportsBarChartViewModel(schedulerProvider, dataSource.Preferences, totalsObservable);
@@ -206,7 +207,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
                 .StartWith(Unit.Default)
                 .SelectMany(_ => dataSource.Workspaces.GetAll())
                 .DistinctUntilChanged()
-                .Select(list => list.Where(w => !w.IsGhost))
+                .Select(list => list.Where(w => !w.IsInaccessible))
                 .Select(readOnlyWorkspaceNameTuples)
                 .AsDriver(schedulerProvider);
         }
@@ -220,6 +221,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
         public override async Task Initialize()
         {
             Workspaces = await dataSource.Workspaces.GetAll().Select(readOnlyWorkspaceNameTuples);
+
+            var user = await dataSource.User.Get();
+            userId = user.Id;
 
             var workspace = await interactorFactory.GetDefaultWorkspace().Execute();
             workspaceId = workspace.Id;
@@ -265,7 +269,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
                 navigationService.Navigate(calendarViewModel);
                 didNavigateToCalendar = true;
                 intentDonationService.DonateShowReport();
+                return;
             }
+
+            reportSubject.OnNext(Unit.Default);
         }
 
         public void ToggleCalendar()

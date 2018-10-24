@@ -298,7 +298,7 @@ private TemporaryFileTransformation GetIosSiriExtensionInfoConfigurationTransfor
 private TemporaryFileTransformation GetIosSiriUIExtensionInfoConfigurationTransformation()
 {
     const string path = "Toggl.Daneel.SiriExtension.UI/Info.plist";
-    const string bundleIdToReplace = "com.toggl.daneel.debug.Toggl-Daneel-SiriExtension-UI";
+    const string bundleIdToReplace = "com.toggl.daneel.debug.SiriUIExtension";
     const string appNameToReplace = "Toggl.Daneel.SiriExtension.UI";
 
     var commitCount = GetCommitCount();

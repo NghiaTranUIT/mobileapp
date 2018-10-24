@@ -15,18 +15,26 @@ namespace Toggl.Daneel.Views
     {
         public static readonly string Identifier = "timeEntryLogHeaderCell";
 
-
         public static readonly NSString Key = new NSString(nameof(TimeEntriesLogHeaderView));
         public static readonly UINib Nib;
 
         private IReadOnlyList<TimeEntryViewModel> items;
         public IReadOnlyList<TimeEntryViewModel> Items
         {
-            get => items;
             set
             {
                 items = value;
-                UpdateView();
+                updateView();
+            }
+        }
+
+        private DateTimeOffset now;
+        public DateTimeOffset Now
+        {
+            set
+            {
+                now = value;
+                updateView();
             }
         }
 
@@ -48,14 +56,14 @@ namespace Toggl.Daneel.Views
             DurationLabel.Font = DurationLabel.Font.GetMonospacedDigitFont();
         }
 
-        public void UpdateView()
+        private void updateView()
         {
             if (items.Count == 0)
                 return;
 
             var firstItem = items.First();
 
-            DateLabel.Text = DateToTitleString.Convert(firstItem.StartTime.Date);
+            DateLabel.Text = DateToTitleString.Convert(firstItem.StartTime, now);
 
             var totalDuration = items.Sum(vm => vm.Duration);
             DurationLabel.Text = totalDuration.ToFormattedString(firstItem.DurationFormat);

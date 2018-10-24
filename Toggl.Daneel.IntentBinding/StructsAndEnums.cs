@@ -3,7 +3,6 @@ using ObjCRuntime;
 
 namespace Toggl.Daneel.Intents
 {
-    // [Watch (5,0), iOS (12,0)]
     [Native]
     public enum ShowReportIntentResponseCode : long
     {
@@ -16,7 +15,6 @@ namespace Toggl.Daneel.Intents
         FailureRequiringAppLaunch
     }
 
-    // [Watch (5,0), iOS (12,0)]
     [Native]
     public enum ShowReportPeriodReportPeriod : long
     {
@@ -30,7 +28,6 @@ namespace Toggl.Daneel.Intents
         ThisYear = 7
     }
 
-    // [Watch (5,0), iOS (12,0)]
     [Native]
     public enum ShowReportPeriodIntentResponseCode : long
     {
@@ -43,7 +40,6 @@ namespace Toggl.Daneel.Intents
         FailureRequiringAppLaunch
     }
 
-    // [Watch (5,0), iOS (12,0)]
     [Native]
     public enum StartTimerIntentResponseCode : long
     {
@@ -57,7 +53,6 @@ namespace Toggl.Daneel.Intents
         FailureNoApiToken = 100
     }
 
-    // [Watch (5,0), iOS (12,0)]
     [Native]
     public enum StopTimerIntentResponseCode : long
     {
@@ -68,7 +63,7 @@ namespace Toggl.Daneel.Intents
         Success,
         Failure,
         FailureRequiringAppLaunch,
-        FailureNoRunningEntry = 100,
+        SuccessNoRunningEntry = 100,
         FailureNoApiToken
     }
 }

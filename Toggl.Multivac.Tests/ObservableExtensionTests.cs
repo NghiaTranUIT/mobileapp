@@ -44,6 +44,10 @@ namespace Toggl.Multivac.Tests
             }
         }
 
+        /**
+         * Heads up: We removed our own implementation of the `RetryWhen` operator after updating
+         * to Rx 4.1.2 which includes it. We keep the unit test to ensure the behavior is the same.
+         */
         public class TheRetryWhenOperator : ReactiveTest
         {
             [Fact, LogIfTooSlow]

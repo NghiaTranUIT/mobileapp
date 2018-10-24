@@ -84,7 +84,7 @@ namespace Toggl.Daneel.Views.Reports
                           .For(v => v.BindVisibilityWithFade())
                           .To(vm => vm.IsLoading);
 
-                bindingSet.Bind(LoadingCardView)
+                bindingSet.Bind(LoadingOverviewView)
                           .For(v => v.BindVisibilityWithFade())
                           .To(vm => vm.IsLoading);
 
@@ -204,7 +204,6 @@ namespace Toggl.Daneel.Views.Reports
         private void prepareViews()
         {
             prepareCard(OverviewCardView);
-            prepareCard(LoadingCardView);
             prepareCard(BarChartCardView);
 
             TotalTitleLabel.SetKerning(-0.2);

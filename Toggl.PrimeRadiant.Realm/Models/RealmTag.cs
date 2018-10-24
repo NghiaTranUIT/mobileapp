@@ -18,6 +18,6 @@ namespace Toggl.PrimeRadiant.Realm
 
         public DateTimeOffset? ServerDeletedAt { get; set; }
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 }

@@ -4,13 +4,13 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using Android.Support.V7.Widget;
-using Android.Views;
 using Android.Widget;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Onboarding.MainView;
 using Toggl.Foundation.Sync;
 using Toggl.Giskard.Adapters;
 using Toggl.Giskard.Extensions;
+using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.Helper;
 using Toggl.Giskard.ViewHolders;
 using Toggl.Multivac.Extensions;
@@ -43,6 +43,24 @@ namespace Toggl.Giskard.Activities
         private IDisposable editTimeEntryOnboardingStepDisposable;
 
         private IObservable<Unit> mainRecyclerViewChangesObservable;
+        private ISubject<Unit> mainRecyclerViewScrollChanges = new Subject<Unit>();
+        private IDisposable mainRecyclerViewScrollChangesDisposable;
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            mainRecyclerViewScrollChangesDisposable = mainRecyclerView
+                .Rx()
+                .OnScrolled()
+                .ObserveOn(SynchronizationContext.Current)
+                .Subscribe(mainRecyclerViewScrollChanges.OnNext);
+        }
+
+        protected override void OnPause()
+        {
+            base.OnPause();
+            mainRecyclerViewScrollChangesDisposable?.Dispose();
+        }
 
         protected override void OnStop()
         {
@@ -64,9 +82,7 @@ namespace Toggl.Giskard.Activities
         private void setupMainLogObservables()
         {
             var collectionChanges = ViewModel.TimeEntries.CollectionChange.SelectUnit();
-            mainRecyclerViewChangesObservable = Observable
-                .FromEventPattern<View.ScrollChangeEventArgs>(e => mainRecyclerView.ScrollChange += e, e => mainRecyclerView.ScrollChange -= e)
-                .Select(_ => Unit.Default)
+            mainRecyclerViewChangesObservable = mainRecyclerViewScrollChanges
                 .Merge(collectionChanges);
         }
 

@@ -22,7 +22,8 @@ namespace Toggl.Ultrawave.Tests.Integration.BaseTests
         [Fact, LogTestInfo]
         public async Task WorksWithPassword()
         {
-            var credentials = await User.Create();
+            var user = await User.Create();
+            var credentials = Credentials.WithApiToken(user.ApiToken);
             ValidApi = TogglApiWith(credentials);
 
             CallingEndpointWith(ValidApi).Should().NotThrow();

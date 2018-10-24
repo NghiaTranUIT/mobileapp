@@ -1,6 +1,9 @@
-﻿using CoreGraphics;
+﻿using System;
+using CoreGraphics;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Views;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
@@ -8,12 +11,12 @@ using UIKit;
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalDialogPresentation]
-    public sealed partial class OutdatedAppViewController : MvxViewController<OutdatedAppViewModel>
+    public sealed partial class OutdatedAppViewController : ReactiveViewController<OutdatedAppViewModel>
     {
         private const int cardHeight = 357;
 
         public OutdatedAppViewController()
-            : base(nameof(OutdatedAppViewController), null)
+            : base(nameof(OutdatedAppViewController))
         {
         }
 
@@ -29,12 +32,9 @@ namespace Toggl.Daneel.ViewControllers
                 Height = cardHeight
             };
 
-            var bindingSet = this.CreateBindingSet<OutdatedAppViewController, OutdatedAppViewModel>();
-
-            bindingSet.Bind(UpdateButton).To(vm => vm.UpdateAppCommand);
-            bindingSet.Bind(WebsiteButton).To(vm => vm.OpenWebsiteCommand);
-
-            bindingSet.Apply();
+            this.Bind(UpdateButton.Rx().Tap(), ViewModel.UpdateAppAction);
+            this.Bind(WebsiteButton.Rx().Tap(), ViewModel.OpenWebsiteAction);
         }
+
     }
 }

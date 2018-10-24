@@ -5,15 +5,18 @@ namespace Toggl.Foundation.MvvmCross.Transformations
 {
     public sealed class DateToTitleString
     {
-        public static string Convert(DateTimeOffset offset, CultureInfo cultureInfo = null)
+        public static string Convert(DateTimeOffset date, DateTimeOffset now, CultureInfo cultureInfo = null)
         {
-            if (offset.ToLocalTime().Date == DateTimeOffset.Now.Date)
+            var localDate = date.ToLocalTime().Date;
+            var localNow = now.ToLocalTime().Date;
+
+            if (localDate == localNow)
                 return Resources.Today;
 
-            if (offset.ToLocalTime().Date.AddDays(1) == DateTimeOffset.Now.Date)
+            if (localDate.AddDays(1) == localNow)
                 return Resources.Yesterday;
 
-            return offset.ToString("ddd, dd MMM", cultureInfo ?? CultureInfo.CreateSpecificCulture("en-US"));
+            return date.ToLocalTime().ToString("ddd, dd MMM", cultureInfo ?? CultureInfo.CreateSpecificCulture("en-US"));
         }
     }
 }

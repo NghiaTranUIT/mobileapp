@@ -5,11 +5,13 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
+using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources.Interfaces;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Sync.States;
 using Toggl.Foundation.Sync.States.Pull;
+using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant.Models;
@@ -19,14 +21,20 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 {
     public sealed class DetectLosingAccessToWorkspacesStateTests
     {
+
         public sealed class TheConstructor
         {
-            [Fact]
-            public void ThrowsWhenArgumentIsNull()
+            [Theory, LogIfTooSlow]
+            [ConstructorData]
+            public void ThrowsIfAnyOfTheArgumentsIsNull(
+                bool useDataSource, bool useAnalyticsService)
             {
-                Action createWithoutArgument = () => new DetectLosingAccessToWorkspacesState(null);
+                Action tryingToConstructWithNulls = () => new DetectLosingAccessToWorkspacesState(
+                    useDataSource ? Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>() : null,
+                    useAnalyticsService ? Substitute.For<IAnalyticsService>() : null
+                );
 
-                createWithoutArgument.Should().Throw<ArgumentNullException>();
+                tryingToConstructWithNulls.Should().Throw<ArgumentNullException>();
             }
         }
 
@@ -34,6 +42,8 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         {
             private readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource =
                 Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>();
+
+            private IAnalyticsService analyticsService { get; } = Substitute.For<IAnalyticsService>();
 
             private readonly IFetchObservables fetchObservables = Substitute.For<IFetchObservables>();
 
@@ -50,7 +60,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 {
                     new MockWorkspace { Id = 1 }
                 });
-                var state = new DetectLosingAccessToWorkspacesState(dataSource);
+                var state = new DetectLosingAccessToWorkspacesState(dataSource, analyticsService);
 
                 var transition = await state.Start(fetchObservables);
                 var parameter = ((Transition<IFetchObservables>)transition).Parameter;
@@ -59,7 +69,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             }
 
             [Fact]
-            public async Task MarksWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsGhosts()
+            public async Task MarksWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsInaccessible()
             {
                 prepareDatabase(new[]
                 {
@@ -71,15 +81,35 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 {
                     new MockWorkspace { Id = 1 }
                 });
-                var state = new DetectLosingAccessToWorkspacesState(dataSource);
+                var state = new DetectLosingAccessToWorkspacesState(dataSource, analyticsService);
 
                 var transition = await state.Start(fetchObservables);
 
                 transition.Result.Should().Be(state.Continue);
                 await dataSource.Received()
-                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsGhost));
+                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsInaccessible));
                 await dataSource.Received()
-                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 3 && workspace.IsGhost));
+                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 3 && workspace.IsInaccessible));
+            }
+
+            [Fact]
+            public async Task TracksLoseOfAccessToWorkspacesWhichAreStoredLocallyButAreNotInTheListFromTheServerAsInaccessible()
+            {
+                prepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 },
+                    new MockWorkspace { Id = 3 }
+                });
+                prepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 }
+                });
+                var state = new DetectLosingAccessToWorkspacesState(dataSource, analyticsService);
+
+                var transition = await state.Start(fetchObservables);
+
+                analyticsService.LostWorkspaceAccess.Received().Track();
             }
 
             [Fact]
@@ -95,52 +125,52 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 {
                     new MockWorkspace { Id = 1 }
                 });
-                var state = new DetectLosingAccessToWorkspacesState(dataSource);
+                var state = new DetectLosingAccessToWorkspacesState(dataSource, analyticsService);
 
                 var transition = await state.Start(fetchObservables);
 
                 transition.Result.Should().Be(state.Continue);
                 await dataSource.Received()
-                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsGhost));
+                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsInaccessible));
             }
 
             [Fact]
-            public async Task IgnoresGhostWorkspaces()
+            public async Task IgnoresInaccessibleWorkspaces()
             {
                 prepareDatabase(new[]
                 {
                     new MockWorkspace { Id = 1 },
                     new MockWorkspace { Id = 2 },
-                    new MockWorkspace { Id = 3, IsGhost = true }
+                    new MockWorkspace { Id = 3, IsInaccessible = true }
                 });
                 prepareFetch(new List<IWorkspace>
                 {
                     new MockWorkspace { Id = 1 }
                 });
-                var state = new DetectLosingAccessToWorkspacesState(dataSource);
+                var state = new DetectLosingAccessToWorkspacesState(dataSource, analyticsService);
 
                 var transition = await state.Start(fetchObservables);
 
                 transition.Result.Should().Be(state.Continue);
                 await dataSource.Received()
-                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsGhost));
+                    .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsInaccessible));
             }
 
             [Fact]
-            public async Task DoesNotMarkAnyWorkspaceAsGhostWhenNoAccessIsLostSinceLastTime()
+            public async Task DoesNotMarkAnyWorkspaceAsInaccessibleWhenNoAccessIsLostSinceLastTime()
             {
                 prepareDatabase(new[]
                 {
                     new MockWorkspace { Id = 1 },
                     new MockWorkspace { Id = 2 },
-                    new MockWorkspace { Id = 3, IsGhost = true }
+                    new MockWorkspace { Id = 3, IsInaccessible = true }
                 });
                 prepareFetch(new List<IWorkspace>
                 {
                     new MockWorkspace { Id = 1 },
                     new MockWorkspace { Id = 2 }
                 });
-                var state = new DetectLosingAccessToWorkspacesState(dataSource);
+                var state = new DetectLosingAccessToWorkspacesState(dataSource, analyticsService);
 
                 var transition = await state.Start(fetchObservables);
 

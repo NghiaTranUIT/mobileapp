@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Foundation;
 using SiriExtension.Models;
 using Toggl.Daneel.ExtensionKit;
+using Toggl.Daneel.ExtensionKit.Analytics;
 using Toggl.Daneel.Intents;
 using Toggl.Ultrawave;
 
@@ -35,10 +37,13 @@ namespace SiriExtension
             togglAPI.TimeEntries.Create(timeEntry).Subscribe(te =>
             {
                 SharedStorage.instance.SetNeedsSync(true);
+                SharedStorage.instance.AddSiriTrackingEvent(SiriTrackingEvent.StartTimer(te));
+
                 var response = new StartTimerIntentResponse(StartTimerIntentResponseCode.Success, null);
                 completion(response);
             }, exception =>
             {
+                SharedStorage.instance.AddSiriTrackingEvent(SiriTrackingEvent.Error(exception.Message));
                 completion(new StartTimerIntentResponse(StartTimerIntentResponseCode.Failure, null));
             });
         }

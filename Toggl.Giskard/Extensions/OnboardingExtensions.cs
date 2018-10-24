@@ -2,6 +2,7 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using Android.App;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
@@ -97,7 +98,13 @@ namespace Toggl.Giskard.Extensions
         {
             anchor.Post(() =>
             {
+                var activity = anchor.Context as Activity;
+                if (activity == null || activity.IsFinishing)
+                    return;
+
                 popupWindow.ContentView.Measure(View.MeasureSpec.MakeMeasureSpec(0, MeasureSpecMode.Unspecified), View.MeasureSpec.MakeMeasureSpec(0, MeasureSpecMode.Unspecified));
+                popupWindow.Height = ViewGroup.LayoutParams.WrapContent;
+                popupWindow.Width = ViewGroup.LayoutParams.WrapContent;
                 var offsets = popupOffsetsGenerator(popupWindow, anchor);
                 popupWindow.ShowAsDropDown(anchor, offsets.HorizontalOffset, offsets.VerticalOffset);
             });

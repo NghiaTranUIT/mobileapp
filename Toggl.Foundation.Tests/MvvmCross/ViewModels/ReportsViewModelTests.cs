@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -743,6 +743,34 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var workspaceObservable = Observable.Return(workspace);
                 DataSource.WorkspaceFeatures.GetById(workspace.Id).Returns(workspaceFeaturesObservable);
                 DialogService.Select(Arg.Any<string>(), Arg.Any<ICollection<(string, IThreadSafeWorkspace)>>(), Arg.Any<int>()).Returns(workspaceObservable);
+            }
+        }
+
+        public sealed class TheViewAppearedMethod : ReportsViewModelTest
+        {
+            [Theory, LogIfTooSlow]
+            [InlineData(1)]
+            [InlineData(2)]
+            [InlineData(3)]
+            [InlineData(5)]
+            [InlineData(8)]
+            [InlineData(13)]
+            public async Task ShouldTriggerReloadForEveryAppearance(int numberOfAppearances)
+            {
+                ReportsProvider.GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
+                        Arg.Any<DateTimeOffset>())
+                    .ReturnsForAnyArgs(Observable.Empty<ProjectSummaryReport>(SchedulerProvider.TestScheduler));
+                await ViewModel.Initialize();
+                ViewModel.ViewAppeared(); // First call is skipped
+
+                for (int i = 0; i < numberOfAppearances; ++i)
+                {
+                    ViewModel.ViewAppeared();
+                }
+                TestScheduler.Start();
+
+                ReportsProvider.Received(numberOfAppearances).GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
+                    Arg.Any<DateTimeOffset>());
             }
         }
     }

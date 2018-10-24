@@ -29,7 +29,7 @@
             android:layout_height="?attr/actionBarSize" />
         <EditText
             android:id="@+id/EditTimeEntryDescriptionTextField"
-            local:MvxBind="Text Description; Focus IsEditingDescription; Click StartEditingDescriptionCommand"
+            local:MvxBind="Text Description; TextColor InvertDisabledTextColor(IsInaccessible); Focus IsEditingDescription; Click StartEditingDescriptionCommand"
             android:minLines="1"
             android:maxLines="4"
             android:textSize="19sp"
@@ -176,40 +176,44 @@
                 android:layout_marginLeft="56dp"
                 android:layout_width="match_parent"
                 android:layout_below="@id/EditTimeEntryProjectContainer" />
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/EditTimeEntryTagsContainer"
-                local:MvxBind="Click SelectTagsCommand"
-                android:background="?attr/selectableItemBackground"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:layout_below="@id/EditTimeEntryProjectContainer">
-                <ImageView
-                    android:id="@+id/EditTagsIcon"
-                    android:scaleType="center"
-                    android:src="@drawable/tag"
-                    android:layout_width="56dp"
-                    android:layout_height="48dp" />
-                <TextView
-                    android:id="@+id/EditAddTagsLabel"
-                    local:MvxBind="Visibility Visibility(!HasTags)"
-                    android:textSize="15sp"
-                    android:text="@string/AddTags"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/placeholderText"
+                <LinearLayout
+                    local:MvxBind="Click SelectTagsCommand; Visibility Visibility(ShowTags(IsInaccessible, HasTags))"
+                    android:background="?attr/selectableItemBackground"
                     android:layout_height="48dp"
-                    android:layout_width="wrap_content"
-                    android:layout_alignTop="@id/EditTagsIcon"
-                    android:layout_toRightOf="@id/EditTagsIcon" />
-                <toggl.giskard.views.TagsListRecyclerView
-                    android:id="@+id/EditTags"
-                    local:MvxBind="ItemsSource Tags; Visibility(HasTags); ItemClick SelectTagsCommand"
-                    android:clickable="true"
-                    local:MvxTemplateSelector="@string/TagsListTemplateSelector"
-                    android:layout_height="48dp"
-                    android:layout_width="wrap_content"
-                    android:layout_alignTop="@id/EditTagsIcon"
-                    android:layout_toRightOf="@id/EditTagsIcon" />
-            </LinearLayout>
+                    android:layout_width="match_parent">
+                    <ImageView
+                        android:id="@+id/EditTagsIcon"
+                        android:scaleType="center"
+                        android:src="@drawable/tag"
+                        android:layout_width="56dp"
+                        android:layout_height="48dp" />
+                    <TextView
+                        android:id="@+id/EditAddTagsLabel"
+                        local:MvxBind="Visibility Visibility(!HasTags)"
+                        android:textSize="15sp"
+                        android:text="@string/AddTags"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/placeholderText"
+                        android:layout_height="48dp"
+                        android:layout_width="wrap_content"
+                        android:layout_alignTop="@id/EditTagsIcon"
+                        android:layout_toRightOf="@id/EditTagsIcon" />
+                    <toggl.giskard.views.TagsListRecyclerView
+                        android:id="@+id/EditTags"
+                        local:MvxBind="ItemsSource Tags; Visibility(HasTags); ItemClick SelectTagsCommand"
+                        android:clickable="true"
+                        local:MvxTemplateSelector="@string/TagsListTemplateSelector"
+                        android:layout_height="48dp"
+                        android:layout_width="wrap_content"
+                        android:layout_alignTop="@id/EditTagsIcon"
+                        android:layout_toRightOf="@id/EditTagsIcon" />
+                </LinearLayout>
+            </FrameLayout>
             <View
                 android:background="@color/separator"
                 android:layout_height="0.5dp"
@@ -241,7 +245,7 @@
                     android:layout_width="wrap_content" />
                 <Switch
                     android:id="@+id/EditBillableSwitch"
-                    local:MvxBind="Checked Billable"
+                    local:MvxBind="Checked Billable; Enabled !IsInaccessible"
                     android:layout_marginRight="18dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
@@ -271,7 +275,7 @@
                 android:layout_alignBottom="@id/EditTimeSeparator">
                 <TextView
                     android:id="@+id/EditStartValueLabel"
-                    local:MvxBind="Text DateTimeOffsetTimeFormat(StartTime, TimeFormat)"
+                    local:MvxBind="Text DateTimeOffsetTimeFormat(StartTime, TimeFormat); TextColor DisabledTextColor(IsInaccessible)"
                     tools:text="11:25 AM"
                     android:textSize="15sp"
                     android:textColor="@color/darkLabel"
@@ -280,7 +284,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    local:MvxBind="Text DateTimeOffsetShortDateFormat(StartTime, DateFormat)"
+                    local:MvxBind="Text DateTimeOffsetShortDateFormat(StartTime, DateFormat); TextColor DisabledTextColor(IsInaccessible)"
                     tools:text="06.05."
                     android:textSize="15sp"
                     android:textColor="@color/editViewDate"
@@ -311,7 +315,7 @@
                 android:layout_alignBottom="@id/EditTimeSeparator">
                 <TextView
                     android:id="@+id/EditEndValueLabel"
-                    local:MvxBind="Text DateTimeOffsetTimeFormat(StopTimeOrCurrent, TimeFormat); Visibility Visibility(!IsTimeEntryRunning, true)"
+                    local:MvxBind="Text DateTimeOffsetTimeFormat(StopTimeOrCurrent, TimeFormat); TextColor DisabledTextColor(IsInaccessible); Visibility Visibility(!IsTimeEntryRunning, true)"
                     tools:text="11:48 AM"
                     android:textSize="15sp"
                     android:textColor="@color/darkLabel"
@@ -321,7 +325,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 <TextView
-                    local:MvxBind="Text DateTimeOffsetShortDateFormat(StopTimeOrCurrent, DateFormat); Visibility Visibility(!IsTimeEntryRunning, true)"
+                    local:MvxBind="Text DateTimeOffsetShortDateFormat(StopTimeOrCurrent, DateFormat); TextColor DisabledTextColor(IsInaccessible); Visibility Visibility(!IsTimeEntryRunning, true)"
                     tools:text="06.05."
                     android:textSize="15sp"
                     android:textColor="@color/editViewDate"
@@ -375,7 +379,7 @@
                 android:layout_width="match_parent"
                 android:layout_below="@id/EditTimesBottomBorder">
                 <TextView
-                    local:MvxBind="Text Duration(Duration, DurationFormat)"
+                    local:MvxBind="Text Duration(Duration, DurationFormat); TextColor DisabledTextColor(IsInaccessible)"
                     tools:text="0:11:25"
                     android:textSize="15sp"
                     android:textColor="@color/darkLabel"

@@ -6,6 +6,7 @@ using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
+using UIKit;
 
 namespace Toggl.Daneel.ViewControllers.Calendar
 {
@@ -15,7 +16,7 @@ namespace Toggl.Daneel.ViewControllers.Calendar
     {
         private const int heightAboveTableView = 98;
         private const int heightBelowTableView = 80;
-        private const int maxHeight = 627;
+        private readonly int maxHeight = UIScreen.MainScreen.Bounds.Width > 320 ? 627 : 528;
         private const int width = 288;
 
         private const float enabledDoneButtonAlpha = 1;

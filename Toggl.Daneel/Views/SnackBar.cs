@@ -70,8 +70,9 @@ namespace Toggl.Daneel
                 onTap();
             };
             button.SetAttributedTitle(new NSAttributedString(title, ButtonAttributes), UIControlState.Normal);
-            button.SetContentHuggingPriority(1000, UILayoutConstraintAxis.Vertical);
-            button.SetContentHuggingPriority(1000, UILayoutConstraintAxis.Horizontal);
+            button.SetContentCompressionResistancePriority(1000, UILayoutConstraintAxis.Vertical);
+            button.SetContentCompressionResistancePriority(1000, UILayoutConstraintAxis.Horizontal);
+            button.HorizontalAlignment = UIControlContentHorizontalAlignment.Right;
             buttonsStackView.AddArrangedSubview(button);
 
             SetNeedsLayout();

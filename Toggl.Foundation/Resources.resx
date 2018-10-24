@@ -45,6 +45,9 @@ of your time with reports</value>
     <data name="Back">
         <value>Back</value>
     </data>
+    <data name="Ok">
+        <value>Ok</value>
+    </data>
     <data name="SignUpTitle">
         <value>Sign up for free</value>
     </data>
@@ -149,9 +152,6 @@ time entries will appear here.</value>
     </data>
     <data name="DifferentWorkspaceAlertMessage">
         <value>Change workspace?</value>
-    </data>
-    <data name="Ok">
-        <value>Ok</value>
     </data>
     <data name="Cancel">
         <value>Cancel</value>
@@ -405,6 +405,12 @@ account is not set up</value>
     <data name="RatingViewNegativeCTAButtonTitle">
         <value>Tell us what’s wrong</value>
     </data>
+    <data name="ReportTooLongTitle">
+        <value>Too Long</value>
+    </data>
+    <data name="ReportTooLongDescription">
+        <value>The maximum lenght of a report is 365 days.</value>
+    </data>
     <data name="ArchivedProjectDecorator">
         <value>(archived)</value>
     </data>
@@ -428,9 +434,6 @@ account is not set up</value>
     </data>
     <data name="Off">
         <value>Off</value>
-    </data>
-    <data name="NoDescription">
-        <value>No description</value>
     </data>
     <data name="NewTimeEntry">
         <value>New Time Entry</value>
@@ -485,5 +488,8 @@ account is not set up</value>
     </data>
     <data name="DiscardMessage">
         <value>Discard message?</value>
+    </data>
+    <data name="InaccessibleTimeEntryErrorMessage">
+        <value>This time entry belongs to a workspace that you don't have access to anymore and it can't by synced.</value>
     </data>
 </root>

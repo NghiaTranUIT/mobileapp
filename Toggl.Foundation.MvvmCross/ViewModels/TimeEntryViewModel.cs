@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.Extensions;
@@ -11,7 +12,7 @@ using Toggl.PrimeRadiant;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class TimeEntryViewModel : MvxNotifyPropertyChanged, ITimeEntryPrototype
+    public sealed class TimeEntryViewModel : MvxNotifyPropertyChanged, ITimeEntryPrototype, IEquatable<TimeEntryViewModel>
     {
         public long Id { get; }
 
@@ -51,9 +52,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public DurationFormat DurationFormat { get; set; }
 
-        public bool IsGhost { get; }
+        public bool IsInaccessible { get; }
 
-        public bool CanContinue => CanSync && !IsGhost;
+        public bool CanContinue => CanSync && !IsInaccessible;
 
         public TimeEntryViewModel(IThreadSafeTimeEntry timeEntry, DurationFormat durationFormat)
         {
@@ -78,7 +79,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             CanSync = timeEntry.SyncStatus != SyncStatus.SyncFailed;
             NeedsSync = timeEntry.SyncStatus == SyncStatus.SyncNeeded;
 
-            IsGhost = timeEntry.IsGhost;
+            IsInaccessible = timeEntry.IsInaccessible;
 
             if (!HasProject) return;
 
@@ -91,5 +92,51 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             ClientName = timeEntry.Project.Client?.Name ?? "";
         }
+
+
+        public bool Equals(TimeEntryViewModel other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Id == other.Id
+                   && IsBillable == other.IsBillable
+                   && string.Equals(Description, other.Description)
+                   && string.Equals(ProjectName, other.ProjectName)
+                   && string.Equals(ProjectColor, other.ProjectColor)
+                   && string.Equals(ClientName, other.ClientName)
+                   && string.Equals(TaskName, other.TaskName)
+                   && Duration.Equals(other.Duration)
+                   && HasProject == other.HasProject
+                   && HasTags == other.HasTags
+                   && NeedsSync == other.NeedsSync
+                   && CanSync == other.CanSync
+                   && IsInaccessible == other.IsInaccessible;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj)) return true;
+            return obj is TimeEntryViewModel other && Equals(other);
+        }
+
+        public override int GetHashCode()
+            => HashCode.From(
+                Id,
+                IsBillable,
+                Description != null ? Description : default(string),
+                ProjectName != null ? ProjectName : default(string),
+                ProjectColor != null ? ProjectColor : default(string),
+                ClientName != null ? ClientName : default(string),
+                TaskName != null ? TaskName : default(string),
+                Duration,
+                HasProject,
+                HasTags,
+                NeedsSync,
+                CanSync,
+                IsInaccessible);
+
+        public static bool operator ==(TimeEntryViewModel left, TimeEntryViewModel right) => Equals(left, right);
+
+        public static bool operator !=(TimeEntryViewModel left, TimeEntryViewModel right) => !Equals(left, right);
     }
 }

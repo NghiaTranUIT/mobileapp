@@ -18,15 +18,15 @@ using Xunit;
 
 namespace Toggl.Foundation.Tests.Sync.States.Pull
 {
-    public sealed class CreateGhostProjectsStateTests
+    public sealed class CreateArchivedProjectPlaceholdersStateTests
     {
         private readonly IDataSource<IThreadSafeProject, IDatabaseProject> dataSource = Substitute.For<IDataSource<IThreadSafeProject, IDatabaseProject>>();
         private readonly IAnalyticsService analyticsService = Substitute.For<IAnalyticsService>();
-        private readonly CreateGhostProjectsState state;
+        private readonly CreateArchivedProjectPlaceholdersState state;
 
-        public CreateGhostProjectsStateTests()
+        public CreateArchivedProjectPlaceholdersStateTests()
         {
-            state = new CreateGhostProjectsState(dataSource, analyticsService);
+            state = new CreateArchivedProjectPlaceholdersState(dataSource, analyticsService);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         }
 
         [Fact]
-        public async Task CreatesAGhostProjectIfThereIsNoProjectWithGivenIdInTheDatabase()
+        public async Task CreatesAProjectPlaceholderIfThereIsNoProjectWithGivenIdInTheDatabase()
         {
             var timeEntry = new MockTimeEntry { ProjectId = 123, WorkspaceId = 456 };
             var fetchObservables = fetch(timeEntry);
@@ -68,7 +68,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         }
 
         [Fact]
-        public async Task CreatesOnlyOneGhostWhenMultipleTimeEntriesUseSameUnknownProject()
+        public async Task CreatesOnlyOnePlaceholderWhenMultipleTimeEntriesUseSameUnknownProject()
         {
             var projectId = 123;
             var timeEntryA = new MockTimeEntry { ProjectId = projectId, WorkspaceId = 456 };
@@ -84,7 +84,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         }
 
         [Fact]
-        public async Task DoesNotCreateAGhostWhenTheProjectIsInTheDatabase()
+        public async Task DoesNotCreateAPlaceholderWhenTheProjectIsInTheDatabase()
         {
             var timeEntry = new MockTimeEntry { ProjectId = 123 };
             var fetchObservables = fetch(timeEntry);
@@ -97,7 +97,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         }
 
         [Fact]
-        public async Task TheCreatedGhostProjectIsNotActive()
+        public async Task TheCreatedProjectPlaceholderIsNotActive()
         {
             var timeEntry = new MockTimeEntry { ProjectId = 123, WorkspaceId = 456 };
             var fetchObservables = fetch(timeEntry);
@@ -111,7 +111,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         }
 
         [Fact]
-        public async Task TracksTheNumberOfActuallyCreatedGhostProjects()
+        public async Task TracksTheNumberOfActuallyCreatedProjectPlaceholders()
         {
             var timeEntryA = new MockTimeEntry { ProjectId = 123, WorkspaceId = 456 };
             var timeEntryB = new MockTimeEntry { ProjectId = 456, WorkspaceId = 456 };
@@ -131,11 +131,11 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             await state.Start(fetchObservables);
 
-            analyticsService.ProjectGhostsCreated.Received().Track(2);
+            analyticsService.ProjectPlaceholdersCreated.Received().Track(2);
         }
 
         [Fact]
-        public async Task TracksThatNoGhostProjectsWereCreatedWhenTheResponseFromTheServerIsAnEmptyList()
+        public async Task TracksThatNoProjectPlaceholdersWereCreatedWhenTheResponseFromTheServerIsAnEmptyList()
         {
             var timeEntry = new MockTimeEntry { ProjectId = 123, WorkspaceId = 456 };
             var fetchObservables = fetch(timeEntry);
@@ -144,11 +144,11 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             await state.Start(fetchObservables);
 
-            analyticsService.ProjectGhostsCreated.Received().Track(0);
+            analyticsService.ProjectPlaceholdersCreated.Received().Track(0);
         }
 
         [Fact]
-        public async Task TracksThatNoGhostProjectsWereCreatedWhenTheProjectsAreInTheDataSource()
+        public async Task TracksThatNoProjectPlaceholdersWereCreatedWhenTheProjectsAreInTheDataSource()
         {
             var fetchObservables = fetch();
             dataSource.GetAll(Arg.Any<Func<IDatabaseProject, bool>>())
@@ -157,7 +157,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             await state.Start(fetchObservables);
 
-            analyticsService.ProjectGhostsCreated.Received().Track(0);
+            analyticsService.ProjectPlaceholdersCreated.Received().Track(0);
         }
 
         private IFetchObservables fetch(params ITimeEntry[] timeEntries)

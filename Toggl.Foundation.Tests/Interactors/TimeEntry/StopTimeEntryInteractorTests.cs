@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Reactive.Testing;
 using NSubstitute;
+using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Exceptions;
 using Toggl.Foundation.Interactors;
@@ -29,6 +30,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         private static DateTimeOffset now = new DateTimeOffset(2018, 05, 14, 18, 00, 00, TimeSpan.Zero);
 
         private readonly StopTimeEntryInteractor interactor;
+
         private readonly TestScheduler testScheduler = new TestScheduler();
 
         private IThreadSafeTimeEntry TimeEntry { get; } =
@@ -41,6 +43,8 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
                 .SetAt(now.AddDays(-1))
                 .SetStart(now.AddHours(-2))
                 .Build();
+
+        private TimeEntryStopOrigin origin => TimeEntryStopOrigin.Deeplink;
 
         public StopTimeEntryInteractorTests()
         {
@@ -61,7 +65,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
                          .Return(timeEntries)
                          .Select(x => x.Where(callInfo.Arg<Func<IDatabaseTimeEntry, bool>>()).Cast<IThreadSafeTimeEntry>()));
 
-            interactor = new StopTimeEntryInteractor(TimeService, DataSource.TimeEntries, now);
+            interactor = new StopTimeEntryInteractor(TimeService, DataSource.TimeEntries, now, AnalyticsService, origin);
         }
 
         [Fact, LogIfTooSlow]
@@ -112,6 +116,13 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
             observable.Subscribe(observer);
 
             observer.Messages.Single().Value.Exception.Should().BeOfType<NoRunningTimeEntryException>();
+        }
+
+        [Fact, LogIfTooSlow]
+        public async ThreadingTask RegisterTrackingEvent()
+        {
+            await interactor.Execute();
+            AnalyticsService.TimeEntryStopped.Received(1).Track(TimeEntryStopOrigin.Deeplink);
         }
     }
 }

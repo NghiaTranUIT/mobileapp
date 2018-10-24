@@ -19,6 +19,9 @@ namespace Toggl.Foundation.Login
         }
 
         public ITogglApi CreateApiWith(Credentials credentials)
-            => new TogglApi(new ApiConfiguration(Environment, credentials, UserAgent));
+        {
+            var configuration = new ApiConfiguration(Environment, credentials, UserAgent);
+            return TogglApiFactory.WithConfiguration(configuration);
+        }
     }
 }

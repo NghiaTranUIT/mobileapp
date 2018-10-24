@@ -97,9 +97,9 @@
 	<key>INIntentDefinitionModelVersion</key>
 	<string>1.0</string>
 	<key>INIntentDefinitionSystemVersion</key>
-	<string>17G2208</string>
+	<string>18A389</string>
 	<key>INIntentDefinitionToolsBuildVersion</key>
-	<string>10A254a</string>
+	<string>10A255</string>
 	<key>INIntentDefinitionToolsVersion</key>
 	<string>10.0</string>
 	<key>INIntents</key>
@@ -165,9 +165,9 @@
 						<key>INIntentResponseCodeFormatStringID</key>
 						<string>JuvQpB</string>
 						<key>INIntentResponseCodeName</key>
-						<string>failureNoRunningEntry</string>
+						<string>successNoRunningEntry</string>
 						<key>INIntentResponseCodeSuccess</key>
-						<false/>
+						<true/>
 					</dict>
 					<dict>
 						<key>INIntentResponseCodeFormatString</key>

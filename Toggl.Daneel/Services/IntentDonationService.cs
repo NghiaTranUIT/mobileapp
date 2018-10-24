@@ -4,6 +4,7 @@ using Foundation;
 using Intents;
 using Toggl.Daneel.Intents;
 using Toggl.Foundation;
+using Toggl.Foundation.Models.Interfaces;
 using Toggl.Multivac.Models;
 using Toggl.Foundation.Services;
 using Toggl.Multivac.Models;
@@ -13,6 +14,20 @@ namespace Toggl.Daneel.Services
 {
     public class IntentDonationService : IIntentDonationService
     {
+        private static string startTimerInvocationPhrase = "Start timer";
+        private static string stopTimerInvocationPhrase = "Stop timer";
+        private static string showReportInvocationPhrase = "Show Report";
+
+        public void SetDefaultShortcutSuggestions(IWorkspace workspace)
+        {
+            if (!UIDevice.CurrentDevice.CheckSystemVersion(12, 0))
+            {
+                return;
+            }
+
+            INVoiceShortcutCenter.SharedCenter.SetShortcutSuggestions(defaultShortcuts(workspace));
+        }
+
         public void DonateStartTimeEntry(IWorkspace workspace, ITimeEntry timeEntry)
         {
             if (!UIDevice.CurrentDevice.CheckSystemVersion(12, 0))
@@ -38,7 +53,7 @@ namespace Toggl.Daneel.Services
             }
             else
             {
-                intent.SuggestedInvocationPhrase = "Start timer";
+                intent.SuggestedInvocationPhrase = startTimerInvocationPhrase;
             }
 
             var interaction = new INInteraction(intent, null);
@@ -53,7 +68,7 @@ namespace Toggl.Daneel.Services
             }
 
             var intent = new StopTimerIntent();
-            intent.SuggestedInvocationPhrase = "Stop timer";
+            intent.SuggestedInvocationPhrase = stopTimerInvocationPhrase;
 
             var interaction = new INInteraction(intent, null);
             interaction.DonateInteraction(onCompletion);
@@ -107,6 +122,7 @@ namespace Toggl.Daneel.Services
             }
 
             var intent = new ShowReportIntent();
+            intent.SuggestedInvocationPhrase = showReportInvocationPhrase;
             var interaction = new INInteraction(intent, null);
             interaction.DonateInteraction(onCompletion);
         }
@@ -119,6 +135,7 @@ namespace Toggl.Daneel.Services
             }
 
             INInteraction.DeleteAllInteractions(_ => { });
+            INVoiceShortcutCenter.SharedCenter.SetShortcutSuggestions(new INShortcut[0]);
         }
 
         private Action<NSError> onCompletion
@@ -138,5 +155,26 @@ namespace Toggl.Daneel.Services
                 };
             }
         }
+
+        private INShortcut[] defaultShortcuts(IWorkspace workspace)
+        {
+            var startTimerIntent = new StartTimerIntent();
+            startTimerIntent.Workspace = new INObject(workspace.Id.ToString(), workspace.Name);
+            startTimerIntent.SuggestedInvocationPhrase = startTimerInvocationPhrase;
+
+            var stopTimerIntent = new StopTimerIntent();
+            stopTimerIntent.SuggestedInvocationPhrase = stopTimerInvocationPhrase;
+
+            var showReportIntent = new ShowReportIntent();
+            showReportIntent.SuggestedInvocationPhrase = showReportInvocationPhrase;
+
+            return new[]
+            {
+                new INShortcut(startTimerIntent),
+                new INShortcut(stopTimerIntent),
+                new INShortcut(showReportIntent),
+            };
+        }
+
     }
 }

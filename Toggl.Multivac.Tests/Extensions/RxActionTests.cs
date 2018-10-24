@@ -16,9 +16,7 @@ namespace Toggl.Multivac.Tests
                 var testScheduler = new TestScheduler();
                 var exception = new Exception("This is an error");
 
-                var action = new RxAction<int, string>(
-                    i => Observable.Throw<string>(exception)
-                );
+                var action = new ThrowingRxAction(exception);
 
                 var observer = testScheduler.CreateObserver<Exception>();
 
@@ -41,11 +39,7 @@ namespace Toggl.Multivac.Tests
             {
                 var testScheduler = new TestScheduler();
 
-                var action = new RxAction<int, string>(
-                    i => Observable.Interval(TimeSpan.FromTicks(1), testScheduler)
-                        .Take(i)
-                        .Select(l => l.ToString())
-                );
+                var action = new TestRxAction(testScheduler);
 
                 var observer = testScheduler.CreateObserver<bool>();
 
@@ -70,11 +64,7 @@ namespace Toggl.Multivac.Tests
             {
                 var testScheduler = new TestScheduler();
 
-                var action = new RxAction<int, string>(
-                    i => Observable.Interval(TimeSpan.FromTicks(1), testScheduler)
-                        .Take(i)
-                        .Select(l => l.ToString())
-                );
+                var action = new TestRxAction(testScheduler);
 
                 var observer = testScheduler.CreateObserver<bool>();
 
@@ -99,11 +89,7 @@ namespace Toggl.Multivac.Tests
             {
                 var testScheduler = new TestScheduler();
 
-                var action = new RxAction<int, string>(
-                   i => Observable.Interval(TimeSpan.FromTicks(1), testScheduler)
-                        .Take(i)
-                        .Select(l => l.ToString())
-                );
+                var action = new TestRxAction(testScheduler);
 
                 var observer = testScheduler.CreateObserver<string>();
 
@@ -117,6 +103,30 @@ namespace Toggl.Multivac.Tests
                     OnCompleted<string>(5)
                 );
             }
+        }
+
+        private sealed class ThrowingRxAction : RxAction<int, string>
+        {
+            public ThrowingRxAction(Exception exception)
+                : base(workFactory(exception))
+            {
+            }
+
+            private static Func<int, IObservable<string>> workFactory(Exception exception)
+                => i => Observable.Throw<string>(exception);
+        }
+
+        private sealed class TestRxAction : RxAction<int, string>
+        {
+            public TestRxAction(TestScheduler scheduler)
+                : base(workFactory(scheduler))
+            {
+            }
+
+            private static Func<int, IObservable<string>> workFactory(TestScheduler scheduler)
+                => i => Observable.Interval(TimeSpan.FromTicks(1), scheduler)
+                    .Take(i)
+                    .Select(l => l.ToString());
         }
     }
 }

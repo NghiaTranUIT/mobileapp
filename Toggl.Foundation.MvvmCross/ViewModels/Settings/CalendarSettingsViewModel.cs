@@ -35,7 +35,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             this.userPreferences = userPreferences;
             this.permissionsService = permissionsService;
 
-            RequestAccessAction = new UIAction(requestAccess);
+            RequestAccessAction = UIAction.FromAction(requestAccess);
 
             SelectCalendarAction
                 .Elements
@@ -49,10 +49,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             await base.Initialize();
         }
 
-        private IObservable<Unit> requestAccess()
+        private void requestAccess()
         {
             permissionsService.OpenAppSettings();
-            return Observable.Return(Unit.Default);
         }
 
         private void onCalendarSelected()

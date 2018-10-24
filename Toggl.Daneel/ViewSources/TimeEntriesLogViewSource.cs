@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CoreGraphics;
@@ -11,6 +11,7 @@ using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.Helper;
+using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using UIKit;
 
@@ -22,6 +23,9 @@ namespace Toggl.Daneel.ViewSources
         private const int rowHeight = 64;
         private const int headerHeight = 48;
         private const int spaceBetweenSections = 20;
+
+        private readonly ITimeService timeService;
+        private readonly ISchedulerProvider schedulerProvider;
 
         public event EventHandler SwipeToContinueWasUsed;
         public event EventHandler SwipeToDeleteWasUsed;
@@ -37,8 +41,7 @@ namespace Toggl.Daneel.ViewSources
         public IObservable<TimeEntryViewModel> SwipeToDelete
             => swipeToDeleteSubject.AsObservable();
 
-        public IObservable<TimeEntriesLogViewCell> FirstCell
-            => firstCellSubject .AsObservable();
+        public IObservable<TimeEntriesLogViewCell> FirstCell { get; }
 
         private Subject<TimeEntryViewModel> continueTapSubject = new Subject<TimeEntryViewModel>();
         private Subject<TimeEntryViewModel> swipeToContinueSubject = new Subject<TimeEntryViewModel>();
@@ -48,8 +51,19 @@ namespace Toggl.Daneel.ViewSources
         //Using the old API so that delete action would work on pre iOS 11 devices
         private readonly UITableViewRowAction deleteTableViewRowAction;
 
-        public TimeEntriesLogViewSource(ObservableGroupedOrderedCollection<TimeEntryViewModel> collection, string cellIdentifier) : base(collection, cellIdentifier)
+        public TimeEntriesLogViewSource(
+            ObservableGroupedOrderedCollection<TimeEntryViewModel> collection,
+            string cellIdentifier,
+            ITimeService timeService,
+            ISchedulerProvider schedulerProvider)
+            : base(collection, cellIdentifier)
         {
+            Ensure.Argument.IsNotNull(timeService, nameof(timeService));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
+
+            this.timeService = timeService;
+            this.schedulerProvider = schedulerProvider;
+
             if (!UIDevice.CurrentDevice.CheckSystemVersion(11, 0))
             {
                 deleteTableViewRowAction = UITableViewRowAction.Create(
@@ -58,6 +72,8 @@ namespace Toggl.Daneel.ViewSources
                     handleDeleteTableViewRowAction);
                 deleteTableViewRowAction.BackgroundColor = Color.TimeEntriesLog.DeleteSwipeActionBackground.ToNativeColor();
             }
+
+            FirstCell = firstCellSubject.AsDriver(schedulerProvider);
         }
 
         public override UIView GetViewForFooter(UITableView tableView, nint section)
@@ -98,6 +114,7 @@ namespace Toggl.Daneel.ViewSources
         {
             var header = (TimeEntriesLogHeaderView)tableView.DequeueReusableHeaderFooterView(TimeEntriesLogHeaderView.Identifier);
             header.Items = DisplayedItems[(int)section];
+            header.Now = timeService.CurrentDateTime;
             return header;
         }
 
@@ -105,8 +122,8 @@ namespace Toggl.Daneel.ViewSources
         {
             if (tableView.GetHeaderView(section) is TimeEntriesLogHeaderView header)
             {
-                header.UpdateView();
                 header.Items = DisplayedItems[section];
+                header.Now = timeService.CurrentDateTime;
             }
         }
 

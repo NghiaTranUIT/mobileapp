@@ -52,7 +52,7 @@ namespace Toggl.Daneel.Views.Reports
 		UIKit.UIStackView HorizontalLegendStackView { get; set; }
 
 		[Outlet]
-		UIKit.UIView LoadingCardView { get; set; }
+		UIKit.UIView LoadingOverviewView { get; set; }
 
 		[Outlet]
 		Toggl.Daneel.Views.Reports.LoadingPieChartView LoadingPieChartView { get; set; }
@@ -143,9 +143,9 @@ namespace Toggl.Daneel.Views.Reports
 				HorizontalLegendStackView = null;
 			}
 
-			if (LoadingCardView != null) {
-				LoadingCardView.Dispose ();
-				LoadingCardView = null;
+			if (LoadingOverviewView != null) {
+				LoadingOverviewView.Dispose ();
+				LoadingOverviewView = null;
 			}
 
 			if (LoadingPieChartView != null) {

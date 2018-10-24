@@ -13,6 +13,7 @@ using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.Helper.Constants;
@@ -41,8 +42,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             {
                 var text = Text.Trim();
                 return !string.IsNullOrEmpty(text)
-                       && Tags.None(tag => tag.Name == text.Trim())
-                       && Encoding.UTF8.GetByteCount(Text) <= MaxTagNameLengthInBytes;
+                       && Tags.None(tag => tag.Name.IsSameCaseInsensitiveTrimedTextAs(text))
+                       && text.IsAllowedTagByteSize();
             }
         }
 

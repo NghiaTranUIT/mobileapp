@@ -8,19 +8,15 @@ using static System.Net.DecompressionMethods;
 
 namespace Toggl.Ultrawave
 {
-    public sealed class TogglApi : ITogglApi
+    internal sealed class TogglApi : ITogglApi
     {
-        public TogglApi(ApiConfiguration configuration, HttpClientHandler handler = null)
+        public TogglApi(ApiConfiguration configuration, IApiClient apiClient)
         {
             Ensure.Argument.IsNotNull(configuration, nameof(configuration));
-
-            var httpHandler = handler ?? new HttpClientHandler { AutomaticDecompression = GZip | Deflate };
-            var httpClient = new HttpClient(httpHandler);
 
             var userAgent = configuration.UserAgent;
             var credentials = configuration.Credentials;
             var serializer = new JsonSerializer();
-            var apiClient = new ApiClient(httpClient, userAgent);
             var endpoints = new Endpoints(configuration.Environment);
 
             Status = new StatusApi(endpoints, apiClient);
@@ -55,5 +51,21 @@ namespace Toggl.Ultrawave
         public IProjectsSummaryApi ProjectsSummary { get; }
         public IWorkspaceFeaturesApi WorkspaceFeatures { get; }
         public IFeedbackApi Feedback { get; }
+    }
+
+    public static class TogglApiFactory
+    {
+        internal static IApiClient CreateDefaultApiClient(UserAgent userAgent)
+        {
+            var httpHandler = new HttpClientHandler { AutomaticDecompression = GZip | Deflate };
+            var httpClient = new HttpClient(httpHandler);
+            return new ApiClient(httpClient, userAgent);
+        }
+
+        public static ITogglApi WithConfiguration(ApiConfiguration configuration)
+        {
+            var apiClient = CreateDefaultApiClient(configuration.UserAgent);
+            return new TogglApi(configuration, apiClient);
+        }
     }
 }

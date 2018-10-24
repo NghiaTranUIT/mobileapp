@@ -40,6 +40,8 @@ namespace Toggl.Daneel.Views.Calendar
         public static NSString CurrentTimeSupplementaryViewKind = new NSString("CurrentTime");
         public nfloat ContentViewHeight => hoursPerDay * HourHeight;
 
+        private UICollectionViewLayoutAttributes currentTimeLayoutAttributes;
+
         private bool isEditing;
         public bool IsEditing
         {
@@ -72,8 +74,10 @@ namespace Toggl.Daneel.Views.Calendar
                 .CurrentDateTimeObservable
                 .DistinctUntilChanged(offset => offset.Minute)
                 .ObserveOn(SynchronizationContext.Current)
-                .VoidSubscribe(invalidateCurrentTimeLayout)
+                .VoidSubscribe(InvalidateCurrentTimeLayout)
                 .DisposedBy(disposeBag);
+
+            currentTimeLayoutAttributes = UICollectionViewLayoutAttributes.CreateForSupplementaryView(CurrentTimeSupplementaryViewKind, NSIndexPath.FromItemSection(0, 0));
         }
 
         public override CGSize CollectionViewContentSize
@@ -113,6 +117,13 @@ namespace Toggl.Daneel.Views.Calendar
             InvalidateLayout(context);
         }
 
+        public void InvalidateCurrentTimeLayout()
+        {
+            var context = new UICollectionViewLayoutInvalidationContext();
+            context.InvalidateSupplementaryElements(CurrentTimeSupplementaryViewKind, new NSIndexPath[] { NSIndexPath.FromItemSection(0, 0) });
+            InvalidateLayout(context);
+        }
+
         public override bool ShouldInvalidateLayoutForBoundsChange(CGRect newBounds)
             => true;
 
@@ -127,12 +138,10 @@ namespace Toggl.Daneel.Views.Calendar
             var editingHoursIndexPaths = indexPathsForEditingHours();
             var editingHoursAttributes = editingHoursIndexPaths.Select(layoutAttributesForHourView);
 
-            var currentTimeAttributes = layoutAttributesForCurrentTime();
-
             var attributes = itemsAttributes
                 .Concat(hoursAttributes)
                 .Concat(editingHoursAttributes)
-                .Append(currentTimeAttributes);
+                .Append(currentTimeLayoutAttributes);
 
             return attributes.ToArray();
         }
@@ -166,10 +175,9 @@ namespace Toggl.Daneel.Views.Calendar
             }
             else
             {
-                var attributes = UICollectionViewLayoutAttributes.CreateForSupplementaryView(kind, indexPath);
-                attributes.Frame = FrameForCurrentTime();
-                attributes.ZIndex = 300;
-                return attributes;
+                currentTimeLayoutAttributes.Frame = FrameForCurrentTime();
+                currentTimeLayoutAttributes.ZIndex = 300;
+                return currentTimeLayoutAttributes;
             }
         }
 
@@ -264,13 +272,6 @@ namespace Toggl.Daneel.Views.Calendar
             var y = yHour + yMins - height / 2;
 
             return new CGRect(x, y, width, height);
-        }
-
-        private void invalidateCurrentTimeLayout()
-        {
-            var context = new UICollectionViewLayoutInvalidationContext();
-            context.InvalidateSupplementaryElements(CurrentTimeSupplementaryViewKind, new NSIndexPath[] { NSIndexPath.FromItemSection(0, 0) });
-            InvalidateLayout(context);
         }
     }
 }

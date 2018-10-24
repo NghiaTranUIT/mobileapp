@@ -13,7 +13,7 @@ namespace SiriExtension
         private const ApiEnvironment environment = ApiEnvironment.Staging;
         #endif
 
-        public static TogglApi GetTogglAPI()
+        public static ITogglApi GetTogglAPI()
         {
             var apiToken = SharedStorage.instance.GetApiToken();
             if (apiToken == null)
@@ -23,7 +23,8 @@ namespace SiriExtension
 
             var version = NSBundle.MainBundle.InfoDictionary["CFBundleShortVersionString"].ToString();
             var userAgent = new UserAgent("Daneel", $"{version}.SiriExtension");
-            return new TogglApi(new ApiConfiguration(environment, Credentials.WithApiToken(apiToken), userAgent));
+            var apiConfiguration = new ApiConfiguration(environment, Credentials.WithApiToken(apiToken), userAgent);
+            return TogglApiFactory.WithConfiguration(apiConfiguration);
         }
     }
 }

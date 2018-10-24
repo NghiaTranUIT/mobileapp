@@ -11,6 +11,7 @@ using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Models;
 using Xunit;
 
@@ -29,6 +30,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var workspace = Substitute.For<IThreadSafeWorkspace>();
                     workspace.Id.Returns(i);
                     workspace.Name.Returns(i.ToString());
+                    workspace.OnlyAdminsMayCreateProjects.Returns(i < 5);
                     return workspace;
                 }).ToList();
         }
@@ -96,14 +98,16 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheInitializeMethod : SelectWorkspaceViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public async Task AddsAllWorkspacesToTheListOfSuggestions()
+            public async Task AddsEligibleWorkspacesToTheListOfSuggestions()
             {
                 var workspaces = GenerateWorkspaceList();
+                var eligibleWorkspaces = workspaces.Where(ws => ws.IsEligibleForProjectCreation());
+
                 InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(workspaces));
 
                 await ViewModel.Initialize();
 
-                ViewModel.Suggestions.Should().HaveCount(10);
+                ViewModel.Suggestions.Should().HaveCount(eligibleWorkspaces.Count());
             }
         }
 
@@ -155,6 +159,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 const long expectedId = 10;
                 Workspace.Id.Returns(expectedId);
+                Workspace.IsEligibleForProjectCreation().Returns(true);
                 var selectableWorkspace = new SelectableWorkspaceViewModel(Workspace, true);
 
                 ViewModel.SelectWorkspaceCommand.Execute(selectableWorkspace);
@@ -175,7 +180,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(workspaces));
                 await ViewModel.Initialize();
 
-                ViewModel.Text = "0";
+                ViewModel.Text = "5";
 
                 ViewModel.Suggestions.Should().HaveCount(1);
             }
