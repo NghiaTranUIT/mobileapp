@@ -13,7 +13,7 @@ namespace Toggl.Multivac.Extensions
             : base(_ => workFactory(), enabledIf)
         {
         }
-
+         
         public IObservable<Unit> Execute()
             => Execute(Unit.Default);
 

@@ -3,6 +3,8 @@ using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Binding;
 using MvvmCross.Platforms.Ios.Views;
 using MvvmCross.Plugin.Visibility;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.Converters;
@@ -12,13 +14,13 @@ using UIKit;
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalDialogPresentation]
-    public sealed partial class SelectColorViewController : MvxViewController<SelectColorViewModel>
+    public sealed partial class SelectColorViewController : ReactiveViewController<SelectColorViewModel>
     {
         private const int customColorEnabledHeight = 365;
         private const int customColorDisabledHeight = 233;
 
         public SelectColorViewController()
-            : base(nameof(SelectColorViewController), null)
+            : base(nameof(SelectColorViewController))
         {
         }
 
@@ -38,20 +40,15 @@ namespace Toggl.Daneel.ViewControllers
                       .To(vm => vm.SelectColorCommand);
 
             //Commands
-            bindingSet.Bind(SaveButton).To(vm => vm.SaveCommand);
-            bindingSet.Bind(CloseButton).To(vm => vm.CloseCommand);
+            this.Bind(SaveButton.Rx().Tap(), ViewModel.Save);
+            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
 
-            bindingSet.Bind(PickerView)
-                      .For(v => v.Hue)
-                      .To(vm => vm.Hue);
+            this.Bind(ViewModel.Hue, PickerView.Rx().HueObserver());
+            this.Bind(ViewModel.Saturation, PickerView.Rx().SaturationObserver());
+            this.Bind(ViewModel.Value, PickerView.Rx().ValueObserver());
 
-            bindingSet.Bind(PickerView)
-                      .For(v => v.Saturation)
-                      .To(vm => vm.Saturation);
-
-            bindingSet.Bind(PickerView)
-                      .For(v => v.Value)
-                      .To(vm => vm.Value);
+            this.Bind(PickerView.Rx().Hue(), ViewModel.SetHue);
+            this.Bind(PickerView.Rx().Hue(), ViewModel.SetSaturation);
 
             bindingSet.Bind(SliderBackgroundView)
                       .For(v => v.Hue)

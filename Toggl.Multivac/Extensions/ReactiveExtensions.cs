@@ -136,6 +136,9 @@ namespace Toggl.Multivac.Extensions
             observer.OnCompleted();
         }
 
+        public static void CompleteWithUnit(this IObserver<Unit> observer)
+            => observer.CompleteWith(Unit.Default);
+
         public static IObservable<Unit> ToUnitObservable<T>(this Task<T> task)
             => Observable
             .FromAsync(async () => await task)

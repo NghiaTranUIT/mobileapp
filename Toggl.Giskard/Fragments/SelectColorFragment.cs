@@ -45,7 +45,7 @@ namespace Toggl.Giskard.Fragments
 
         public override void OnCancel(IDialogInterface dialog)
         {
-            ViewModel.CloseCommand.ExecuteAsync();
+            ViewModel.Close.ExecuteAsync();
         }
     }
 }
