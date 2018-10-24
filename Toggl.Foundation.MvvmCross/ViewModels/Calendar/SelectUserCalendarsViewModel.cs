@@ -37,14 +37,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
                     .DistinctUntilChanged()
                 : Observable.Return(true);
 
-            DoneAction = new UIAction(done, enabledObservable);
+            DoneAction = UIAction.FromAsync(done, enabledObservable);
 
             return base.Initialize();
         }
 
-        private IObservable<Unit> done()
-            => Observable
-                .FromAsync(async () => await navigationService.Close(this, SelectedCalendarIds.ToArray()))
-                .SelectUnit();
+        private Task done()
+            => navigationService.Close(this, SelectedCalendarIds.ToArray());
     }
 }

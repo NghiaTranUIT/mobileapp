@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
@@ -8,24 +9,6 @@ namespace Toggl.Foundation.Tests.Mocks
 {
     public sealed class MockTimeEntry : IThreadSafeTimeEntry
     {
-        public MockTimeEntry() { }
-
-        public MockTimeEntry(IThreadSafeTimeEntry entity)
-        {
-            Id = entity.Id;
-            WorkspaceId = entity.WorkspaceId;
-            ProjectId = entity.ProjectId;
-            TaskId = entity.TaskId;
-            Billable = entity.Billable;
-            Start = entity.Start;
-            Duration = entity.Duration;
-            Description = entity.Description;
-            TagIds = entity.TagIds;
-            At = entity.At;
-            ServerDeletedAt = entity.ServerDeletedAt;
-            UserId = entity.UserId;
-        }
-
         IDatabaseTask IDatabaseTimeEntry.Task => Task;
 
         IDatabaseUser IDatabaseTimeEntry.User => User;
@@ -77,5 +60,44 @@ namespace Toggl.Foundation.Tests.Mocks
         public IEnumerable<IThreadSafeTag> Tags { get; set; }
 
         public bool IsInaccessible => Workspace.IsInaccessible;
+
+        public MockTimeEntry() { }
+
+        public MockTimeEntry(
+            long id,
+            IThreadSafeWorkspace workspace,
+            IThreadSafeProject project = null,
+            IThreadSafeTask task = null,
+            IEnumerable<IThreadSafeTag> tags = null,
+            SyncStatus syncStatus = SyncStatus.InSync
+        ) : this()
+        {
+            Id = id;
+            Workspace = workspace;
+            WorkspaceId = workspace.Id;
+            Project = project;
+            ProjectId = project?.Id;
+            Task = task;
+            TaskId = task?.Id;
+            Tags = tags;
+            TagIds = tags?.Select(tag => tag.Id);
+            SyncStatus = syncStatus;
+        }
+
+        public MockTimeEntry(IThreadSafeTimeEntry entity)
+        {
+            Id = entity.Id;
+            WorkspaceId = entity.WorkspaceId;
+            ProjectId = entity.ProjectId;
+            TaskId = entity.TaskId;
+            Billable = entity.Billable;
+            Start = entity.Start;
+            Duration = entity.Duration;
+            Description = entity.Description;
+            TagIds = entity.TagIds;
+            At = entity.At;
+            ServerDeletedAt = entity.ServerDeletedAt;
+            UserId = entity.UserId;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.Services;
@@ -35,21 +36,19 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.browserService = browserService;
 
-            ViewPrivacyPolicy = new UIAction(() => openUrl(privacyPolicyUrl));
-            ViewTermsOfService = new UIAction(() => openUrl(termsOfServiceUrl));
+            ViewPrivacyPolicy = UIAction.FromAction(() => openUrl(privacyPolicyUrl));
+            ViewTermsOfService = UIAction.FromAction(() => openUrl(termsOfServiceUrl));
 
-            Close = new UIAction(() => close(false));
-            Accept = new UIAction(() => close(true));
+            Close = UIAction.FromAsync(() => close(false));
+            Accept = UIAction.FromAsync(() => close(true));
         }
 
-        private IObservable<Unit> close(bool isAccepted)
-            => navigationService.Close(this, isAccepted)
-                .ToUnitObservable();
+        private Task close(bool isAccepted)
+            => navigationService.Close(this, isAccepted);
 
-        private IObservable<Unit> openUrl(string url)
+        private void openUrl(string url)
         {
             browserService.OpenUrl(url);
-            return Observable.Return(Unit.Default);
         }
     }
 }

@@ -29,6 +29,7 @@ using Toggl.PrimeRadiant.Settings;
 using UIKit;
 using static Toggl.Foundation.MvvmCross.Helper.Animation;
 using Toggl.Daneel.ExtensionKit;
+using Toggl.Daneel.ExtensionKit.Analytics;
 using Toggl.Multivac;
 using MvvmCross;
 
@@ -269,6 +270,16 @@ namespace Toggl.Daneel.ViewControllers
 #endif
         }
 
+        private void trackSiriEvents()
+        {
+            var events = SharedStorage.instance.PopTrackableEvents();
+
+            foreach (var e in events)
+            {
+                ViewModel.Track(new SiriTrackableEvent(e));
+            }
+        }
+
         private void onApplicationDidBecomeActive(NSNotification notification)
         {
             if (SharedStorage.instance.GetNeedsSync())
@@ -276,6 +287,7 @@ namespace Toggl.Daneel.ViewControllers
                 SharedStorage.instance.SetNeedsSync(false);
                 ViewModel.RefreshAction.Execute();
             }
+            trackSiriEvents();
         }
 
         private void toggleUndoDeletion(bool show)

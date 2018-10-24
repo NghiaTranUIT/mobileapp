@@ -9,6 +9,7 @@ using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Sync.States.CleanUp;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac.Extensions;
+using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
 using Xunit;
 
@@ -28,7 +29,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
         [Fact, LogIfTooSlow]
         public async Task DeletesSyncedInaccessibleTimeEntries()
         {
-            var workspace = getWorkspace(1000, isInaccessible: true);
+            var workspace = new MockWorkspace(1000, isInaccessible: true);
             var syncedTimeEntries = getSyncedTimeEntries(workspace);
             var unsyncedTimeEntries = getUnsyncedTimeEntries(workspace);
             var allTimeEntries = syncedTimeEntries.Concat(unsyncedTimeEntries);
@@ -47,9 +48,9 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
         [Fact, LogIfTooSlow]
         public async Task OnlyDeletesSyncedInaccessibleTimeEntries()
         {
-            var workspaceA = getWorkspace(1000, isInaccessible: true);
-            var workspaceB = getWorkspace(2000, isInaccessible: true);
-            var workspaceC = getWorkspace(3000, isInaccessible: false);
+            var workspaceA = new MockWorkspace(1000, isInaccessible: true);
+            var workspaceB = new MockWorkspace(2000, isInaccessible: true);
+            var workspaceC = new MockWorkspace(3000, isInaccessible: false);
 
             var syncedInaccessibleTimeEntries = getSyncedTimeEntries(workspaceA)
                 .Concat(getSyncedTimeEntries(workspaceB));
@@ -84,64 +85,20 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
                 });
         }
 
-        private IThreadSafeWorkspace getWorkspace(long id, bool isInaccessible)
-            => new MockWorkspace
-            {
-                Id = id,
-                Name = "Some workspace",
-                IsInaccessible = isInaccessible
-            };
-
         private List<IThreadSafeTimeEntry> getSyncedTimeEntries(IThreadSafeWorkspace workspace)
             => new List<IThreadSafeTimeEntry>
                 {
-                    new MockTimeEntry
-                    {
-                        Id = workspace.Id + 1,
-                        Workspace = workspace,
-                        WorkspaceId = workspace.Id,
-                        SyncStatus = PrimeRadiant.SyncStatus.InSync
-                    },
-                    new MockTimeEntry
-                    {
-                        Id = workspace.Id + 2,
-                        Workspace = workspace,
-                        WorkspaceId = workspace.Id,
-                        SyncStatus = PrimeRadiant.SyncStatus.InSync
-                    },
-                    new MockTimeEntry
-                    {
-                       Id = workspace.Id + 3,
-                        Workspace = workspace,
-                        WorkspaceId = workspace.Id,
-                        SyncStatus = PrimeRadiant.SyncStatus.InSync
-                    }
+                    new MockTimeEntry(workspace.Id + 1, workspace),
+                    new MockTimeEntry(workspace.Id + 2, workspace),
+                    new MockTimeEntry(workspace.Id + 3, workspace),
                 };
 
         private List<IThreadSafeTimeEntry> getUnsyncedTimeEntries(IThreadSafeWorkspace workspace)
             => new List<IThreadSafeTimeEntry>
                 {
-                    new MockTimeEntry
-                    {
-                        Id = workspace.Id + 4,
-                        Workspace = workspace,
-                        WorkspaceId = workspace.Id,
-                        SyncStatus = PrimeRadiant.SyncStatus.RefetchingNeeded
-                    },
-                    new MockTimeEntry
-                    {
-                        Id = workspace.Id + 5,
-                        Workspace = workspace,
-                        WorkspaceId = workspace.Id,
-                        SyncStatus = PrimeRadiant.SyncStatus.SyncFailed
-                    },
-                    new MockTimeEntry
-                    {
-                        Id = workspace.Id + 6,
-                        Workspace = workspace,
-                        WorkspaceId = workspace.Id,
-                        SyncStatus = PrimeRadiant.SyncStatus.SyncNeeded
-                    },
+                    new MockTimeEntry(workspace.Id + 4, workspace, syncStatus: SyncStatus.RefetchingNeeded),
+                    new MockTimeEntry(workspace.Id + 5, workspace, syncStatus: SyncStatus.SyncFailed),
+                    new MockTimeEntry(workspace.Id + 6, workspace, syncStatus: SyncStatus.SyncNeeded),
                 };
     }
 }

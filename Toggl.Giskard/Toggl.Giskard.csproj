@@ -269,6 +269,10 @@
       <DependentUpon>OutdatedAppActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Activities\SelectTagsActivity.cs" />
+    <Compile Include="Activities\SendFeedbackActivity.cs" />
+    <Compile Include="Activities\SendFeedbackActivity.ViewBinds.cs">
+      <DependentUpon>SendFeedbackActivity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Adapters\SelectCreatableEntityRecyclerAdapter.cs" />
     <Compile Include="Adapters\SelectTagsRecyclerAdapter.cs" />
     <Compile Include="Activities\SelectProjectActivity.cs" />

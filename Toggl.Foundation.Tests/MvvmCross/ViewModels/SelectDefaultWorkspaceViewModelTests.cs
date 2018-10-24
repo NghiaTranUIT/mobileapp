@@ -21,7 +21,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectDefaultWorkspaceViewModelTest : BaseViewModelTests<SelectDefaultWorkspaceViewModel>
         {
             protected override SelectDefaultWorkspaceViewModel CreateViewModel()
-                => new SelectDefaultWorkspaceViewModel(DataSource, InteractorFactory);
+                => new SelectDefaultWorkspaceViewModel(DataSource, InteractorFactory, NavigationService);
         }
 
         public sealed class TheConstructor : SelectDefaultWorkspaceViewModelTest
@@ -30,12 +30,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [ConstructorData]
             public void ThrowsIfAnyOfTheArgumentsIsNull(
                 bool useDataSource,
-                bool useInteractorFactory)
+                bool useInteractorFactory,
+                bool useNavigationService)
             {
                 Action tryingToConstructWithEmptyParameters = ()
                     => new SelectDefaultWorkspaceViewModel(
                         useDataSource ? DataSource : null,
-                        useInteractorFactory ? InteractorFactory : null);
+                        useInteractorFactory ? InteractorFactory : null,
+                        useNavigationService ? NavigationService : null);
 
                 tryingToConstructWithEmptyParameters.Should().Throw<ArgumentNullException>();
             }
@@ -96,6 +98,16 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 InteractorFactory.Received().SetDefaultWorkspace(selectedWorkspace.WorkspaceId);
                 await setDefaultWorkspaceInteractor.Received().Execute();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ClosesTheViewModel()
+            {
+                var selectedWorkspace = new SelectableWorkspaceViewModel(new MockWorkspace(), false);
+
+                await ViewModel.SelectWorkspaceAction.Execute(selectedWorkspace);
+
+                await NavigationService.Received().Close(ViewModel);
             }
         }
     }

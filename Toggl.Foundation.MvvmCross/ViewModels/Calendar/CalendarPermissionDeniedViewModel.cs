@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.Services;
@@ -29,19 +31,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             this.navigationService = navigationService;
             this.permissionsService = permissionsService;
 
-            EnableAccessAction = new UIAction(enableAccess);
-            ContinueWithoutAccessAction = new UIAction(continueWithoutAccessAction);
+            EnableAccessAction = UIAction.FromAction(enableAccess);
+            ContinueWithoutAccessAction = UIAction.FromAsync(continueWithoutAccessAction);
         }
 
-        private IObservable<Unit> continueWithoutAccessAction()
-            => Observable
-                .FromAsync(async () => await navigationService.Close(this, Unit.Default))
-                .SelectUnit();
+        private Task continueWithoutAccessAction()
+            => navigationService.Close(this, Unit.Default);
 
-        private IObservable<Unit> enableAccess()
+        private void enableAccess()
         {
             permissionsService.OpenAppSettings();
-            return Observable.Return(Unit.Default);
         }
     }
 }

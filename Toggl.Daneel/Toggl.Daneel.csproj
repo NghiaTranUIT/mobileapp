@@ -640,6 +640,8 @@
     <InterfaceDefinition Include="ViewControllers\Settings\NotificationSettingsViewController.xib" />
     <InterfaceDefinition Include="ViewControllers\Settings\UpcomingEventsNotificationSettingsViewController.xib" />
     <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
+    <InterfaceDefinition Include="ViewControllers\SelectDefaultWorkspaceViewController.xib" />
+    <InterfaceDefinition Include="Cells\SelectDefaultWorkspaceTableViewCell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -656,6 +658,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analytics\SiriTrackableEvent.cs" />
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
@@ -1146,6 +1149,14 @@
     <Compile Include="Views\Reports\BarView.cs" />
     <Compile Include="Views\Reports\BarLegendLabel.cs" />
     <Compile Include="Views\Reports\EmptyBarView.cs" />
+    <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.cs" />
+    <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.designer.cs">
+      <DependentUpon>SelectDefaultWorkspaceViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.cs" />
+    <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.designer.cs">
+      <DependentUpon>SelectDefaultWorkspaceTableViewCell.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation.MvvmCross\Toggl.Foundation.MvvmCross.csproj">
