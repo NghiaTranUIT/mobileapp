@@ -35,7 +35,6 @@
   <ItemGroup>
     <Compile Include="IosAccessibilityNames.cs" />
     <Compile Include="Configuration.cs" />
-    <Compile Include="AppExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
