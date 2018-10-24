@@ -62,7 +62,7 @@ namespace Toggl.Giskard.Activities
             this.Bind(ViewModel.IsTimeEntryRunning, onTimeEntryCardVisibilityChanged);
             this.Bind(ViewModel.SyncProgressState, onSyncChanged);
 
-            mainRecyclerAdapter = new MainRecyclerAdapter(ViewModel.TimeEntries, ViewModel.TimeService)
+            mainRecyclerAdapter = new MainRecyclerAdapter(ViewModel.TimeEntries, ViewModel.TimeService, this)
             {
                 SuggestionsViewModel = ViewModel.SuggestionsViewModel
             };
@@ -110,6 +110,7 @@ namespace Toggl.Giskard.Activities
         private void setupLayoutManager(MainRecyclerAdapter mainAdapter)
         {
             layoutManager = new LinearLayoutManager(this);
+            mainRecyclerView.HasFixedSize = true;
             layoutManager.ItemPrefetchEnabled = true;
             layoutManager.InitialPrefetchItemCount = 4;
             mainRecyclerView.SetLayoutManager(layoutManager);

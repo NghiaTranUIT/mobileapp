@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+           xmlns:local="http://schemas.android.com/apk/res-auto"
+           android:layout_width="18dp"
+           android:layout_height="18dp"
+           android:layout_marginRight="4dp"
+           android:src="@drawable/tag"
+           local:layout_constraintBottom_toBottomOf="@id/TimeEntriesLogCellDuration"
+           local:layout_constraintRight_toLeftOf="@id/TimeEntriesLogCellBillable"
+           local:layout_constraintTop_toTopOf="@id/TimeEntriesLogCellDuration" />

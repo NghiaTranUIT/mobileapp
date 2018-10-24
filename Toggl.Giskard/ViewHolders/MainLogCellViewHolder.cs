@@ -42,13 +42,22 @@ namespace Toggl.Giskard.ViewHolders
         private TextView timeEntryLogCellClientLabel;
         private TextView timeEntriesLogCellDuration;
         private View timeEntriesLogCellContinueImage;
+
+        private ViewStub errorImageViewViewStub;
         private View errorImageView;
+
+        private ViewStub errorNeedsSyncViewStub;
         private View errorNeedsSync;
-        private View timeEntriesLogCellContinueButton;
+
+        private ViewStub billableIconViewStub;
+        private View billableIcon;
+
+        private ViewStub hasTagsIconViewStub;
+        private View hasTagsIcon;
+
+
         private View mainLogBackgroundContinue;
         private View mainLogBackgroundDelete;
-        private View billableIcon;
-        private View hasTagsIcon;
         private View whitePadding;
 
         private ObjectAnimator animator;
@@ -69,17 +78,16 @@ namespace Toggl.Giskard.ViewHolders
             timeEntryLogCellClientLabel = ItemView.FindViewById<TextView>(TimeEntryLogCellClientLabel);
             timeEntriesLogCellDuration = ItemView.FindViewById<TextView>(TimeEntriesLogCellDuration);
             timeEntriesLogCellContinueImage = ItemView.FindViewById(TimeEntriesLogCellContinueImage);
-            errorImageView = ItemView.FindViewById(ErrorImageView);
-            errorNeedsSync = ItemView.FindViewById(ErrorNeedsSync);
-            timeEntriesLogCellContinueButton = ItemView.FindViewById(TimeEntriesLogCellContinueButton);
+
+            errorImageViewViewStub = ItemView.FindViewById<ViewStub>(ErrorImageView);
+            errorNeedsSyncViewStub = ItemView.FindViewById<ViewStub>(ErrorNeedsSync);
+            billableIconViewStub = ItemView.FindViewById<ViewStub>(TimeEntriesLogCellBillable);
+            hasTagsIconViewStub = ItemView.FindViewById<ViewStub>(TimeEntriesLogCellTags);
+
             mainLogBackgroundContinue = ItemView.FindViewById(MainLogBackgroundContinue);
             mainLogBackgroundDelete = ItemView.FindViewById(MainLogBackgroundDelete);
-            billableIcon = ItemView.FindViewById(TimeEntriesLogCellBillable);
-            hasTagsIcon = ItemView.FindViewById(TimeEntriesLogCellTags);
             whitePadding = ItemView.FindViewById(TimeEntriesLogCellDurationWhiteArea);
             MainLogContentView = ItemView.FindViewById(Resource.Id.MainLogContentView);
-            
-            timeEntriesLogCellContinueButton.Click += onContinueClick;
         }
 
         public void ShowSwipeToContinueBackground()
@@ -107,8 +115,8 @@ namespace Toggl.Giskard.ViewHolders
         {
             base.Dispose(disposing);
 
-            if (!disposing || timeEntriesLogCellContinueButton == null) return;
-            timeEntriesLogCellContinueButton.Click -= onContinueClick;
+
+
         }
 
         private void onContinueClick(object sender, EventArgs e)
@@ -127,7 +135,7 @@ namespace Toggl.Giskard.ViewHolders
             layoutParameters.Width = whitePaddingWidth.DpToPixels(ItemView.Context);
             return layoutParameters;
         }
-        
+
         protected override void UpdateView()
         {
             StopAnimating();
@@ -152,13 +160,42 @@ namespace Toggl.Giskard.ViewHolders
                 : "";
 
             timeEntriesLogCellContinueImage.Visibility = Item.CanContinue.ToVisibility();
-            errorImageView.Visibility = (!Item.CanContinue).ToVisibility();
 
-            errorNeedsSync.Visibility = Item.NeedsSync.ToVisibility();
-            timeEntriesLogCellContinueButton.Visibility = Item.CanContinue.ToVisibility();
+            if (!Item.CanContinue)
+            {
+                if (errorImageView == null)
+                {
+                    errorImageView = errorImageViewViewStub.Inflate();
+                }
+            }
+            errorImageView?.BeVisible(!Item.CanContinue);
 
-            billableIcon.Visibility = Item.IsBillable.ToVisibility();
-            hasTagsIcon.Visibility = Item.HasTags.ToVisibility();
+            if (Item.NeedsSync)
+            {
+                if (errorNeedsSync == null)
+                {
+                    errorNeedsSync = errorNeedsSyncViewStub.Inflate();
+                }
+            }
+            errorNeedsSync.BeVisible(Item.NeedsSync);
+
+            if (Item.IsBillable)
+            {
+                if (billableIcon == null)
+                {
+                    billableIcon = billableIconViewStub.Inflate();
+                }
+            }
+            billableIcon.BeVisible(Item.IsBillable);
+
+            if (Item.HasTags)
+            {
+                if (hasTagsIcon == null)
+                {
+                    hasTagsIcon = hasTagsIconViewStub.Inflate();
+                }
+            }
+            hasTagsIcon.BeVisible(Item.HasTags);
 
             whitePadding.LayoutParameters = getWhitePaddingWidthDependentOnIcons();
         }

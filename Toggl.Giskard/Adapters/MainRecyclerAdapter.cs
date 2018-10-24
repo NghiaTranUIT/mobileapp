@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
+using Android.Content;
+using Android.OS;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -10,6 +13,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.ViewHolders;
 using Toggl.Multivac.Extensions;
 using Toggl.Foundation;
+using Thread = Java.Lang.Thread;
 
 namespace Toggl.Giskard.Adapters
 {
@@ -33,13 +37,40 @@ namespace Toggl.Giskard.Adapters
         private Subject<TimeEntryViewModel> timeEntryTappedSubject = new Subject<TimeEntryViewModel>();
         private Subject<TimeEntryViewModel> continueTimeEntrySubject = new Subject<TimeEntryViewModel>();
         private Subject<TimeEntryViewModel> deleteTimeEntrySubject = new Subject<TimeEntryViewModel>();
+        private Stack<MainLogCellViewHolder> itemViewHolderPool;
+        private object poolLock = new object();
+        private Context context;
+        private Handler handler;
 
         public MainRecyclerAdapter(
             ObservableGroupedOrderedCollection<TimeEntryViewModel> items,
-            ITimeService timeService)
+            ITimeService timeService, Context context)
             : base(items)
         {
             this.timeService = timeService;
+            this.context = context;
+            handler = new Handler();
+            itemViewHolderPool = new Stack<MainLogCellViewHolder>();
+            fillPool(5);
+        }
+
+        private void fillPool(int count)
+        {
+            new Thread(() =>
+            {
+                var vhs = Enumerable.Range(0, count)
+                    .Select(_ => createShit(context, null))
+                    .ToList();
+                handler.Post(() => addToPool(vhs));
+            }).Start();
+        }
+
+        private void addToPool(List<MainLogCellViewHolder> vhs)
+        {
+            lock (poolLock)
+            {
+                vhs.ForEach(itemViewHolderPool.Push);
+            }
         }
 
         public void ContinueTimeEntry(int position)
@@ -54,8 +85,6 @@ namespace Toggl.Giskard.Adapters
             var deletedTimeEntry = getItemAt(position);
             deleteTimeEntrySubject.OnNext(deletedTimeEntry);
         }
-
-        public override int HeaderOffset => 1;
 
         protected override bool TryBindCustomViewType(RecyclerView.ViewHolder holder, int position)
         {
@@ -86,16 +115,13 @@ namespace Toggl.Giskard.Adapters
                 mainLogHeader.Now = timeService.CurrentDateTime;
             }
 
+            Trace.BeginSection($"Bind{holder.GetType().Name}");
             base.OnBindViewHolder(holder, position);
+            Trace.EndSection();
         }
 
         public override int GetItemViewType(int position)
         {
-            if (position == 0)
-            {
-                return SuggestionViewType;
-            }
-
             return base.GetItemViewType(position);
         }
 
@@ -109,11 +135,44 @@ namespace Toggl.Giskard.Adapters
 
         protected override MainLogCellViewHolder CreateItemViewHolder(ViewGroup parent)
         {
-            return new MainLogCellViewHolder(LayoutInflater.FromContext(parent.Context).Inflate(Resource.Layout.MainLogCell, parent, false))
+            Trace.BeginSection("CreateItemViewHolder");
+            MainLogCellViewHolder viewHolderToReturn;
+
+            lock (poolLock)
+            {
+                if (itemViewHolderPool.Count == 0)
+                {
+                    viewHolderToReturn = createShit(parent.Context, parent);
+                    Trace.EndSection();
+                    return viewHolderToReturn;
+                }
+            }
+
+            lock (poolLock)
+            {
+                viewHolderToReturn = itemViewHolderPool.Pop();
+                if (itemViewHolderPool.Count <= 1)
+                {
+                    triggerRefil();
+                }
+                Trace.EndSection();
+                return viewHolderToReturn;
+            }
+        }
+
+        private void triggerRefil()
+        {
+            fillPool(2);
+        }
+
+        private MainLogCellViewHolder createShit(Context context, ViewGroup parent)
+        {
+            var mainLogCellViewHolder = new MainLogCellViewHolder(LayoutInflater.FromContext(context).Inflate(Resource.Layout.MainLogCell, parent, false))
             {
                 TappedSubject = timeEntryTappedSubject,
                 ContinueButtonTappedSubject = continueTimeEntrySubject
             };
+            return mainLogCellViewHolder;
         }
 
         protected override long IdFor(TimeEntryViewModel item)

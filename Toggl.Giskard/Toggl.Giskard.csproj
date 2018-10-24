@@ -38,9 +38,11 @@
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AndroidSupportedAbis>armeabi-v7a;armeabi;x86_64;x86;arm64-v8a</AndroidSupportedAbis>
-    <DebugType></DebugType>
+    <DebugType>
+    </DebugType>
     <OutputPath>..\bin</OutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <AndroidKeyStore>True</AndroidKeyStore>
     <AndroidSigningKeyStore>../giskard.keystore</AndroidSigningKeyStore>
     <AndroidSigningStorePass>{KEYSTORE_PASSWORD}</AndroidSigningStorePass>
@@ -52,12 +54,14 @@
     <OutputPath>bin\Release.PlayStore</OutputPath>
     <DefineConstants>USE_ANALYTICS;USE_PRODUCTION_API</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <AndroidLinkSkip></AndroidLinkSkip>
+    <AndroidLinkSkip>
+    </AndroidLinkSkip>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AndroidSupportedAbis>armeabi-v7a;armeabi;x86_64;x86;arm64-v8a</AndroidSupportedAbis>
-    <DebugType></DebugType>
+    <DebugType>
+    </DebugType>
     <DefineConstants>USE_ANALYTICS;USE_PRODUCTION_API</DefineConstants>
     <AndroidKeyStore>True</AndroidKeyStore>
     <AndroidSigningKeyStore>../giskard.keystore</AndroidSigningKeyStore>
@@ -284,8 +288,8 @@
     <Compile Include="Activities\OnboardingActivity.cs" />
     <Compile Include="Activities\LoginActivity.cs" />
     <Compile Include="Activities\LoginActivity.ViewBinds.cs">
-		<DependentUpon>LoginActivity.cs</DependentUpon>
-	</Compile>
+      <DependentUpon>LoginActivity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\SharedPreferencesStorage.cs" />
     <Compile Include="Activities\MainActivity.cs" />
     <Compile Include="Startup\TogglApplication.cs" />
@@ -428,10 +432,10 @@
     <Compile Include="Adapters\ReactiveSectionedRecyclerAdapter.cs" />
     <Compile Include="Adapters\MainSuggestionsRecyclerAdapter.cs" />
     <Compile Include="Activities\SignUpActivity.ViewBinds.cs">
-        <DependentUpon>SignUpActivity.cs</DependentUpon>
+      <DependentUpon>SignUpActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Activities\MainActivity.ViewBinds.cs">
-        <DependentUpon>MainActivity.cs</DependentUpon>
+      <DependentUpon>MainActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Activities\MainActivity.Onboardings.cs">
       <DependentUpon>MainActivity.cs</DependentUpon>
@@ -886,6 +890,12 @@
     <AndroidResource Include="Resources\drawable-xhdpi\add_white.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\add_white.png" />
     <AndroidResource Include="Resources\drawable-xxxhdpi\add_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\ErrorImageView.axml" />
+    <AndroidResource Include="Resources\layout\ErrorNeedsSync.axml" />
+    <AndroidResource Include="Resources\layout\TimeEntriesLogCellBillable.axml" />
+    <AndroidResource Include="Resources\layout\TimeEntriesLogCellTags.axml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets')" />

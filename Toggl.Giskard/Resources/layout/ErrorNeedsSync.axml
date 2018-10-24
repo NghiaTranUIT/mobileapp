@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+           xmlns:local="http://schemas.android.com/apk/res-auto"
+           android:layout_width="24dp"
+           android:layout_height="24dp"
+           android:layout_marginEnd="2dp"
+           android:src="@drawable/unsynced"
+           local:layout_constraintEnd_toStartOf="@+id/TimeEntriesLogCellContinueImage"
+           local:layout_constraintTop_toTopOf="@+id/TimeEntriesLogCellContinueImage" />
