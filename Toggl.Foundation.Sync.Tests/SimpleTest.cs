@@ -1,9 +1,12 @@
+using System;
+using System.Linq;
 using FluentAssertions;
 using Toggl.Foundation.Sync.Tests.Extensions;
 using Toggl.Foundation.Sync.Tests.Helpers;
 using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac;
 using Toggl.PrimeRadiant;
+using Xunit;
 
 namespace Toggl.Foundation.Sync.Tests
 {
@@ -20,7 +23,9 @@ namespace Toggl.Foundation.Sync.Tests
                 user: serverState.User.ToSyncable(
                     syncStatus: SyncStatus.SyncNeeded,
                     at: serverState.User.At.AddMinutes(-10),
-                    email: Email.From("this@email.com")));
+                    email: Email.From("this@email.com")),
+                workspaces: serverState.Workspaces.Select(ws => ws.ToSyncable()),
+                preferences: serverState.Preferences.ToSyncable());
         }
 
         protected override void AssertFinalState(
