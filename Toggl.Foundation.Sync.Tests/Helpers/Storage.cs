@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Realms;
 using Toggl.Foundation.Sync.Tests.State;
@@ -83,9 +84,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             });
         }
 
-        public async Task Clear()
-        {
-            await Database.Clear().FirstAsync();
-        }
+        public Task Clear()
+            => Database.Clear().ToTask();
     }
 }
