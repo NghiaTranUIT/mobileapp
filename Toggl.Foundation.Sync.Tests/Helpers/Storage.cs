@@ -48,8 +48,6 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
 
         public async Task Store(DatabaseState databaseState)
         {
-            Console.WriteLine("Writing data into the database...");
-
             if (databaseState.Workspaces.Count > 0)
                 await databaseState.Workspaces.Select(Database.Workspaces.Create).Merge();
 
