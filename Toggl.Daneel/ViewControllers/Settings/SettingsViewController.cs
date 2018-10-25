@@ -61,7 +61,7 @@ namespace Toggl.Daneel.ViewControllers
             this.Bind(CalendarSettingsView.Rx().Tap(), ViewModel.OpenCalendarSettingsAction);
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.CloseFeedbackSuccessView);
             this.Bind(NotificationSettingsView.Rx().Tap(), ViewModel.OpenNotificationSettingsAction);
-            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleUseTwentyFourHourClock);
+            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleTwentyFourHourSettings);
 
             UIApplication.Notifications
                 .ObserveWillEnterForeground((sender, e) => startAnimations())

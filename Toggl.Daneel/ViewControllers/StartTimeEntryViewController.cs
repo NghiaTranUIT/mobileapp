@@ -210,6 +210,11 @@ namespace Toggl.Daneel.ViewControllers
                 .ObserveOn(SynchronizationContext.Current)
                 .Subscribe(async info => await ViewModel.OnTextFieldInfoFromView(info))
                 .DisposedBy(DisposeBag);
+
+            source.TableRenderCallback = () =>
+            {
+                ViewModel.StopSuggestionsRenderingStopwatch();
+            };
         }
 
         public async Task<bool> Dismiss()

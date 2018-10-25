@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using Foundation;
+using Toggl.Daneel.ExtensionKit.Analytics;
 
 namespace Toggl.Daneel.ExtensionKit
 {
@@ -8,6 +10,7 @@ namespace Toggl.Daneel.ExtensionKit
         private const string ApiTokenKey = "APITokenKey";
         private const string NeedsSyncKey = "NeedsSyncKey";
         private const string UserIdKey = "UserId";
+        private const string SiriTrackingEventsKey = "SiriTrackingEventsKey";
 
         private NSUserDefaults userDefaults;
 
@@ -41,6 +44,22 @@ namespace Toggl.Daneel.ExtensionKit
             userDefaults.Synchronize();
         }
 
+        public void AddSiriTrackingEvent(SiriTrackingEvent e)
+        {
+            var currentEvents = (NSMutableArray)getTrackableEvents().MutableCopy();
+            currentEvents.Add(e);
+
+            userDefaults[SiriTrackingEventsKey] = NSKeyedArchiver.ArchivedDataWithRootObject(currentEvents);
+            userDefaults.Synchronize();
+        }
+
+        public SiriTrackingEvent[] PopTrackableEvents()
+        {
+            var eventArrays = getTrackableEvents();
+            userDefaults.RemoveObject(SiriTrackingEventsKey);
+            return NSArray.FromArrayNative<SiriTrackingEvent>(eventArrays);
+        }
+
         public double GetUserId() => userDefaults.DoubleForKey(UserIdKey);
 
         public string GetApiToken() => userDefaults.StringForKey(ApiTokenKey);
@@ -52,7 +71,20 @@ namespace Toggl.Daneel.ExtensionKit
             userDefaults.RemoveObject(ApiTokenKey);
             userDefaults.RemoveObject(NeedsSyncKey);
             userDefaults.RemoveObject(UserIdKey);
+            userDefaults.RemoveObject(SiriTrackingEventsKey);
             userDefaults.Synchronize();
+        }
+
+        private NSArray getTrackableEvents()
+        {
+            var eventArrayData = userDefaults.ValueForKey(new NSString(SiriTrackingEventsKey)) as NSData;
+
+            if (eventArrayData == null)
+            {
+                return new NSArray();
+            }
+
+            return NSKeyedUnarchiver.UnarchiveObject(eventArrayData) as NSArray;
         }
     }
 }

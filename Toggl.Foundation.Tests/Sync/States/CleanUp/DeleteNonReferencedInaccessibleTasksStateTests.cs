@@ -7,6 +7,7 @@ using NSubstitute;
 using Toggl.Foundation.DataSources.Interfaces;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Sync.States.CleanUp;
+using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
@@ -14,7 +15,7 @@ using Xunit;
 
 namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 {
-    public sealed class DeleteNonReferencedInaccessibleTasksStateTests : DeleteNonReferencedInaccessibleEntityTests
+    public sealed class DeleteNonReferencedInaccessibleTasksStateTests
     {
         private readonly DeleteNonReferencedInaccessibleTasksState state;
 
@@ -32,29 +33,29 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
         [Fact, LogIfTooSlow]
         public async Task DeleteUnreferencedTasksInInaccessibleWorkspace()
         {
-            var accessibleWorkspace = GetWorkspace(1000, isInaccessible: false);
-            var inaccessibleWorkspace = GetWorkspace(2000, isInaccessible: true);
+            var accessibleWorkspace = new MockWorkspace(1000);
+            var inaccessibleWorkspace = new MockWorkspace(2000, isInaccessible: true);
 
-            var project1 = GetProject(101, accessibleWorkspace, SyncStatus.InSync);
-            var project2 = GetProject(102, accessibleWorkspace, SyncStatus.RefetchingNeeded);
-            var project3 = GetProject(201, inaccessibleWorkspace, SyncStatus.SyncFailed);
-            var project4 = GetProject(202, inaccessibleWorkspace, SyncStatus.SyncNeeded);
+            var project1 = new MockProject(101, accessibleWorkspace);
+            var project2 = new MockProject(102, accessibleWorkspace, syncStatus: SyncStatus.RefetchingNeeded);
+            var project3 = new MockProject(201, inaccessibleWorkspace, syncStatus: SyncStatus.SyncFailed);
+            var project4 = new MockProject(202, inaccessibleWorkspace, syncStatus: SyncStatus.SyncNeeded);
 
-            var task1 = GetTask(1001, accessibleWorkspace, project1, SyncStatus.InSync);
-            var task2 = GetTask(1002, accessibleWorkspace, project2, SyncStatus.RefetchingNeeded);
-            var task3 = GetTask(1003, accessibleWorkspace, project2, SyncStatus.SyncNeeded);
-            var task4 = GetTask(2001, inaccessibleWorkspace, project3, SyncStatus.InSync);
-            var task5 = GetTask(2002, inaccessibleWorkspace, project4, SyncStatus.RefetchingNeeded);
-            var task6 = GetTask(2003, inaccessibleWorkspace, project3, SyncStatus.SyncNeeded);
-            var task7 = GetTask(2003, inaccessibleWorkspace, project4, SyncStatus.InSync);
-            var task8 = GetTask(2004, inaccessibleWorkspace, project4, SyncStatus.InSync);
+            var task1 = new MockTask(1001, accessibleWorkspace, project1);
+            var task2 = new MockTask(1002, accessibleWorkspace, project2, SyncStatus.RefetchingNeeded);
+            var task3 = new MockTask(1003, accessibleWorkspace, project2, SyncStatus.SyncNeeded);
+            var task4 = new MockTask(2001, inaccessibleWorkspace, project3);
+            var task5 = new MockTask(2002, inaccessibleWorkspace, project4, SyncStatus.RefetchingNeeded);
+            var task6 = new MockTask(2003, inaccessibleWorkspace, project3, SyncStatus.SyncNeeded);
+            var task7 = new MockTask(2003, inaccessibleWorkspace, project4);
+            var task8 = new MockTask(2004, inaccessibleWorkspace, project4);
 
-            var te1 = GetTimeEntry(10001, accessibleWorkspace, SyncStatus.SyncNeeded, project: project1, task: task1);
-            var te2 = GetTimeEntry(10002, accessibleWorkspace, SyncStatus.SyncNeeded, project: project1, task: task2);
-            var te3 = GetTimeEntry(20001, inaccessibleWorkspace, SyncStatus.SyncNeeded, project: project3, task: task4);
-            var te4 = GetTimeEntry(20002, inaccessibleWorkspace, SyncStatus.SyncNeeded, project: project4, task: task5);
-            var te5 = GetTimeEntry(20002, inaccessibleWorkspace, SyncStatus.SyncNeeded, project: project4);
-            var te6 = GetTimeEntry(20002, inaccessibleWorkspace, SyncStatus.SyncNeeded);
+            var te1 = new MockTimeEntry(10001, accessibleWorkspace, project: project1, task: task1);
+            var te2 = new MockTimeEntry(10002, accessibleWorkspace, project: project1, task: task2);
+            var te3 = new MockTimeEntry(20001, inaccessibleWorkspace, project: project3, task: task4);
+            var te4 = new MockTimeEntry(20002, inaccessibleWorkspace, project: project4, task: task5);
+            var te5 = new MockTimeEntry(20002, inaccessibleWorkspace, project: project4);
+            var te6 = new MockTimeEntry(20002, inaccessibleWorkspace);
 
             var tasks = new[] { task1, task2, task3, task4, task5, task6, task7, task8 };
             var timeEntries = new[] { te1, te2, te3, te4, te5, te6 };

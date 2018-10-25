@@ -9,6 +9,7 @@ using Toggl.Multivac;
 using Toggl.PrimeRadiant;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
+using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 
 namespace Toggl.Foundation
 {
@@ -27,6 +28,7 @@ namespace Toggl.Foundation
         public ApiEnvironment ApiEnvironment { get; }
         public ILicenseProvider LicenseProvider { get; }
         public IAnalyticsService AnalyticsService { get; }
+        public IStopwatchProvider StopwatchProvider { get; }
         public IBackgroundService BackgroundService { get; }
         public ISchedulerProvider SchedulerProvider { get; }
         public IPlatformConstants PlatformConstants { get; }
@@ -58,6 +60,7 @@ namespace Toggl.Foundation
             LicenseProvider = builder.LicenseProvider;
             ShortcutCreator = builder.ShortcutCreator;
             AnalyticsService = builder.AnalyticsService;
+            StopwatchProvider = builder.StopwatchProvider;
             PlatformConstants = builder.PlatformConstants;
             BackgroundService = builder.BackgroundService;
             SchedulerProvider = builder.SchedulerProvider;
@@ -84,6 +87,7 @@ namespace Toggl.Foundation
 
             public ILicenseProvider LicenseProvider { get; internal set; }
             public IAnalyticsService AnalyticsService { get; internal set; }
+            public IStopwatchProvider StopwatchProvider { get; internal set; }
             public ISchedulerProvider SchedulerProvider { get; internal set; }
             public INotificationService NotificationService { get; internal set; }
             public IRemoteConfigService RemoteConfigService { get; internal set; }
@@ -220,6 +224,12 @@ namespace Toggl.Foundation
                 return this;
             }
 
+            public Builder WithStopwatchProvider(IStopwatchProvider stopwatchProvider)
+            {
+                StopwatchProvider = stopwatchProvider;
+                return this;
+            }
+
             public Builder WithDatabase<TDatabase>()
                 where TDatabase : ITogglDatabase, new()
                 => WithDatabase(new TDatabase());
@@ -276,6 +286,10 @@ namespace Toggl.Foundation
                 where TNotificationService : INotificationService, new()
                 => WithNotificationService(new TNotificationService());
 
+            public Builder WithStopwatchProvider<TStopwatchProvider>()
+                where TStopwatchProvider : IStopwatchProvider, new()
+                => WithStopwatchProvider(new TStopwatchProvider());
+
             public TogglFoundation Build()
                 => new TogglFoundation(this);
 
@@ -294,6 +308,7 @@ namespace Toggl.Foundation
                 Ensure.Argument.IsNotNull(LicenseProvider, nameof(LicenseProvider));
                 Ensure.Argument.IsNotNull(ShortcutCreator, nameof(ShortcutCreator));
                 Ensure.Argument.IsNotNull(AnalyticsService, nameof(AnalyticsService));
+                Ensure.Argument.IsNotNull(StopwatchProvider, nameof(StopwatchProvider));
                 Ensure.Argument.IsNotNull(BackgroundService, nameof(BackgroundService));
                 Ensure.Argument.IsNotNull(SchedulerProvider, nameof(SchedulerProvider));
                 Ensure.Argument.IsNotNull(PlatformConstants, nameof(PlatformConstants));

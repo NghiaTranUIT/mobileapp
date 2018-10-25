@@ -76,7 +76,7 @@ namespace Toggl.Foundation.MvvmCross.Services
         {
             if (error is NoDefaultWorkspaceException)
             {
-                //Currently disabled because the view model is missing iOS and Android parts
+                //Currently disabled because the view model is missing Android parts
                 //navigationService.Navigate<SelectDefaultWorkspaceViewModel>();
                 return true;
             }

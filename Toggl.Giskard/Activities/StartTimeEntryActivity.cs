@@ -31,6 +31,7 @@ namespace Toggl.Giskard.Activities
 
         private PopupWindow onboardingPopupWindow;
         private IDisposable onboardingDisposable;
+        private EventHandler onLayoutFinished;
 
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -51,6 +52,8 @@ namespace Toggl.Giskard.Activities
                 .Select(text => text.AsImmutableSpans(editText.SelectionStart))
                 .Subscribe(async spans => await ViewModel.OnTextFieldInfoFromView(spans))
                 .DisposedBy(DisposeBag);
+            onLayoutFinished = (s, e) => ViewModel.StopSuggestionsRenderingStopwatch();
+            recyclerView.ViewTreeObserver.GlobalLayout += onLayoutFinished;
         }
 
         protected override void OnResume()
@@ -58,11 +61,18 @@ namespace Toggl.Giskard.Activities
             base.OnResume();
             editText.RequestFocus();
             selectProjectToolbarButton.LayoutChange += onSelectProjectToolbarButtonLayoutChanged;
+            recyclerView.ViewTreeObserver.GlobalLayout += onLayoutFinished;
         }
 
         private void onSelectProjectToolbarButtonLayoutChanged(object sender, View.LayoutChangeEventArgs changeEventArgs)
         {
             selectProjectToolbarButton.Post(setupStartTimeEntryOnboardingStep);
+        }
+
+        protected override void OnPause()
+        {
+            base.OnPause();
+            recyclerView.ViewTreeObserver.GlobalLayout -= onLayoutFinished;
         }
 
         protected override void OnStop()

@@ -54,7 +54,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     SuggestionProviderContainer,
                     IntentDonationService,
                     AccessRestrictionStorage,
-                    SchedulerProvider);
+                    SchedulerProvider,
+                    StopwatchProvider);
 
                 vm.Prepare();
 
@@ -93,7 +94,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useSuggestionProviderContainer,
                 bool useIntentDonationService,
                 bool useAccessRestrictionStorage,
-                bool useSchedulerProvider)
+                bool useSchedulerProvider,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -108,6 +110,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var accessRestrictionStorage = useAccessRestrictionStorage ? AccessRestrictionStorage : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new MainViewModel(
@@ -123,7 +126,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         suggestionProviderContainer,
                         intentDonationService,
                         accessRestrictionStorage,
-                        schedulerProvider);
+                        schedulerProvider,
+                        stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -968,7 +972,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     await InteractorFactory
                         .Received()
                         .CreateTimeEntry(Arg.Is<ITimeEntryPrototype>(
-                                te => te.Description == description 
+                                te => te.Description == description
                                    && te.WorkspaceId == defaultWorkspace.Id))
                         .Execute();
                 }

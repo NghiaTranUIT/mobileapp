@@ -11,6 +11,8 @@ using Toggl.Multivac.Extensions;
 using System.Linq;
 using System.Collections.Generic;
 using Toggl.Foundation.Exceptions;
+using System.Collections.Immutable;
+using MvvmCross.Navigation;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -19,40 +21,51 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     {
         private readonly ITogglDataSource dataSource;
         private readonly IInteractorFactory interactorFactory;
+        private readonly IMvxNavigationService navigationService;
 
-        public MvxObservableCollection<SelectableWorkspaceViewModel> Workspaces { get; }
-            = new MvxObservableCollection<SelectableWorkspaceViewModel>();
+        public IImmutableList<SelectableWorkspaceViewModel> Workspaces { get; private set; }
 
         public InputAction<SelectableWorkspaceViewModel> SelectWorkspaceAction { get; }
 
-        public SelectDefaultWorkspaceViewModel(ITogglDataSource dataSource, IInteractorFactory interactorFactory)
+        public SelectDefaultWorkspaceViewModel(
+            ITogglDataSource dataSource,
+            IInteractorFactory interactorFactory,
+            IMvxNavigationService navigationService)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
+            Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
 
             this.dataSource = dataSource;
             this.interactorFactory = interactorFactory;
+            this.navigationService = navigationService;
 
-            SelectWorkspaceAction = new InputAction<SelectableWorkspaceViewModel>(selectWorkspace);
+            SelectWorkspaceAction = InputAction<SelectableWorkspaceViewModel>.FromObservable(selectWorkspace);
         }
 
         public override async Task Initialize()
         {
             await base.Initialize();
 
-            await dataSource
+            Workspaces = await dataSource
                 .Workspaces
                 .GetAll()
                 .Do(throwIfThereAreNoWorkspaces)
-                .Select(workspaces => workspaces.Select(toSelectable))
-                .Do(Workspaces.AddRange);
+                .Select(workspaces => workspaces
+                    .Select(toSelectable)
+                    .ToImmutableList());
         }
 
         private SelectableWorkspaceViewModel toSelectable(IThreadSafeWorkspace workspace)
             => new SelectableWorkspaceViewModel(workspace, false);
 
         private IObservable<Unit> selectWorkspace(SelectableWorkspaceViewModel workspace)
-            => interactorFactory.SetDefaultWorkspace(workspace.WorkspaceId).Execute();
+            => Observable.DeferAsync(async _ =>
+            {
+                await interactorFactory.SetDefaultWorkspace(workspace.WorkspaceId).Execute();
+                await navigationService.Close(this);
+                return Observable.Return(Unit.Default);
+            });
 
         private void throwIfThereAreNoWorkspaces(IEnumerable<IThreadSafeWorkspace> workspaces)
         {

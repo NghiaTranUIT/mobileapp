@@ -79,7 +79,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     OnboardingStorage,
                     SchedulerProvider,
                     PermissionsService,
-                    NavigationService
+                    NavigationService,
+                    StopwatchProvider
                 );
         }
 
@@ -98,7 +99,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useOnboardingStorage,
                 bool useSchedulerProvider,
                 bool useNavigationService,
-                bool usePermissionsService)
+                bool usePermissionsService,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -111,6 +113,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var navigationService = useNavigationService ? NavigationService : null;
                 var permissionsService = usePermissionsService ? PermissionsService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new CalendarViewModel(
@@ -124,7 +127,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         onboardingStorage,
                         schedulerProvider,
                         permissionsService,
-                        navigationService);
+                        navigationService,
+                        stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters.Should().Throw<ArgumentNullException>();
             }

@@ -15,6 +15,7 @@ using Toggl.Foundation.Autocomplete;
 using Toggl.Foundation.Autocomplete.Span;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
@@ -48,6 +49,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IAutocompleteProvider autocompleteProvider;
         private readonly ISchedulerProvider schedulerProvider;
         private readonly IIntentDonationService intentDonationService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private readonly CompositeDisposable disposeBag = new CompositeDisposable();
         private readonly ISubject<TextFieldInfo> uiSubject = new ReplaySubject<TextFieldInfo>();
@@ -61,6 +63,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private StartTimeEntryParameters parameter;
         private TextFieldInfo textFieldInfo = TextFieldInfo.Empty(0);
         private StartTimeEntryParameters initialParameters;
+        private IStopwatch startTimeEntryStopwatch;
+        private Dictionary<string, IStopwatch> suggestionsLoadingStopwatches = new Dictionary<string, IStopwatch>();
+        private IStopwatch suggestionsRenderingStopwatch;
 
         //Properties
         public IObservable<TextFieldInfo> TextFieldInfoObservable { get; }
@@ -212,7 +217,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IAnalyticsService analyticsService,
             IAutocompleteProvider autocompleteProvider,
             ISchedulerProvider schedulerProvider,
-            IIntentDonationService intentDonationService
+            IIntentDonationService intentDonationService,
+            IStopwatchProvider stopwatchProvider
         )
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
@@ -226,6 +232,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(autocompleteProvider, nameof(autocompleteProvider));
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.timeService = timeService;
@@ -237,6 +244,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.autocompleteProvider = autocompleteProvider;
             this.schedulerProvider = schedulerProvider;
             this.intentDonationService = intentDonationService;
+            this.stopwatchProvider = stopwatchProvider;
 
             OnboardingStorage = onboardingStorage;
 
@@ -302,6 +310,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public override async Task Initialize()
         {
             await base.Initialize();
+            startTimeEntryStopwatch = stopwatchProvider.Get(MeasuredOperation.OpenStartView);
+            stopwatchProvider.Remove(MeasuredOperation.OpenStartView);
 
             defaultWorkspace = await interactorFactory.GetDefaultWorkspace().Execute();
 
@@ -350,10 +360,23 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             hasAnyProjects = (await dataSource.Projects.GetAll()).Any();
         }
 
+        public override void ViewAppeared()
+        {
+            base.ViewAppeared();
+            startTimeEntryStopwatch?.Stop();
+            startTimeEntryStopwatch = null;
+        }
+
         public override void ViewDestroy(bool viewFinishing)
         {
             base.ViewDestroy(viewFinishing);
             disposeBag?.Dispose();
+        }
+
+        public void StopSuggestionsRenderingStopwatch()
+        {
+            suggestionsRenderingStopwatch?.Stop();
+            suggestionsRenderingStopwatch = null;
         }
 
         public async Task OnTextFieldInfoFromView(IImmutableList<ISpan> spans)
@@ -452,6 +475,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task createProject()
         {
+            var createProjectStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenCreateProjectViewFromStartTimeEntryView);
+            createProjectStopwatch.Start();
+
             var projectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(CurrentQuery);
             if (projectId == null) return;
 
@@ -637,7 +663,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void onParsedQuery(QueryInfo parsedQuery)
         {
-            CurrentQuery = parsedQuery.Text?.Trim() ?? "";
+            var newQuery = parsedQuery.Text?.Trim() ?? "";
+            if (CurrentQuery != newQuery)
+            {
+                CurrentQuery = newQuery;
+                suggestionsLoadingStopwatches[CurrentQuery] = stopwatchProvider.Create(MeasuredOperation.StartTimeEntrySuggestionsLoadingTime);
+                suggestionsLoadingStopwatches[CurrentQuery].Start();
+            }
             bool suggestsTags = parsedQuery.SuggestionType == AutocompleteSuggestionType.Tags;
             bool suggestsProjects = parsedQuery.SuggestionType == AutocompleteSuggestionType.Projects;
 
@@ -664,10 +696,19 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Suggestions.ReplaceWith(groupedSuggestions);
 
             RaisePropertyChanged(nameof(SuggestCreation));
+
+            if (suggestionsLoadingStopwatches.ContainsKey(CurrentQuery))
+            {
+                suggestionsLoadingStopwatches[CurrentQuery]?.Stop();
+                suggestionsLoadingStopwatches = new Dictionary<string, IStopwatch>();
+            }
         }
 
         private IEnumerable<AutocompleteSuggestion> filterSuggestions(IEnumerable<AutocompleteSuggestion> suggestions)
         {
+            suggestionsRenderingStopwatch = stopwatchProvider.Create(MeasuredOperation.StartTimeEntrySuggestionsRenderingTime);
+            suggestionsRenderingStopwatch.Start();
+
             if (textFieldInfo.HasProject && !IsSuggestingProjects && !IsSuggestingTags)
             {
                 var projectId = textFieldInfo.Spans.OfType<ProjectSpan>().Single().ProjectId;

@@ -10,6 +10,7 @@ using FsCheck.Xunit;
 using NSubstitute;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Analytics;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Reports;
@@ -40,7 +41,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected override ReportsViewModel CreateViewModel()
             {
                 DataSource.ReportsProvider.Returns(ReportsProvider);
-                return new ReportsViewModel(DataSource, TimeService, NavigationService, InteractorFactory, AnalyticsService, DialogService, IntentDonationService, SchedulerProvider);
+                return new ReportsViewModel(DataSource,
+                                            TimeService,
+                                            NavigationService,
+                                            InteractorFactory,
+                                            AnalyticsService,
+                                            DialogService,
+                                            IntentDonationService,
+                                            SchedulerProvider,
+                                            StopwatchProvider);
             }
 
             protected async Task Initialize()
@@ -76,7 +85,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                                                         bool useInteractorFactory,
                                                         bool useDialogService,
                                                         bool useIntentDonationService,
-                                                        bool useSchedulerProvider)
+                                                        bool useSchedulerProvider,
+                                                        bool useStopwatchProvider)
             {
                 var timeService = useTimeService ? TimeService : null;
                 var reportsProvider = useDataSource ? DataSource : null;
@@ -86,9 +96,18 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var dialogService = useDialogService ? DialogService : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new ReportsViewModel(reportsProvider, timeService, navigationService, interactorFactory, analyticsService, dialogService, intentDonationService, schedulerProvider);
+                    () => new ReportsViewModel(reportsProvider,
+                                               timeService,
+                                               navigationService,
+                                               interactorFactory,
+                                               analyticsService,
+                                               dialogService,
+                                               intentDonationService,
+                                               schedulerProvider,
+                                               stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();

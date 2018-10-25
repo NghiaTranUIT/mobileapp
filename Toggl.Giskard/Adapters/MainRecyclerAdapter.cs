@@ -5,8 +5,10 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Android.Support.V7.Widget;
 using Android.Views;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Giskard.Extensions;
 using Toggl.Giskard.ViewHolders;
 using Toggl.Multivac.Extensions;
 using Toggl.Foundation;
@@ -29,6 +31,8 @@ namespace Toggl.Giskard.Adapters
             => deleteTimeEntrySubject.AsObservable();
 
         public SuggestionsViewModel SuggestionsViewModel { get; set; }
+
+        public IStopwatchProvider StopwatchProvider { get; set; }
 
         private Subject<TimeEntryViewModel> timeEntryTappedSubject = new Subject<TimeEntryViewModel>();
         private Subject<TimeEntryViewModel> continueTimeEntrySubject = new Subject<TimeEntryViewModel>();
@@ -72,8 +76,12 @@ namespace Toggl.Giskard.Adapters
         {
             if (viewType == SuggestionViewType)
             {
+                var mainLogSuggestionsStopwatch = StopwatchProvider.Create(MeasuredOperation.CreateMainLogSuggestionsViewHolder);
+                mainLogSuggestionsStopwatch.Start();
                 var suggestionsView = LayoutInflater.FromContext(parent.Context).Inflate(Resource.Layout.MainSuggestions, parent, false);
-                return new MainLogSuggestionsListViewHolder(suggestionsView, SuggestionsViewModel);
+                var mainLogSuggestionsListViewHolder = new MainLogSuggestionsListViewHolder(suggestionsView, SuggestionsViewModel);
+                mainLogSuggestionsStopwatch.Stop();
+                return mainLogSuggestionsListViewHolder;
             }
 
             return base.OnCreateViewHolder(parent, viewType);
@@ -82,11 +90,27 @@ namespace Toggl.Giskard.Adapters
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             if (holder is MainLogSectionViewHolder mainLogHeader)
-            {
                 mainLogHeader.Now = timeService.CurrentDateTime;
-            }
 
+            var stopwatchForViewHolder = createStopwatchFor(holder);
+            stopwatchForViewHolder?.Start();
             base.OnBindViewHolder(holder, position);
+            stopwatchForViewHolder?.Stop();
+        }
+
+        private IStopwatch createStopwatchFor(RecyclerView.ViewHolder holder)
+        {
+            switch (holder)
+            {
+                case MainLogCellViewHolder _:
+                    return StopwatchProvider.MaybeCreateStopwatch(MeasuredOperation.BindMainLogItemVH, probability: 0.1F);
+
+                case MainLogSectionViewHolder _:
+                    return StopwatchProvider.MaybeCreateStopwatch(MeasuredOperation.BindMainLogSectionVH, probability: 0.5F);
+
+                default:
+                    return StopwatchProvider.Create(MeasuredOperation.BindMainLogSuggestionsVH);
+            }
         }
 
         public override int GetItemViewType(int position)
@@ -101,19 +125,26 @@ namespace Toggl.Giskard.Adapters
 
         protected override MainLogSectionViewHolder CreateHeaderViewHolder(ViewGroup parent)
         {
-            var header = new MainLogSectionViewHolder(LayoutInflater.FromContext(parent.Context)
+            var mainLogSectionStopwatch = StopwatchProvider.Create(MeasuredOperation.CreateMainLogSectionViewHolder);
+            mainLogSectionStopwatch.Start();
+            var mainLogSectionViewHolder = new MainLogSectionViewHolder(LayoutInflater.FromContext(parent.Context)
                 .Inflate(Resource.Layout.MainLogHeader, parent, false));
-            header.Now = timeService.CurrentDateTime;
-            return header;
+            mainLogSectionViewHolder.Now = timeService.CurrentDateTime;
+            mainLogSectionStopwatch.Stop();
+            return mainLogSectionViewHolder;
         }
 
         protected override MainLogCellViewHolder CreateItemViewHolder(ViewGroup parent)
         {
-            return new MainLogCellViewHolder(LayoutInflater.FromContext(parent.Context).Inflate(Resource.Layout.MainLogCell, parent, false))
+            var mainLogCellStopwatch = StopwatchProvider.Create(MeasuredOperation.CreateMainLogItemViewHolder);
+            mainLogCellStopwatch.Start();
+            var mainLogCellViewHolder = new MainLogCellViewHolder(LayoutInflater.FromContext(parent.Context).Inflate(Resource.Layout.MainLogCell, parent, false))
             {
                 TappedSubject = timeEntryTappedSubject,
                 ContinueButtonTappedSubject = continueTimeEntrySubject
             };
+            mainLogCellStopwatch.Stop();
+            return mainLogCellViewHolder;
         }
 
         protected override long IdFor(TimeEntryViewModel item)

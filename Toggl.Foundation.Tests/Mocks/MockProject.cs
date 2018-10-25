@@ -59,5 +59,22 @@ namespace Toggl.Foundation.Tests.Mocks
         public IEnumerable<IThreadSafeTask> Tasks { get; set; }
 
         public bool IsInaccessible => Workspace.IsInaccessible;
+
+        public MockProject() { }
+
+        public MockProject(
+            long id,
+            IThreadSafeWorkspace workspace,
+            IThreadSafeClient client = null,
+            SyncStatus syncStatus = SyncStatus.InSync
+        ) : this()
+        {
+            Id = id;
+            Workspace = workspace;
+            WorkspaceId = workspace.Id;
+            Client = client;
+            ClientId = client?.Id;
+            SyncStatus = syncStatus;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Multivac;
@@ -25,7 +26,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             this.navigationService = navigationService;
 
-            Close = new UIAction(back);
+            Close = UIAction.FromAsync(back);
         }
 
         public override void Prepare(BrowserParameters parameter)
@@ -34,7 +35,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Title = parameter.Title;
         }
 
-        private IObservable<Unit> back()
-            => navigationService.Close(this).ToUnitObservable();
+        private Task back()
+            => navigationService.Close(this);
     }
 }
