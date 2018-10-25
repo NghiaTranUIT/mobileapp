@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Sync.Tests.Helpers;
 using Toggl.Foundation.Sync.Tests.State;
+using Toggl.Ultrawave.Tests.Integration;
 using Xunit;
 
 namespace Toggl.Foundation.Sync.Tests
@@ -22,7 +23,7 @@ namespace Toggl.Foundation.Sync.Tests
             storage.Clear().Wait();
         }
 
-        [Fact]
+        [Fact, LogTestInfo]
         public async Task Execute()
         {
             // Initialize
