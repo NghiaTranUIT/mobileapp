@@ -86,7 +86,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
 
         public async Task Clear()
         {
-            await Database.Clear();
+            await Database.Clear().FirstAsync();
         }
     }
 }
