@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Realms;
 using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant;
@@ -15,9 +16,10 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
     {
         public ITogglDatabase Database { get; }
 
-        public Storage()
+        public Storage(string uniqueIdentifier)
         {
-            Database = new Database();
+            var configuration = new InMemoryConfiguration(uniqueIdentifier);
+            Database = new Database(configuration);
         }
 
         public async Task<DatabaseState> LoadCurrentState()
@@ -46,14 +48,31 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
 
         public async Task Store(DatabaseState databaseState)
         {
-            await databaseState.Workspaces.Select(Database.Workspaces.Create).Merge();
-            await Database.User.Create(databaseState.User);
-            await Database.Preferences.Create(databaseState.Preferences);
-            await databaseState.Tags.Select(Database.Tags.Create).Merge();
-            await databaseState.Clients.Select(Database.Clients.Create).Merge();
-            await databaseState.Projects.Select(Database.Projects.Create).Merge();
-            await databaseState.Tasks.Select(Database.Tasks.Create).Merge();
-            await databaseState.TimeEntries.Select(Database.TimeEntries.Create).Merge();
+            Console.WriteLine("Writing data into the database...");
+
+            if (databaseState.Workspaces.Count > 0)
+                await databaseState.Workspaces.Select(Database.Workspaces.Create).Merge();
+
+            if (databaseState.User != null)
+                await Database.User.Create(databaseState.User);
+
+            if (databaseState.Preferences != null)
+                await Database.Preferences.Create(databaseState.Preferences);
+
+            if (databaseState.Tags.Count > 0)
+                await databaseState.Tags.Select(Database.Tags.Create).Merge();
+
+            if (databaseState.Clients.Count > 0)
+                await databaseState.Clients.Select(Database.Clients.Create).Merge();
+
+            if (databaseState.Projects.Count > 0)
+                await databaseState.Projects.Select(Database.Projects.Create).Merge();
+
+            if (databaseState.Tasks.Count > 0)
+                await databaseState.Tasks.Select(Database.Tasks.Create).Merge();
+
+            if (databaseState.TimeEntries.Count > 0)
+                await databaseState.TimeEntries.Select(Database.TimeEntries.Create).Merge();
 
             databaseState.SinceParameters?.Keys.ForEach(modelType =>
             {
@@ -63,6 +82,11 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
                 genericSetMethod.Invoke(
                     Database.SinceParameters, new object[] { sinceValue });
             });
+        }
+
+        public async Task Clear()
+        {
+            await Database.Clear();
         }
     }
 }

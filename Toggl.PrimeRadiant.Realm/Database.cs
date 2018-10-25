@@ -11,11 +11,11 @@ namespace Toggl.PrimeRadiant.Realm
 {
     public sealed class Database : ITogglDatabase
     {
-        private readonly RealmConfiguration realmConfiguration;
+        private readonly RealmConfigurationBase realmConfiguration;
 
-        public Database()
+        public Database(RealmConfigurationBase configuration = null)
         {
-            realmConfiguration = createRealmConfiguration();
+            realmConfiguration = configuration ?? createRealmConfiguration();
             IdProvider = new IdProvider(getRealmInstance);
             SinceParameters = createSinceParameterRepository();
             Tags = Repository<IDatabaseTag>.For(getRealmInstance, (tag, realm) => new RealmTag(tag, realm));

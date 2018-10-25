@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Sync.Tests.Helpers;
@@ -6,13 +7,26 @@ using Xunit;
 
 namespace Toggl.Foundation.Sync.Tests
 {
-    public abstract class BaseComplexSyncTest
+    public abstract class BaseComplexSyncTest : IDisposable
     {
+        private readonly Storage storage;
+
+        protected BaseComplexSyncTest()
+        {
+            var uniqueIdentifier = Guid.NewGuid().ToString();
+            storage = new Storage(uniqueIdentifier);
+        }
+
+        public void Dispose()
+        {
+            storage.Clear().Wait();
+        }
+
         [Fact]
         public async Task Execute()
         {
+            // Initialize
             var server = await Server.Create();
-            var storage = new Storage();
             var appServices = new AppServices(server.Api, storage.Database);
 
             // Arrange
