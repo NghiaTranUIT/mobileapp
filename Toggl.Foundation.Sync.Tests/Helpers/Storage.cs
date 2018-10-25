@@ -16,10 +16,9 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
     {
         public ITogglDatabase Database { get; }
 
-        public Storage(string uniqueIdentifier)
+        public Storage()
         {
-            var configuration = new InMemoryConfiguration(uniqueIdentifier);
-            Database = new Database(configuration);
+            Database = new Database();
         }
 
         public async Task<DatabaseState> LoadCurrentState()

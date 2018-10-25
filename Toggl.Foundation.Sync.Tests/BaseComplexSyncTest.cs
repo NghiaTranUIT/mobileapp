@@ -14,8 +14,7 @@ namespace Toggl.Foundation.Sync.Tests
 
         protected BaseComplexSyncTest()
         {
-            var uniqueIdentifier = Guid.NewGuid().ToString();
-            storage = new Storage(uniqueIdentifier);
+            storage = new Storage();
         }
 
         public void Dispose()
