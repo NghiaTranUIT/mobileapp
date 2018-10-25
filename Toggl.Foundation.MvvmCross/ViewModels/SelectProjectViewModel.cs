@@ -34,7 +34,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
         private readonly Subject<string> infoSubject = new Subject<string>();
-        private readonly ISchedulerProvider schedulerProvider;
 
         private long? taskId;
         private long? projectId;
@@ -95,20 +94,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ITogglDataSource dataSource,
             IInteractorFactory interactorFactory,
             IMvxNavigationService navigationService,
-            IDialogService dialogService,
-            ISchedulerProvider schedulerProvider)
+            IDialogService dialogService)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(dialogService, nameof(dialogService));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
-            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
 
             this.dataSource = dataSource;
             this.dialogService = dialogService;
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
-            this.schedulerProvider = schedulerProvider;
 
             CloseCommand = new MvxAsyncCommand(close);
             CreateProjectCommand = new MvxAsyncCommand(createProject);
