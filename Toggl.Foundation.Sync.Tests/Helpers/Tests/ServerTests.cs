@@ -7,6 +7,9 @@ using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
+using Toggl.Ultrawave.Exceptions;
+using Toggl.Ultrawave.Helpers;
+using Toggl.Ultrawave.Tests.Integration.Helper;
 using Xunit;
 
 namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
@@ -100,6 +103,22 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
             project.WorkspaceId.Should().Be(workspace.Id);
             client.WorkspaceId.Should().Be(workspace.Id);
             tags.ForEach(tag => tag.WorkspaceId.Should().Be(workspace.Id));
+        }
+
+        [Fact]
+        public async Task WorksWithPaidFeatures()
+        {
+            var server = await Server.Create();
+            var pricingPlanActivator = new SubscriptionPlanActivator();
+            await pricingPlanActivator.EnsureDefaultWorkspaceIsOnPlan(
+                server.InitialServerState.User,
+                PricingPlans.StarterAnnual);
+
+            var arrangedState = server.InitialServerState.With(
+                projects: new[] { new MockProject { Color = "#abcdef" } });
+            Func<Task> pushingProjectWithCustomColor = () => server.Push(arrangedState);
+
+            pushingProjectWithCustomColor.Should().NotThrow<PaymentRequiredException>();
         }
     }
 }

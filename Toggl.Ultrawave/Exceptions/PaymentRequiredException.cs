@@ -3,7 +3,7 @@ using Toggl.Ultrawave.Network;
 
 namespace Toggl.Ultrawave.Exceptions
 {
-    class PaymentRequiredException : ClientErrorException
+    public sealed class PaymentRequiredException : ClientErrorException
     {
         public const HttpStatusCode CorrespondingHttpCode = HttpStatusCode.PaymentRequired;
 
