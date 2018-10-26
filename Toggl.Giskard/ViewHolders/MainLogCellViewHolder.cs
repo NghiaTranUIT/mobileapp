@@ -15,11 +15,12 @@ using Android.Widget;
 using Toggl.Foundation.MvvmCross.Transformations;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
+using Toggl.Giskard.ViewHelpers;
 using static Toggl.Giskard.Resource.Id;
 
 namespace Toggl.Giskard.ViewHolders
 {
-    public class MainLogCellViewHolder : BaseRecyclerViewHolder<TimeEntryViewModel>
+    public class MainLogCellViewHolder : BaseRecyclerViewHolder<TimeEntryViewData>
     {
         public enum AnimationSide
         {
@@ -40,8 +41,6 @@ namespace Toggl.Giskard.ViewHolders
         private TextView timeEntriesLogCellDescription;
         private TextView addDescriptionLabel;
         private TextView timeEntriesLogCellProjectLabel;
-        private TextView timeEntriesLogCellTaskLabel;
-        private TextView timeEntryLogCellClientLabel;
         private TextView timeEntriesLogCellDuration;
         private View timeEntriesLogCellContinueImage;
         private View errorImageView;
@@ -57,7 +56,7 @@ namespace Toggl.Giskard.ViewHolders
 
         public bool IsAnimating => animator?.IsRunning ?? false;
 
-        public bool CanSync => Item.CanSync;
+        public bool CanSync => Item.TimeEntryViewModel.CanSync;
 
         public View MainLogContentView { get; private set; }
         public Subject<TimeEntryViewModel> ContinueButtonTappedSubject { get; set; }
@@ -67,8 +66,6 @@ namespace Toggl.Giskard.ViewHolders
             timeEntriesLogCellDescription = ItemView.FindViewById<TextView>(TimeEntriesLogCellDescription);
             addDescriptionLabel = ItemView.FindViewById<TextView>(AddDescriptionLabel);
             timeEntriesLogCellProjectLabel = ItemView.FindViewById<TextView>(TimeEntriesLogCellProjectLabel);
-            timeEntriesLogCellTaskLabel = ItemView.FindViewById<TextView>(TimeEntriesLogCellTaskLabel);
-            timeEntryLogCellClientLabel = ItemView.FindViewById<TextView>(TimeEntryLogCellClientLabel);
             timeEntriesLogCellDuration = ItemView.FindViewById<TextView>(TimeEntriesLogCellDuration);
             timeEntriesLogCellContinueImage = ItemView.FindViewById(TimeEntriesLogCellContinueImage);
             errorImageView = ItemView.FindViewById(ErrorImageView);
@@ -115,15 +112,15 @@ namespace Toggl.Giskard.ViewHolders
 
         private void onContinueClick(object sender, EventArgs e)
         {
-            ContinueButtonTappedSubject?.OnNext(Item);
+            ContinueButtonTappedSubject?.OnNext(Item.TimeEntryViewModel);
         }
 
         private ConstraintLayout.LayoutParams getWhitePaddingWidthDependentOnIcons()
         {
             var whitePaddingWidth =
                 72
-                + (Item.IsBillable ? 22 : 0)
-                + (Item.HasTags ? 22 : 0);
+                + (Item.TimeEntryViewModel.IsBillable ? 22 : 0)
+                + (Item.TimeEntryViewModel.HasTags ? 22 : 0);
 
             var layoutParameters = (ConstraintLayout.LayoutParams)whitePadding.LayoutParameters;
             layoutParameters.Width = whitePaddingWidth.DpToPixels(ItemView.Context);
@@ -133,61 +130,27 @@ namespace Toggl.Giskard.ViewHolders
         protected override void UpdateView()
         {
             StopAnimating();
-            var spannableString = new SpannableStringBuilder();
 
-            timeEntriesLogCellDescription.Text = Item.Description;
-            timeEntriesLogCellDescription.Visibility = Item.HasDescription.ToVisibility();
+            timeEntriesLogCellDescription.Text = Item.TimeEntryViewModel.Description;
+            timeEntriesLogCellDescription.Visibility = Item.TimeEntryViewModel.HasDescription.ToVisibility();
 
-            addDescriptionLabel.Visibility = (!Item.HasDescription).ToVisibility();
+            addDescriptionLabel.Visibility = (!Item.TimeEntryViewModel.HasDescription).ToVisibility();
 
-            if (Item.HasProject)
-            {
-                var foregroundColorSpan = new ForegroundColorSpan(Color.ParseColor(Item.ProjectColor));
-                spannableString.Append(Item.ProjectName, foregroundColorSpan, SpanTypes.ExclusiveExclusive);
+            timeEntriesLogCellProjectLabel.SetText(Item.ProjectTaskClientText, TextView.BufferType.Spannable);
+            timeEntriesLogCellProjectLabel.Visibility = Item.ProjectTaskClientVisibility;
 
-                if (!string.IsNullOrEmpty(Item.TaskName))
-                {
-                    spannableString.Append($": {Item.TaskName}", foregroundColorSpan, SpanTypes.ExclusiveExclusive);
-                }
-
-                if (!string.IsNullOrEmpty(Item.ClientName))
-                {
-                    spannableString.Append(Item.ClientName);
-                }
-
-                timeEntriesLogCellProjectLabel.TextFormatted = spannableString;
-                timeEntriesLogCellProjectLabel.Visibility = ViewStates.Visible;
-            }
-            else
-            {
-                timeEntriesLogCellProjectLabel.Visibility = ViewStates.Gone;
-            }
-
-//            timeEntriesLogCellProjectLabel.Text = Item.ProjectName;
-//            timeEntriesLogCellProjectLabel.SetTextColor(Color.ParseColor(Item.ProjectColor));
-//            timeEntriesLogCellProjectLabel.Visibility = Item.HasProject.ToVisibility();
-
-
-
-//            timeEntriesLogCellTaskLabel.Text = $": {Item.TaskName}";
-//            timeEntriesLogCellTaskLabel.SetTextColor(Color.ParseColor(Item.ProjectColor));
-            timeEntriesLogCellTaskLabel.Visibility = ViewStates.Gone;
-
-//            timeEntryLogCellClientLabel.Text = Item.ClientName;
-            timeEntryLogCellClientLabel.Visibility = ViewStates.Gone;
-
-            timeEntriesLogCellDuration.Text = Item.Duration.HasValue
-                ? DurationAndFormatToString.Convert(Item.Duration.Value, Item.DurationFormat)
+            timeEntriesLogCellDuration.Text = Item.TimeEntryViewModel.Duration.HasValue
+                ? DurationAndFormatToString.Convert(Item.TimeEntryViewModel.Duration.Value, Item.TimeEntryViewModel.DurationFormat)
                 : "";
 
-            timeEntriesLogCellContinueImage.Visibility = Item.CanContinue.ToVisibility();
-            errorImageView.Visibility = (!Item.CanContinue).ToVisibility();
+            timeEntriesLogCellContinueImage.Visibility = Item.TimeEntryViewModel.CanContinue.ToVisibility();
+            errorImageView.Visibility = (!Item.TimeEntryViewModel.CanContinue).ToVisibility();
 
-            errorNeedsSync.Visibility = Item.NeedsSync.ToVisibility();
-            timeEntriesLogCellContinueButton.Visibility = Item.CanContinue.ToVisibility();
+            errorNeedsSync.Visibility = Item.TimeEntryViewModel.NeedsSync.ToVisibility();
+            timeEntriesLogCellContinueButton.Visibility = Item.TimeEntryViewModel.CanContinue.ToVisibility();
 
-            billableIcon.Visibility = Item.IsBillable.ToVisibility();
-            hasTagsIcon.Visibility = Item.HasTags.ToVisibility();
+            billableIcon.Visibility = Item.TimeEntryViewModel.IsBillable.ToVisibility();
+            hasTagsIcon.Visibility = Item.TimeEntryViewModel.HasTags.ToVisibility();
 
             whitePadding.LayoutParameters = getWhitePaddingWidthDependentOnIcons();
         }
