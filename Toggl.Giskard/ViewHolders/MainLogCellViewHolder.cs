@@ -1,18 +1,12 @@
 using System;
 using System.Reactive.Subjects;
-using Android.Graphics;
 using Android.Runtime;
 using System.Linq;
-using System.Reactive.Subjects;
 using Android.Animation;
-using Android.Graphics;
-using Android.Runtime;
 using Android.Support.Constraints;
 using Android.Text;
-using Android.Text.Style;
 using Android.Views;
 using Android.Widget;
-using Toggl.Foundation.MvvmCross.Transformations;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.ViewHelpers;
@@ -80,7 +74,6 @@ namespace Toggl.Giskard.ViewHolders
             whitePadding = ItemView.FindViewById(TimeEntriesLogCellDurationWhiteArea);
             MainLogContentView = ItemView.FindViewById(Resource.Id.MainLogContentView);
 
-            timeEntriesLogCellProjectLabel.SetSpannableFactory(spannableFactory);
             timeEntriesLogCellContinueButton.Click += onContinueClick;
         }
 
@@ -125,7 +118,7 @@ namespace Toggl.Giskard.ViewHolders
                 + (Item.TimeEntryViewModel.IsBillable ? 22 : 0)
                 + (Item.TimeEntryViewModel.HasTags ? 22 : 0);
 
-            var layoutParameters = (ConstraintLayout.LayoutParams)whitePadding.LayoutParameters;
+            var layoutParameters = (ConstraintLayout.LayoutParams) whitePadding.LayoutParameters;
             layoutParameters.Width = whitePaddingWidth.DpToPixels(ItemView.Context);
             return layoutParameters;
         }
@@ -138,7 +131,7 @@ namespace Toggl.Giskard.ViewHolders
             timeEntriesLogCellDescription.Visibility = Item.DescriptionVisibility;
             addDescriptionLabel.Visibility = Item.AddDescriptionLabelVisibility;
 
-            timeEntriesLogCellProjectLabel.SetText(Item.ProjectTaskClientText, TextView.BufferType.Spannable);
+            timeEntriesLogCellProjectLabel.TextFormatted = Item.ProjectTaskClientText;
             timeEntriesLogCellProjectLabel.Visibility = Item.ProjectTaskClientVisibility;
 
             timeEntriesLogCellDuration.Text = Item.DurationText;
