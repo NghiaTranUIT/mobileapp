@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
@@ -11,6 +12,7 @@ using Toggl.Foundation;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Calendar;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -38,6 +40,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
         private readonly IOnboardingStorage onboardingStorage;
         private readonly IPermissionsService permissionsService;
         private readonly IMvxNavigationService navigationService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private readonly ISubject<bool> shouldShowOnboardingSubject;
         private readonly CompositeDisposable disposeBag = new CompositeDisposable();
@@ -73,7 +76,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             IOnboardingStorage onboardingStorage,
             ISchedulerProvider schedulerProvider,
             IPermissionsService permissionsService,
-            IMvxNavigationService navigationService)
+            IMvxNavigationService navigationService,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
@@ -86,6 +90,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             Ensure.Argument.IsNotNull(permissionsService, nameof(permissionsService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.timeService = timeService;
@@ -97,6 +102,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             this.onboardingStorage = onboardingStorage;
             this.navigationService = navigationService;
             this.permissionsService = permissionsService;
+            this.stopwatchProvider = stopwatchProvider;
 
             var isCompleted = onboardingStorage.CompletedCalendarOnboarding();
             shouldShowOnboardingSubject = new BehaviorSubject<bool>(!isCompleted);
@@ -114,21 +120,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
 
             Date = Observable.Return(timeService.CurrentDateTime.Date);
 
-            GetStartedAction = new UIAction(getStarted);
+            GetStartedAction = UIAction.FromAsync(getStarted);
 
-            OnItemTapped = new InputAction<CalendarItem>(handleCalendarItem);
+            OnItemTapped = InputAction<CalendarItem>.FromAsync(handleCalendarItem);
 
             SettingsAreVisible = onboardingObservable
                 .SelectMany(_ => permissionsService.CalendarPermissionGranted)
                 .DistinctUntilChanged();
 
-            SelectCalendars = new UIAction(() => selectUserCalendars(false), SettingsAreVisible);
+            SelectCalendars = UIAction.FromAsync(() => selectUserCalendars(false), SettingsAreVisible);
 
-            OnDurationSelected = new InputAction<(DateTimeOffset StartTime, TimeSpan Duration)>(
-                tuple => onDurationSelected(tuple.StartTime, tuple.Duration)
-            );
+            OnDurationSelected = InputAction<(DateTimeOffset StartTime, TimeSpan Duration)>.FromAsync(
+                tuple => durationSelected(tuple.StartTime, tuple.Duration));
 
-            OnUpdateTimeEntry = new InputAction<CalendarItem>(onUpdateTimeEntry);
+            OnUpdateTimeEntry = InputAction<CalendarItem>.FromAsync(updateTimeEntry);
 
             CalendarItems = new ObservableGroupedOrderedCollection<CalendarItem>(
                 indexKey: item => item.StartTime,
@@ -144,7 +149,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             interactorFactory
                 .GetCalendarItemWithId(eventId)
                 .Execute()
-                .SelectMany(handleCalendarItem)
+                .SelectMany(calendarItem =>
+                    handleCalendarItem(calendarItem).ToObservable())
                 .Subscribe()
                 .DisposedBy(disposeBag);
         }
@@ -192,109 +198,106 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
                 await interactorFactory.ScheduleEventNotificationsForNextWeek().Execute();
             });
 
-        private IObservable<Unit> getStarted()
-            => Observable.FromAsync(async () =>
+        private async Task getStarted()
+        {
+            analyticsService.CalendarOnboardingStarted.Track();
+            var calendarPermissionGranted = await permissionsService.RequestCalendarAuthorization();
+            if (calendarPermissionGranted)
             {
-                analyticsService.CalendarOnboardingStarted.Track();
-                var calendarPermissionGranted = await permissionsService.RequestCalendarAuthorization();
-                if (calendarPermissionGranted)
-                {
-                    await selectUserCalendars(true);
-                    var notificationPermissionGranted = await permissionsService.RequestNotificationAuthorization();
-                    userPreferences.SetCalendarNotificationsEnabled(notificationPermissionGranted);
-                }
-                else
-                {
-                    await navigationService.Navigate<CalendarPermissionDeniedViewModel, Unit>();
-                }
-
-                onboardingStorage.SetCompletedCalendarOnboarding();
-                shouldShowOnboardingSubject.OnNext(false);
-            });
-
-        private IObservable<Unit> selectUserCalendars(bool isOnboarding)
-            => Observable.FromAsync(async () =>
+                await selectUserCalendars(true);
+                var notificationPermissionGranted = await permissionsService.RequestNotificationAuthorization();
+                userPreferences.SetCalendarNotificationsEnabled(notificationPermissionGranted);
+            }
+            else
             {
-                var calendarsExist = await interactorFactory
-                    .GetUserCalendars()
-                    .Execute()
-                    .Select(calendars => calendars.Any());
+                await navigationService.Navigate<CalendarPermissionDeniedViewModel, Unit>();
+            }
 
-                if (calendarsExist)
-                {
-                    var calendarIds = await navigationService
-                        .Navigate<SelectUserCalendarsViewModel, bool, string[]>(isOnboarding);
+            onboardingStorage.SetCompletedCalendarOnboarding();
+            shouldShowOnboardingSubject.OnNext(false);
+        }
 
-                    interactorFactory.SetEnabledCalendars(calendarIds).Execute();
-                }
-                else if (!isOnboarding)
-                {
-                    await dialogService.Alert(Resources.Oops, Resources.NoCalendarsFoundMessage, Resources.Ok);
-                }
-            });
+        private async Task selectUserCalendars(bool isOnboarding)
+        {
+            var calendarsExist = await interactorFactory
+                .GetUserCalendars()
+                .Execute()
+                .Select(calendars => calendars.Any());
 
-        private IObservable<Unit> handleCalendarItem(CalendarItem calendarItem)
-            => Observable.FromAsync(async () =>
+            if (calendarsExist)
             {
-                switch (calendarItem.Source)
-                {
-                    case CalendarItemSource.TimeEntry when calendarItem.TimeEntryId.HasValue:
-                        analyticsService.EditViewOpenedFromCalendar.Track();
-                        await navigationService.Navigate<EditTimeEntryViewModel, long>(calendarItem.TimeEntryId.Value);
-                        break;
+                var calendarIds = await navigationService
+                    .Navigate<SelectUserCalendarsViewModel, bool, string[]>(isOnboarding);
 
-                    case CalendarItemSource.Calendar:
-                        var workspace = await interactorFactory.GetDefaultWorkspace().Execute();
-                        var prototype = calendarItem.AsTimeEntryPrototype(workspace.Id);
-                        analyticsService.TimeEntryStarted.Track(TimeEntryStartOrigin.CalendarEvent);
-                        await interactorFactory.CreateTimeEntry(prototype).Execute();
-                        break;
-                }
-            });
-
-        private IObservable<Unit> onDurationSelected(DateTimeOffset startTime, TimeSpan duration)
-            => Observable.FromAsync(async () =>
+                interactorFactory.SetEnabledCalendars(calendarIds).Execute();
+            }
+            else if (!isOnboarding)
             {
-                var workspace = await interactorFactory.GetDefaultWorkspace().Execute();
-                var prototype = duration.AsTimeEntryPrototype(startTime, workspace.Id);
-                var timeEntry = await interactorFactory.CreateTimeEntry(prototype).Execute();
-                analyticsService.TimeEntryStarted.Track(TimeEntryStartOrigin.CalendarTapAndDrag);
-                await navigationService.Navigate<EditTimeEntryViewModel, long>(timeEntry.Id);
-            });
+                await dialogService.Alert(Resources.Oops, Resources.NoCalendarsFoundMessage, Resources.Ok);
+            }
+        }
 
-        private IObservable<Unit> onUpdateTimeEntry(CalendarItem calendarItem)
-            => Observable.FromAsync(async () =>
+        private async Task handleCalendarItem(CalendarItem calendarItem)
+        {
+            switch (calendarItem.Source)
             {
-                if (!calendarItem.IsEditable() || calendarItem.TimeEntryId == null)
-                    return;
+                case CalendarItemSource.TimeEntry when calendarItem.TimeEntryId.HasValue:
+                    analyticsService.EditViewOpenedFromCalendar.Track();
+                    var stopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.EditTimeEntryFromCalendar);
+                    stopwatch.Start();
+                    await navigationService.Navigate<EditTimeEntryViewModel, long>(calendarItem.TimeEntryId.Value);
+                    break;
 
-                var timeEntry = await dataSource.TimeEntries.GetById(calendarItem.TimeEntryId.Value);
+                case CalendarItemSource.Calendar:
+                    var workspace = await interactorFactory.GetDefaultWorkspace().Execute();
+                    var prototype = calendarItem.AsTimeEntryPrototype(workspace.Id);
+                    analyticsService.TimeEntryStarted.Track(TimeEntryStartOrigin.CalendarEvent);
+                    await interactorFactory.CreateTimeEntry(prototype).Execute();
+                    break;
+            }
+        }
 
-                var dto = new DTOs.EditTimeEntryDto
-                {
-                    Id = timeEntry.Id,
-                    Description = timeEntry.Description,
-                    StartTime = calendarItem.StartTime,
-                    StopTime = calendarItem.EndTime,
-                    ProjectId = timeEntry.ProjectId,
-                    TaskId = timeEntry.TaskId,
-                    Billable = timeEntry.Billable,
-                    WorkspaceId = timeEntry.WorkspaceId,
-                    TagIds = timeEntry.TagIds
-                };
+        private async Task durationSelected(DateTimeOffset startTime, TimeSpan duration)
+        {
+            var workspace = await interactorFactory.GetDefaultWorkspace().Execute();
+            var prototype = duration.AsTimeEntryPrototype(startTime, workspace.Id);
+            var timeEntry = await interactorFactory.CreateTimeEntry(prototype).Execute();
+            analyticsService.TimeEntryStarted.Track(TimeEntryStartOrigin.CalendarTapAndDrag);
+            await navigationService.Navigate<EditTimeEntryViewModel, long>(timeEntry.Id);
+        }
 
-                if (timeEntry.Duration != calendarItem.Duration.TotalSeconds)
-                {
-                    analyticsService.TimeEntryChangedFromCalendar.Track(CalendarChangeEvent.Duration);
-                }
+        private async Task updateTimeEntry(CalendarItem calendarItem)
+        {
+            if (!calendarItem.IsEditable() || calendarItem.TimeEntryId == null)
+                return;
 
-                if (timeEntry.Start != calendarItem.StartTime)
-                {
-                    analyticsService.TimeEntryChangedFromCalendar.Track(CalendarChangeEvent.StartTime);
-                }
+            var timeEntry = await dataSource.TimeEntries.GetById(calendarItem.TimeEntryId.Value);
 
-                await interactorFactory.UpdateTimeEntry(dto).Execute();
-            });
+            var dto = new DTOs.EditTimeEntryDto
+            {
+                Id = timeEntry.Id,
+                Description = timeEntry.Description,
+                StartTime = calendarItem.StartTime,
+                StopTime = calendarItem.EndTime,
+                ProjectId = timeEntry.ProjectId,
+                TaskId = timeEntry.TaskId,
+                Billable = timeEntry.Billable,
+                WorkspaceId = timeEntry.WorkspaceId,
+                TagIds = timeEntry.TagIds
+            };
+
+            if (timeEntry.Duration != calendarItem.Duration.TotalSeconds)
+            {
+                analyticsService.TimeEntryChangedFromCalendar.Track(CalendarChangeEvent.Duration);
+            }
+
+            if (timeEntry.Start != calendarItem.StartTime)
+            {
+                analyticsService.TimeEntryChangedFromCalendar.Track(CalendarChangeEvent.StartTime);
+            }
+
+            await interactorFactory.UpdateTimeEntry(dto).Execute();
+        }
 
         private async Task reloadData()
             => await interactorFactory

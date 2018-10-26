@@ -66,7 +66,7 @@ namespace Toggl.Giskard.Activities
 
         private void onNavigateBack(object sender, NavigationClickEventArgs e)
         {
-            ViewModel.BackCommand.Execute();
+            ViewModel.Close.Execute();
         }
 
         private class TogglWebViewClient : WebViewClient

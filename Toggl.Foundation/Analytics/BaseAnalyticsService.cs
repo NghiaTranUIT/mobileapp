@@ -67,13 +67,13 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent("Source")]
         public IAnalyticsEvent<ProjectTagSuggestionSource> StartEntrySelectTag { get; protected set; }
-      
+
         [AnalyticsEvent]
         public IAnalyticsEvent RatingViewWasShown { get; protected set; }
-      
+
         [AnalyticsEvent("isPositive")]
         public IAnalyticsEvent<bool> UserFinishedRatingViewFirstStep { get; protected set; }
-      
+
         [AnalyticsEvent("outcome")]
         public IAnalyticsEvent<RatingViewSecondStepOutcome> UserFinishedRatingViewSecondStep { get; protected set; }
 
@@ -85,7 +85,7 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent]
         public IAnalyticsEvent RatingViewSecondStepRate { get; protected set; }
-        
+
         [AnalyticsEvent]
         public IAnalyticsEvent RatingViewSecondStepDontRate { get; protected set; }
 
@@ -107,8 +107,8 @@ namespace Toggl.Foundation.Analytics
         [AnalyticsEvent("TapSource")]
         public IAnalyticsEvent<EditViewTapSource> EditViewTapped { get; set; }
 
-        [AnalyticsEvent("NumberOfCreatedGhosts")]
-        public IAnalyticsEvent<int> ProjectGhostsCreated { get; protected set; }
+        [AnalyticsEvent("NumberOfCreatedPlaceholders")]
+        public IAnalyticsEvent<int> ProjectPlaceholdersCreated { get; protected set; }
 
         [AnalyticsEvent("ExceptionType", "ExceptionMessage")]
         public IAnalyticsEvent<string, string> HandledException { get; protected set; }
@@ -127,6 +127,9 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent("Origin")]
         public IAnalyticsEvent<TimeEntryStopOrigin> TimeEntryStopped { get; protected set; }
+
+        [AnalyticsEvent]
+        public IAnalyticsEvent LostWorkspaceAccess { get; protected set; }
 
         [AnalyticsEvent("Reason")]
         public IAnalyticsEvent<string> WorkspaceSyncError { get; protected set; }

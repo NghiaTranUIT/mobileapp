@@ -45,5 +45,15 @@ namespace Toggl.Daneel.ViewControllers
 
             TabBar.Translucent = UIDevice.CurrentDevice.CheckSystemVersion(11, 0);
         }
+
+        public override void ItemSelected(UITabBar tabbar, UITabBarItem item)
+        {
+            var targetViewController = ViewControllers.Single(vc => vc.TabBarItem == item);
+            if (targetViewController is UINavigationController navigationController
+                && navigationController.TopViewController is ReportsViewController)
+            {
+                ViewModel.StartReportsStopwatch();
+            }
+        }
     }
 }

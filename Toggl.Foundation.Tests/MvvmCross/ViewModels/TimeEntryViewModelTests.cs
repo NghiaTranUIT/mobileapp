@@ -57,19 +57,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheIsGhostProperty : TimeEntryViewModelTest
+        public sealed class TheIsInaccessibleProperty : TimeEntryViewModelTest
         {
             [Theory, LogIfTooSlow]
             [InlineData(true)]
             [InlineData(false)]
-            public void ShouldBeTakenFromTimeEntry(bool isGhost)
+            public void ShouldBeTakenFromTimeEntry(bool isInaccessible)
             {
                 MockTimeEntry.Duration.Returns((long)TimeSpan.FromHours(1).TotalSeconds);
-                MockTimeEntry.IsGhost.Returns(isGhost);
+                MockTimeEntry.IsInaccessible.Returns(isInaccessible);
 
                 var viewModel = new TimeEntryViewModel(MockTimeEntry, DurationFormat.Improved);
 
-                viewModel.IsGhost.Should().Be(isGhost);
+                viewModel.IsInaccessible.Should().Be(isInaccessible);
             }
         }
 

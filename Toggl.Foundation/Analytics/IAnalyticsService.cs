@@ -31,13 +31,13 @@ namespace Toggl.Foundation.Analytics
         IAnalyticsEvent<Type> CurrentPage { get; }
 
         IAnalyticsEvent<TimeEntryStartOrigin> TimeEntryStarted { get; }
-      
+
         IAnalyticsEvent<TimeEntryStopOrigin> TimeEntryStopped { get; }
 
         IAnalyticsEvent RatingViewWasShown { get; }
-      
+
         IAnalyticsEvent<bool> UserFinishedRatingViewFirstStep { get; }
-      
+
         IAnalyticsEvent<RatingViewSecondStepOutcome> UserFinishedRatingViewSecondStep { get; }
 
         IAnalyticsEvent RatingViewFirstStepLike { get; }
@@ -70,11 +70,13 @@ namespace Toggl.Foundation.Analytics
 
         IAnalyticsEvent OfflineModeDetected { get; }
 
-        IAnalyticsEvent<int> ProjectGhostsCreated { get; }
+        IAnalyticsEvent<int> ProjectPlaceholdersCreated { get; }
 
         IAnalyticsEvent<EditViewTapSource> EditViewTapped { get; }
 
         IAnalyticsEvent<StartViewTapSource> StartViewTapped { get; }
+
+        IAnalyticsEvent LostWorkspaceAccess { get; }
 
         IAnalyticsEvent<string> WorkspaceSyncError { get; }
 

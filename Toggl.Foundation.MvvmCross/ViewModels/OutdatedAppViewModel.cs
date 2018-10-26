@@ -1,21 +1,25 @@
 ﻿using System;
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using MvvmCross.Commands;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
     public sealed class OutdatedAppViewModel : MvxViewModel
     {
+        public UIAction OpenWebsiteAction { get; }
+
+        public UIAction UpdateAppAction { get; }
+
         private const string togglWebsiteUrl = "https://toggl.com";
 
         private readonly IBrowserService browserService;
-
-        public IMvxCommand OpenWebsiteCommand { get; }
-
-        public IMvxCommand UpdateAppCommand { get; }
 
         public OutdatedAppViewModel(IBrowserService browserService)
         {
@@ -23,8 +27,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             this.browserService = browserService;
 
-            UpdateAppCommand = new MvxCommand(updateApp);
-            OpenWebsiteCommand = new MvxCommand(openWebsite);
+            UpdateAppAction = UIAction.FromAction(updateApp);
+            OpenWebsiteAction = UIAction.FromAction(openWebsite);
         }
 
         private void openWebsite()

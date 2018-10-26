@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Realms;
+using Remotion.Linq.Clauses;
 using Toggl.PrimeRadiant.Models;
 using Toggl.PrimeRadiant.Realm.Models;
 
@@ -74,7 +75,7 @@ namespace Toggl.PrimeRadiant.Realm
         private RealmConfiguration createRealmConfiguration()
             => new RealmConfiguration
             {
-                SchemaVersion = 6,
+                SchemaVersion = 7,
                 MigrationCallback = (migration, oldSchemaVersion) =>
                 {
                     if (oldSchemaVersion < 3)
@@ -97,6 +98,18 @@ namespace Toggl.PrimeRadiant.Realm
                     if (oldSchemaVersion < 6)
                     {
                         // nothing needs explicit updating when updating from schema 4 up to 6
+                    }
+
+                    if (oldSchemaVersion < 7)
+                    {
+                        var newWorkspaces = migration.NewRealm.All<RealmWorkspace>().ToList();
+                        var oldWorkspaces = migration.OldRealm.All("RealmWorkspace").ToList();
+                        for (var i = 0; i < newWorkspaces.Count; i++)
+                        {
+                            var oldWorkspace = oldWorkspaces[i];
+                            var newWorkspace = newWorkspaces[i];
+                            newWorkspace.IsInaccessible = oldWorkspace.IsGhost;
+                        }
                     }
                 }
             };

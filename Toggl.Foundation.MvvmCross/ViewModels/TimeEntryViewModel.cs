@@ -52,9 +52,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public DurationFormat DurationFormat { get; set; }
 
-        public bool IsGhost { get; }
+        public bool IsInaccessible { get; }
 
-        public bool CanContinue => CanSync && !IsGhost;
+        public bool CanContinue => CanSync && !IsInaccessible;
 
         public TimeEntryViewModel(IThreadSafeTimeEntry timeEntry, DurationFormat durationFormat)
         {
@@ -79,7 +79,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             CanSync = timeEntry.SyncStatus != SyncStatus.SyncFailed;
             NeedsSync = timeEntry.SyncStatus == SyncStatus.SyncNeeded;
 
-            IsGhost = timeEntry.IsGhost;
+            IsInaccessible = timeEntry.IsInaccessible;
 
             if (!HasProject) return;
 
@@ -110,7 +110,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                    && HasTags == other.HasTags
                    && NeedsSync == other.NeedsSync
                    && CanSync == other.CanSync
-                   && IsGhost == other.IsGhost;
+                   && IsInaccessible == other.IsInaccessible;
         }
 
         public override bool Equals(object obj)
@@ -133,7 +133,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 HasTags,
                 NeedsSync,
                 CanSync,
-                IsGhost);
+                IsInaccessible);
 
         public static bool operator ==(TimeEntryViewModel left, TimeEntryViewModel right) => Equals(left, right);
 

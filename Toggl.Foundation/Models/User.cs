@@ -65,6 +65,12 @@ namespace Toggl.Foundation.Models
                 return this;
             }
 
+            public Builder SetDefaultWorkspaceId(long defaultWorkspaceId)
+            {
+                DefaultWorkspaceId = defaultWorkspaceId;
+                return this;
+            }
+
             public User Build()
             {
                 ensureValidity();

@@ -7,6 +7,7 @@ using Toggl.Foundation.Exceptions;
 using Toggl.Multivac;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave.Exceptions;
+using Toggl.Foundation.Analytics;
 
 namespace Toggl.Foundation.MvvmCross.Services
 {
@@ -65,6 +66,18 @@ namespace Toggl.Foundation.MvvmCross.Services
             if (error is NoWorkspaceException)
             {
                 accessRestrictionStorage.SetNoWorkspaceStateReached(true);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryHandleNoDefaultWorkspaceError(Exception error)
+        {
+            if (error is NoDefaultWorkspaceException)
+            {
+                //Currently disabled because the view model is missing Android parts
+                //navigationService.Navigate<SelectDefaultWorkspaceViewModel>();
                 return true;
             }
 

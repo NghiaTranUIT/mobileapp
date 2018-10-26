@@ -28,7 +28,7 @@ namespace Toggl.Foundation.Interactors
 
         IInteractor<IObservable<Unit>> DeleteTimeEntry(long id);
 
-        IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetAllNonDeletedTimeEntries();
+        IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetAllTimeEntriesVisibleToTheUser();
 
         IInteractor<IObservable<IThreadSafeTimeEntry>> StopTimeEntry(DateTimeOffset currentDateTime, TimeEntryStopOrigin origin);
 
@@ -47,6 +47,8 @@ namespace Toggl.Foundation.Interactors
         #region Workspaces
 
         IInteractor<IObservable<IThreadSafeWorkspace>> GetDefaultWorkspace();
+
+        IInteractor<IObservable<Unit>> SetDefaultWorkspace(long workspaceId);
 
         IInteractor<IObservable<IEnumerable<IThreadSafeWorkspace>>> GetAllWorkspaces();
 

@@ -14,9 +14,9 @@ using Toggl.Giskard.ViewHolders;
 
 namespace Toggl.Giskard.Adapters
 {
-    public abstract class ReactiveSectionedRecyclerAdapter<TModel, TItemViewHolder, TSectionViewHolder> : RecyclerView.Adapter
-        where TItemViewHolder : BaseRecyclerViewHolder<TModel>
-        where TSectionViewHolder : BaseRecyclerViewHolder<IReadOnlyList<TModel>>
+    public abstract class ReactiveSectionedRecyclerAdapter<TModel, TModelWrapper, TModelCollectionWrapper, TItemViewHolder, TSectionViewHolder> : RecyclerView.Adapter
+        where TItemViewHolder : BaseRecyclerViewHolder<TModelWrapper>
+        where TSectionViewHolder : BaseRecyclerViewHolder<TModelCollectionWrapper>
     {
         public const int SectionViewType = 0;
         public const int ItemViewType = 1;
@@ -120,11 +120,11 @@ namespace Toggl.Giskard.Adapters
             switch (holder)
             {
                 case TItemViewHolder itemViewHolder:
-                    itemViewHolder.Item = currentItems[position - HeaderOffset].Item;
+                    itemViewHolder.Item = currentItems[position - HeaderOffset].WrappedItem;
                     break;
 
                 case TSectionViewHolder sectionViewHolder:
-                    sectionViewHolder.Item = currentItems[position - HeaderOffset].Section;
+                    sectionViewHolder.Item = currentItems[position - HeaderOffset].WrappedSection;
                     break;
 
                 default:
@@ -147,6 +147,10 @@ namespace Toggl.Giskard.Adapters
 
         protected abstract long IdForSection(IReadOnlyList<TModel> section);
 
+        protected abstract TModelWrapper Wrap(TModel item);
+
+        protected abstract TModelCollectionWrapper Wrap(IReadOnlyList<TModel> section);
+
         /*
          * The visual representation of the items are the same
          */
@@ -161,23 +165,30 @@ namespace Toggl.Giskard.Adapters
         {
             public int ViewType { get; }
             public TModel Item { get; }
+            public TModelWrapper WrappedItem { get; }
+
             public IReadOnlyList<TModel> Section { get; }
+            public TModelCollectionWrapper WrappedSection { get; }
             public long Id { get; }
 
-            public FlatItemInfo(TModel item, Func<TModel, long> idProvider)
+            public FlatItemInfo(TModel item, Func<TModel, long> idProvider, Func<TModel, TModelWrapper> wrapper)
             {
                 ViewType = ItemViewType;
                 Item = item;
                 Section = null;
                 Id = idProvider(item);
+                WrappedItem = wrapper(item);
+                WrappedSection = default(TModelCollectionWrapper);
             }
 
-            public FlatItemInfo(IReadOnlyList<TModel> section, Func<IReadOnlyList<TModel>, long> idProvider)
+            public FlatItemInfo(IReadOnlyList<TModel> section, Func<IReadOnlyList<TModel>, long> idProvider, Func<IReadOnlyList<TModel>,TModelCollectionWrapper> wrapper)
             {
                 ViewType = SectionViewType;
                 Item = default(TModel);
                 Section = section;
                 Id = idProvider(section);
+                WrappedItem = default(TModelWrapper);
+                WrappedSection = wrapper(Section);
             }
         }
 
@@ -188,8 +199,8 @@ namespace Toggl.Giskard.Adapters
 
             foreach (var group in groups)
             {
-                flattenedTimeEntriesList.Add(new FlatItemInfo(group.ToImmutableList(), IdForSection));
-                flattenedTimeEntriesList.AddRange(group.Select(item => new FlatItemInfo(item, IdFor)).ToList());
+                flattenedTimeEntriesList.Add(new FlatItemInfo(group.ToImmutableList(), IdForSection, Wrap));
+                flattenedTimeEntriesList.AddRange(group.Select(item => new FlatItemInfo(item, IdFor, Wrap)).ToList());
             }
 
             return flattenedTimeEntriesList.ToImmutableList();

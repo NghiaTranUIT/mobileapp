@@ -34,6 +34,6 @@ namespace Toggl.PrimeRadiant.Realm
 
         public string LogoUrl { get; set; }
 
-        public bool IsGhost { get; set; }
+        public bool IsInaccessible { get; set; }
     }
 }

@@ -153,9 +153,6 @@ time entries will appear here.</value>
     <data name="DifferentWorkspaceAlertMessage">
         <value>Change workspace?</value>
     </data>
-    <data name="Ok">
-        <value>Ok</value>
-    </data>
     <data name="Cancel">
         <value>Cancel</value>
     </data>
@@ -438,9 +435,6 @@ account is not set up</value>
     <data name="Off">
         <value>Off</value>
     </data>
-    <data name="NoDescription">
-        <value>No description</value>
-    </data>
     <data name="NewTimeEntry">
         <value>New Time Entry</value>
     </data>
@@ -494,5 +488,8 @@ account is not set up</value>
     </data>
     <data name="DiscardMessage">
         <value>Discard message?</value>
+    </data>
+    <data name="InaccessibleTimeEntryErrorMessage">
+        <value>This time entry belongs to a workspace that you don't have access to anymore and it can't by synced.</value>
     </data>
 </root>

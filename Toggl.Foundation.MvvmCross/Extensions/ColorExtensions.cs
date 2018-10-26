@@ -1,4 +1,5 @@
-﻿using MvvmCross.UI;
+﻿using System;
+using MvvmCross.UI;
 using Toggl.Foundation.Calendar;
 using static System.Math;
 
@@ -64,10 +65,27 @@ namespace Toggl.Foundation.MvvmCross.Extensions
 
         public static MvxColor ForegroundColor(this CalendarItem calendarItem)
         {
+            // Adjusted relative luminance
+            // math based on https://www.w3.org/WAI/GL/wiki/Relative_luminance
+
             var color = MvxColor.ParseHexString(calendarItem.Color);
-            var luma = (0.2126 * color.R + 0.7152 * color.G + 0.0722 * color.B) / 255;
+
+            var rsrgb = color.R / 255.0;
+            var gsrgb = color.G / 255.0;
+            var bsrgb = color.B / 255.0;
+
+            var lowGammaCoeficient = 1 / 12.92;
+
+            var r = rsrgb <= 0.03928 ? rsrgb * lowGammaCoeficient : adjustGamma(rsrgb);
+            var g = gsrgb <= 0.03928 ? gsrgb * lowGammaCoeficient : adjustGamma(gsrgb);
+            var b = bsrgb <= 0.03928 ? bsrgb * lowGammaCoeficient : adjustGamma(bsrgb);
+
+            var luma = r * 0.2126 + g * 0.7152 + b * 0.0722;
 
             return luma < 0.5 ? MvxColors.White : MvxColors.Black;
+
+            double adjustGamma(double channel)
+                => Math.Pow((channel + 0.055) / 1.055, 2.4);
         }
     }
 }

@@ -58,9 +58,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels.Reports
             public static IEnumerable<object[]> BillableAndNonBillablePairs()
             {
                 double max = 100;
-                for (var b = 0; b <= max; b++)
+                for (var b = 0; b <= max; b += 5)
                 {
-                    for (var n = 0; n <= max - b; n++)
+                    for (var n = 0; n <= max - b; n += 5)
                     {
                         yield return new object[] { b / max, n / max };
                     }

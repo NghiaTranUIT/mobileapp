@@ -61,18 +61,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IsFeedbackEmpty = isEmptyObservable.DistinctUntilChanged().AsDriver(schedulerProvider);
             SendEnabled = sendingIsEnabledObservable.DistinctUntilChanged().AsDriver(schedulerProvider);
 
-            CloseButtonTapped = new UIAction(cancel);
-            ErrorViewTapped = new UIAction(dismissError);
-            SendButtonTapped = new UIAction(sendFeedback, sendingIsEnabledObservable);
+            CloseButtonTapped = UIAction.FromObservable(cancel);
+            ErrorViewTapped = UIAction.FromAction(dismissError);
+            SendButtonTapped = UIAction.FromObservable(sendFeedback, sendingIsEnabledObservable);
 
             IsLoading = isLoadingSubject.AsDriver(false, schedulerProvider);
             Error = currentErrorSubject.AsDriver(default(Exception), schedulerProvider);
         }
 
-        private IObservable<Unit> dismissError()
+        private void dismissError()
         {
             currentErrorSubject.OnNext(null);
-            return Observable.Return(Unit.Default);
         }
 
         private IObservable<Unit> cancel()

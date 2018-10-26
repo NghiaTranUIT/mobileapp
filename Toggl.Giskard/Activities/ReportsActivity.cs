@@ -41,6 +41,12 @@ namespace Toggl.Giskard.Activities
             setupToolbar();
         }
 
+        public override void OnEnterAnimationComplete()
+        {
+            base.OnEnterAnimationComplete();
+            ViewModel.StopNavigationFromMainLogStopwatch();
+        }
+
         public override void Finish()
         {
             base.Finish();

@@ -9,7 +9,7 @@ namespace Toggl.Multivac.Extensions
     {
     }
 
-    public class RxAction<TInput, TElement> : IDisposable
+    public abstract class RxAction<TInput, TElement> : IDisposable
     {
         public IObservable<Exception> Errors { get; }
         public IObservable<TElement> Elements { get; }
@@ -18,16 +18,14 @@ namespace Toggl.Multivac.Extensions
         public ISubject<TInput> Inputs { get; }
         public CompositeDisposable DisposeBag { get; }
 
-        private Func<TInput, IObservable<TElement>> workFactory;
         private readonly IObservable<IObservable<TElement>> executionObservables;
 
-        public RxAction(Func<TInput, IObservable<TElement>> workFactory) : this(workFactory, Observable.Return(true))
+        public RxAction(Func<TInput, IObservable<TElement>> workFactory, IObservable<bool> enabledIf = null)
         {
-        }
-
-        public RxAction(Func<TInput, IObservable<TElement>> workFactory, IObservable<bool> enabledIf)
-        {
-            this.workFactory = workFactory;
+            if (enabledIf == null)
+            {
+                enabledIf = Observable.Return(true);
+            }
 
             DisposeBag = new CompositeDisposable();
             Inputs = new Subject<TInput>();

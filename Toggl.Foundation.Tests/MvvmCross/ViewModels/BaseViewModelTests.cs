@@ -2,6 +2,7 @@ using Microsoft.Reactive.Testing;
 using MvvmCross.ViewModels;
 using NSubstitute;
 using Toggl.Foundation.Autocomplete;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Login;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.Services;
@@ -36,6 +37,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         protected ISuggestionProviderContainer SuggestionProviderContainer { get; } = Substitute.For<ISuggestionProviderContainer>();
         protected IAutocompleteProvider AutocompleteProvider { get; } = Substitute.For<IAutocompleteProvider>();
         protected IAccessRestrictionStorage AccessRestrictionStorage { get; } = Substitute.For<IAccessRestrictionStorage>();
+        protected IStopwatchProvider StopwatchProvider { get; } = Substitute.For<IStopwatchProvider>();
 
         protected TestScheduler TestScheduler { get; }
 

@@ -11,6 +11,7 @@ namespace Toggl.Giskard
             registry.AddOrOverwrite("Duration", new DurationValueCombiner());
             registry.AddOrOverwrite("DateTimeOffsetShortDateFormat", new DateTimeOffsetDateFormatValueCombiner(TimeZoneInfo.Local, false));
             registry.AddOrOverwrite("DateTimeOffsetTimeFormat", new DateTimeOffsetTimeFormatValueCombiner(TimeZoneInfo.Local));
+            registry.AddOrOverwrite("ShowTags", new ShowTagsValueCombiner());
             base.FillValueCombiners(registry);
         }
     }

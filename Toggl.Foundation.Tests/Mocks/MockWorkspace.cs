@@ -42,6 +42,19 @@ namespace Toggl.Foundation.Tests.Mocks
 
         public bool IsDeleted { get; set; }
 
-        public bool IsGhost { get; set; }
+        public bool IsInaccessible { get; set; }
+
+        public MockWorkspace() { }
+
+        public MockWorkspace(
+            long id,
+            bool isInaccessible = false,
+            SyncStatus syncStatus = SyncStatus.InSync
+        ) : this()
+        {
+            Id = id;
+            IsInaccessible = isInaccessible;
+            SyncStatus = syncStatus;
+        }
     }
 }

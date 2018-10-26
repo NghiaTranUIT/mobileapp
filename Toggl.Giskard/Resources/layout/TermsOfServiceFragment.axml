@@ -31,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <TextView
-        local:MvxBind="Click ViewTermsOfServiceCommand"
+        android:id="@+id/ViewTermsOfServiceTextView"
         android:textSize="16sp"
         android:textColor="#2e81e6"
         android:lineSpacingExtra="7sp"
@@ -52,7 +52,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <TextView
-        local:MvxBind="Click ViewPrivacyPolicyCommand"
+        android:id="@+id/ViewPrivacyPolicyTextView"
         android:textSize="16sp"
         android:textColor="#2e81e6"
         android:lineSpacingExtra="7sp"
@@ -63,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <Button
-        local:MvxBind="Click AcceptCommand"
+        android:id="@+id/AcceptButton"
         android:textSize="14sp"
         android:gravity="center"
         android:textAllCaps="true"

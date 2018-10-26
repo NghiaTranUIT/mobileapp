@@ -5,11 +5,13 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.DTOs;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
@@ -50,11 +52,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
         private readonly IPrivateSharedStorageService privateSharedStorageService;
         private readonly IIntentDonationService intentDonationService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private bool isSyncing;
         private bool isLoggingOut;
         private IThreadSafeUser currentUser;
         private IThreadSafePreferences currentPreferences;
+        private IStopwatch navigationFromMainViewModelStopwatch;
 
         public string Title { get; private set; } = Resources.Settings;
 
@@ -98,6 +102,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public UIAction OpenNotificationSettingsAction { get; }
 
+        public UIAction ToggleTwentyFourHourSettings { get; }
+
         public SettingsViewModel(
             UserAgent userAgent,
             IMailService mailService,
@@ -111,7 +117,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IOnboardingStorage onboardingStorage,
             IMvxNavigationService navigationService,
             IPrivateSharedStorageService privateSharedStorageService,
-            IIntentDonationService intentDonationService)
+            IIntentDonationService intentDonationService,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(userAgent, nameof(userAgent));
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
@@ -126,6 +133,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(platformConstants, nameof(platformConstants));
             Ensure.Argument.IsNotNull(privateSharedStorageService, nameof(privateSharedStorageService));
             Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.userAgent = userAgent;
             this.dataSource = dataSource;
@@ -140,6 +148,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.onboardingStorage = onboardingStorage;
             this.privateSharedStorageService = privateSharedStorageService;
             this.intentDonationService = intentDonationService;
+            this.stopwatchProvider = stopwatchProvider;
 
             IsSynced = dataSource.SyncManager.ProgressObservable.SelectMany(checkSynced);
 
@@ -221,9 +230,23 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsObservable();
 
-            OpenCalendarSettingsAction = new UIAction(openCalendarSettings);
+            OpenCalendarSettingsAction = UIAction.FromAsync(openCalendarSettings);
+            OpenNotificationSettingsAction = UIAction.FromAsync(openNotificationSettings);
+            ToggleTwentyFourHourSettings = UIAction.FromAsync(toggleUseTwentyFourHourClock);
+        }
 
-            OpenNotificationSettingsAction = new UIAction(openNotificationSettings);
+        public override async Task Initialize()
+        {
+            await base.Initialize();
+            navigationFromMainViewModelStopwatch = stopwatchProvider.Get(MeasuredOperation.OpenSettingsView);
+            stopwatchProvider.Remove(MeasuredOperation.OpenStartView);
+        }
+
+        public override void ViewAppeared()
+        {
+            base.ViewAppeared();
+            navigationFromMainViewModelStopwatch?.Stop();
+            navigationFromMainViewModelStopwatch = null;
         }
 
         public void CloseFeedbackSuccessView()
@@ -266,7 +289,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public Task SelectDefaultWorkspace(SelectableWorkspaceViewModel workspace)
             => changeDefaultWorkspace(workspace.WorkspaceId);
 
-        public async Task ToggleUseTwentyFourHourClock()
+        private async Task toggleUseTwentyFourHourClock() 
         {
             var timeFormat = currentPreferences.TimeOfDayFormat.IsTwentyFourHoursFormat
                 ? TimeFormat.TwelveHoursFormat
@@ -352,11 +375,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             await updatePreferences(newDurationFormat);
         }
 
-        private IObservable<Unit> openCalendarSettings()
-            => Observable.FromAsync(async () => await navigationService.Navigate<CalendarSettingsViewModel>());
+        private Task openCalendarSettings()
+            => navigationService.Navigate<CalendarSettingsViewModel>();
 
-        private IObservable<Unit> openNotificationSettings()
-            => Observable.FromAsync(async () => await navigationService.Navigate<NotificationSettingsViewModel>());
+        private Task openNotificationSettings()
+            => navigationService.Navigate<NotificationSettingsViewModel>();
 
         private IObservable<Unit> logout()
         {

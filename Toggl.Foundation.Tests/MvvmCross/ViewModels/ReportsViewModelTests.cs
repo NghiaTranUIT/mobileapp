@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -10,6 +10,7 @@ using FsCheck.Xunit;
 using NSubstitute;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Analytics;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Reports;
@@ -40,7 +41,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected override ReportsViewModel CreateViewModel()
             {
                 DataSource.ReportsProvider.Returns(ReportsProvider);
-                return new ReportsViewModel(DataSource, TimeService, NavigationService, InteractorFactory, AnalyticsService, DialogService, IntentDonationService, SchedulerProvider);
+                return new ReportsViewModel(DataSource,
+                                            TimeService,
+                                            NavigationService,
+                                            InteractorFactory,
+                                            AnalyticsService,
+                                            DialogService,
+                                            IntentDonationService,
+                                            SchedulerProvider,
+                                            StopwatchProvider);
             }
 
             protected async Task Initialize()
@@ -76,7 +85,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                                                         bool useInteractorFactory,
                                                         bool useDialogService,
                                                         bool useIntentDonationService,
-                                                        bool useSchedulerProvider)
+                                                        bool useSchedulerProvider,
+                                                        bool useStopwatchProvider)
             {
                 var timeService = useTimeService ? TimeService : null;
                 var reportsProvider = useDataSource ? DataSource : null;
@@ -86,9 +96,18 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var dialogService = useDialogService ? DialogService : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new ReportsViewModel(reportsProvider, timeService, navigationService, interactorFactory, analyticsService, dialogService, intentDonationService, schedulerProvider);
+                    () => new ReportsViewModel(reportsProvider,
+                                               timeService,
+                                               navigationService,
+                                               interactorFactory,
+                                               analyticsService,
+                                               dialogService,
+                                               intentDonationService,
+                                               schedulerProvider,
+                                               stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -743,6 +762,34 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var workspaceObservable = Observable.Return(workspace);
                 DataSource.WorkspaceFeatures.GetById(workspace.Id).Returns(workspaceFeaturesObservable);
                 DialogService.Select(Arg.Any<string>(), Arg.Any<ICollection<(string, IThreadSafeWorkspace)>>(), Arg.Any<int>()).Returns(workspaceObservable);
+            }
+        }
+
+        public sealed class TheViewAppearedMethod : ReportsViewModelTest
+        {
+            [Theory, LogIfTooSlow]
+            [InlineData(1)]
+            [InlineData(2)]
+            [InlineData(3)]
+            [InlineData(5)]
+            [InlineData(8)]
+            [InlineData(13)]
+            public async Task ShouldTriggerReloadForEveryAppearance(int numberOfAppearances)
+            {
+                ReportsProvider.GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
+                        Arg.Any<DateTimeOffset>())
+                    .ReturnsForAnyArgs(Observable.Empty<ProjectSummaryReport>(SchedulerProvider.TestScheduler));
+                await ViewModel.Initialize();
+                ViewModel.ViewAppeared(); // First call is skipped
+
+                for (int i = 0; i < numberOfAppearances; ++i)
+                {
+                    ViewModel.ViewAppeared();
+                }
+                TestScheduler.Start();
+
+                ReportsProvider.Received(numberOfAppearances).GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
+                    Arg.Any<DateTimeOffset>());
             }
         }
     }
