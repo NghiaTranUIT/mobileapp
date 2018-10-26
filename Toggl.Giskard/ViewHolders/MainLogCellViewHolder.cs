@@ -52,6 +52,8 @@ namespace Toggl.Giskard.ViewHolders
         private View hasTagsIcon;
         private View whitePadding;
 
+        private SpannableFactory spannableFactory = new CopylessSpannableFactory();
+
         private ObjectAnimator animator;
 
         public bool IsAnimating => animator?.IsRunning ?? false;
@@ -78,6 +80,7 @@ namespace Toggl.Giskard.ViewHolders
             whitePadding = ItemView.FindViewById(TimeEntriesLogCellDurationWhiteArea);
             MainLogContentView = ItemView.FindViewById(Resource.Id.MainLogContentView);
 
+            timeEntriesLogCellProjectLabel.SetSpannableFactory(spannableFactory);
             timeEntriesLogCellContinueButton.Click += onContinueClick;
         }
 
