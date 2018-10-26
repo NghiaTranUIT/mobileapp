@@ -24,7 +24,8 @@ namespace Toggl.Foundation.Sync.Tests.Extensions
 
         public static IUser With(
             this IUser user,
-            New<long?> defaultWorkspaceId = default(New<long?>))
+            New<long?> defaultWorkspaceId = default(New<long?>),
+            New<Email> email = default(New<Email>))
             => new User
             {
                 Id = user.Id,
@@ -32,7 +33,7 @@ namespace Toggl.Foundation.Sync.Tests.Extensions
                 ApiToken = user.ApiToken,
                 DefaultWorkspaceId = defaultWorkspaceId.ValueOr(user.DefaultWorkspaceId),
                 BeginningOfWeek = user.BeginningOfWeek,
-                Email = user.Email,
+                Email = email.ValueOr(user.Email),
                 Fullname = user.Fullname,
                 ImageUrl = user.ImageUrl,
                 Language = user.Language

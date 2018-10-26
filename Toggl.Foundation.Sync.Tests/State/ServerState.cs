@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Multivac;
 using Toggl.Multivac.Models;
 
 namespace Toggl.Foundation.Sync.Tests.State
@@ -34,5 +35,24 @@ namespace Toggl.Foundation.Sync.Tests.State
             TimeEntries = new HashSet<ITimeEntry>(timeEntries ?? new ITimeEntry[0]);
             Workspaces = new HashSet<IWorkspace>(workspaces ?? new IWorkspace[0]);
         }
+
+        public ServerState With(
+            New<IUser> user = default(New<IUser>),
+            New<IEnumerable<IClient>> clients = default(New<IEnumerable<IClient>>),
+            New<IEnumerable<IProject>> projects = default(New<IEnumerable<IProject>>),
+            New<IPreferences> preferences = default(New<IPreferences>),
+            New<IEnumerable<ITag>> tags = default(New<IEnumerable<ITag>>),
+            New<IEnumerable<ITask>> tasks = default(New<IEnumerable<ITask>>),
+            New<IEnumerable<ITimeEntry>> timeEntries = default(New<IEnumerable<ITimeEntry>>),
+            New<IEnumerable<IWorkspace>> workspaces = default(New<IEnumerable<IWorkspace>>))
+            => new ServerState(
+                user.ValueOr(User),
+                clients.ValueOr(Clients),
+                projects.ValueOr(Projects),
+                preferences.ValueOr(Preferences),
+                tags.ValueOr(Tags),
+                tasks.ValueOr(Tasks),
+                timeEntries.ValueOr(TimeEntries),
+                workspaces.ValueOr(Workspaces));
     }
 }

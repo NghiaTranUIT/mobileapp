@@ -31,8 +31,11 @@ namespace Toggl.Foundation.Sync.Tests
 
             // Arrange
             ArrangeServices(appServices);
+
             var definedServerState = ArrangeServerState(server.InitialServerState);
-            var actualServerStateBefore = await server.Push(definedServerState);
+            await server.Push(definedServerState);
+
+            var actualServerStateBefore = await server.PullCurrentState();
             var definedDatabaseState = ArrangeDatabaseState(actualServerStateBefore);
             await storage.Store(definedDatabaseState);
 
