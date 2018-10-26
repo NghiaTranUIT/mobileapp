@@ -2,7 +2,9 @@ using Android.Graphics;
 using Android.Text;
 using Android.Text.Style;
 using Android.Views;
+using Toggl.Foundation.MvvmCross.Transformations;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Giskard.Extensions;
 using static Toggl.Foundation.Helper.Color;
 
 namespace Toggl.Giskard.ViewHelpers
@@ -11,7 +13,17 @@ namespace Toggl.Giskard.ViewHelpers
     {
         public TimeEntryViewModel TimeEntryViewModel { get; }
         public ISpannable ProjectTaskClientText { get; }
+        public string DurationText { get; }
+
         public ViewStates ProjectTaskClientVisibility { get; }
+        public ViewStates HasTagsIconVisibility { get; }
+        public ViewStates BillableIconVisibility { get; }
+        public ViewStates ContinueButtonVisibility { get; }
+        public ViewStates ErrorNeedsSyncVisibility { get; }
+        public ViewStates ErrorImageViewVisibility { get; }
+        public ViewStates ContinueImageVisibility { get; }
+        public ViewStates AddDescriptionLabelVisibility { get; }
+        public ViewStates DescriptionVisibility { get; }
 
         public TimeEntryViewData(TimeEntryViewModel timeEntryViewModel)
         {
@@ -40,6 +52,19 @@ namespace Toggl.Giskard.ViewHelpers
                 ProjectTaskClientText = new SpannableString(string.Empty);
                 ProjectTaskClientVisibility = ViewStates.Gone;
             }
+
+            DurationText = TimeEntryViewModel.Duration.HasValue
+                ? DurationAndFormatToString.Convert(TimeEntryViewModel.Duration.Value, TimeEntryViewModel.DurationFormat)
+                : "";
+
+            DescriptionVisibility = TimeEntryViewModel.HasDescription.ToVisibility();
+            AddDescriptionLabelVisibility = (!TimeEntryViewModel.HasDescription).ToVisibility();
+            ContinueImageVisibility = TimeEntryViewModel.CanContinue.ToVisibility();
+            ErrorImageViewVisibility = (!TimeEntryViewModel.CanContinue).ToVisibility();
+            ErrorNeedsSyncVisibility = TimeEntryViewModel.NeedsSync.ToVisibility();
+            ContinueButtonVisibility = TimeEntryViewModel.CanContinue.ToVisibility();
+            BillableIconVisibility = TimeEntryViewModel.IsBillable.ToVisibility();
+            HasTagsIconVisibility = TimeEntryViewModel.HasTags.ToVisibility();
         }
     }
 }

@@ -135,25 +135,20 @@ namespace Toggl.Giskard.ViewHolders
             StopAnimating();
 
             timeEntriesLogCellDescription.Text = Item.TimeEntryViewModel.Description;
-            timeEntriesLogCellDescription.Visibility = Item.TimeEntryViewModel.HasDescription.ToVisibility();
-
-            addDescriptionLabel.Visibility = (!Item.TimeEntryViewModel.HasDescription).ToVisibility();
+            timeEntriesLogCellDescription.Visibility = Item.DescriptionVisibility;
+            addDescriptionLabel.Visibility = Item.AddDescriptionLabelVisibility;
 
             timeEntriesLogCellProjectLabel.SetText(Item.ProjectTaskClientText, TextView.BufferType.Spannable);
             timeEntriesLogCellProjectLabel.Visibility = Item.ProjectTaskClientVisibility;
 
-            timeEntriesLogCellDuration.Text = Item.TimeEntryViewModel.Duration.HasValue
-                ? DurationAndFormatToString.Convert(Item.TimeEntryViewModel.Duration.Value, Item.TimeEntryViewModel.DurationFormat)
-                : "";
+            timeEntriesLogCellDuration.Text = Item.DurationText;
 
-            timeEntriesLogCellContinueImage.Visibility = Item.TimeEntryViewModel.CanContinue.ToVisibility();
-            errorImageView.Visibility = (!Item.TimeEntryViewModel.CanContinue).ToVisibility();
-
-            errorNeedsSync.Visibility = Item.TimeEntryViewModel.NeedsSync.ToVisibility();
-            timeEntriesLogCellContinueButton.Visibility = Item.TimeEntryViewModel.CanContinue.ToVisibility();
-
-            billableIcon.Visibility = Item.TimeEntryViewModel.IsBillable.ToVisibility();
-            hasTagsIcon.Visibility = Item.TimeEntryViewModel.HasTags.ToVisibility();
+            timeEntriesLogCellContinueImage.Visibility = Item.ContinueImageVisibility;
+            errorImageView.Visibility = Item.ErrorImageViewVisibility;
+            errorNeedsSync.Visibility = Item.ErrorNeedsSyncVisibility;
+            timeEntriesLogCellContinueButton.Visibility = Item.ContinueButtonVisibility;
+            billableIcon.Visibility = Item.BillableIconVisibility;
+            hasTagsIcon.Visibility = Item.HasTagsIconVisibility;
 
             whitePadding.LayoutParameters = getWhitePaddingWidthDependentOnIcons();
         }
