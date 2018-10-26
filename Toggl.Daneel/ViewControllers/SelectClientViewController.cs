@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reactive;
+using System.Threading.Tasks;
 using MvvmCross.Binding.BindingContext;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.Helper;
@@ -27,7 +30,6 @@ namespace Toggl.Daneel.ViewControllers
 
             bindingSet.Bind(source).To(vm => vm.Suggestions);
             bindingSet.Bind(SearchTextField).To(vm => vm.Text);
-            bindingSet.Bind(CloseButton).To(vm => vm.CloseCommand);
             bindingSet.Bind(source)
                       .For(v => v.SelectionChangedCommand)
                       .To(vm => vm.SelectClientCommand);
@@ -46,12 +48,14 @@ namespace Toggl.Daneel.ViewControllers
 
             bindingSet.Apply();
 
+            this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseAction);
+
             SearchTextField.BecomeFirstResponder();
         }
 
         public async Task<bool> Dismiss()
         {
-            await ViewModel.CloseCommand.ExecuteAsync();
+            ViewModel.CloseAction.Execute(Unit.Default);
             return true;
         }
 

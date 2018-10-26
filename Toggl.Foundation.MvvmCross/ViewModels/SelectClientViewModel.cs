@@ -39,7 +39,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             }
         }
 
-        public IMvxAsyncCommand CloseCommand { get; }
+        public UIAction CloseAction { get; }
 
         public IMvxAsyncCommand CreateClientCommand { get; }
 
@@ -56,7 +56,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
 
-            CloseCommand = new MvxAsyncCommand(close);
+            CloseAction = UIAction.FromAsync(close);
             CreateClientCommand = new MvxAsyncCommand(createClient);
             SelectClientCommand = new MvxAsyncCommand<string>(selectClient);
         }

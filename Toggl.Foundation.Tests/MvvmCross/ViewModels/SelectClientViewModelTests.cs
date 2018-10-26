@@ -122,14 +122,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheCloseCommand : SelectClientViewModelTest
+        public sealed class TheCloseAction : SelectClientViewModelTest
         {
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
                 await ViewModel.Initialize();
 
-                await ViewModel.CloseCommand.ExecuteAsync();
+                await ViewModel.CloseAction.Execute();
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<long?>());
@@ -140,7 +140,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.CloseCommand.ExecuteAsync().Wait();
+                await ViewModel.CloseAction.Execute();
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), null);
