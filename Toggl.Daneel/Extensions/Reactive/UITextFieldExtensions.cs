@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Toggl.Foundation.MvvmCross.Reactive;
 using UIKit;
@@ -21,5 +23,27 @@ namespace Toggl.Daneel.Extensions.Reactive
 
         public static Action<string> TextObserver(this IReactive<UITextField> reactive)
            => text => reactive.Base.Text = text;
+
+        public static IObservable<Unit> ShouldReturn(this IReactive<UITextField> reactive, bool shouldResignFirstResponder = true)
+        {
+            return Observable.Create<Unit>(observer =>
+            {
+                UITextFieldCondition shouldReturn = (UITextField textField) =>
+                {
+                    if (shouldResignFirstResponder)
+                        textField.ResignFirstResponder();
+
+                    observer.OnNext(Unit.Default);
+                    return true;
+                };
+
+                reactive.Base.ShouldReturn += shouldReturn;
+
+                return Disposable.Create(() =>
+                {
+                    reactive.Base.ShouldReturn -= shouldReturn;
+                });
+            });
+        }
     }
 }

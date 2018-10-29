@@ -21,7 +21,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectDefaultWorkspaceViewModelTest : BaseViewModelTests<SelectDefaultWorkspaceViewModel>
         {
             protected override SelectDefaultWorkspaceViewModel CreateViewModel()
-                => new SelectDefaultWorkspaceViewModel(DataSource, InteractorFactory, NavigationService);
+                => new SelectDefaultWorkspaceViewModel(DataSource, InteractorFactory, NavigationService, AccessRestrictionStorage);
         }
 
         public sealed class TheConstructor : SelectDefaultWorkspaceViewModelTest
@@ -31,13 +31,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void ThrowsIfAnyOfTheArgumentsIsNull(
                 bool useDataSource,
                 bool useInteractorFactory,
-                bool useNavigationService)
+                bool useNavigationService,
+                bool useAccessRestrictionStorage)
             {
                 Action tryingToConstructWithEmptyParameters = ()
                     => new SelectDefaultWorkspaceViewModel(
                         useDataSource ? DataSource : null,
                         useInteractorFactory ? InteractorFactory : null,
-                        useNavigationService ? NavigationService : null);
+                        useNavigationService ? NavigationService : null,
+                        useAccessRestrictionStorage ? AccessRestrictionStorage : null);
 
                 tryingToConstructWithEmptyParameters.Should().Throw<ArgumentNullException>();
             }

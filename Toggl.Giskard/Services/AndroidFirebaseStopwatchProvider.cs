@@ -19,17 +19,23 @@ namespace Toggl.Giskard.Services
             {
                 Operation = operation;
 
+                #if USE_ANALYTICS
                 firebaseTrace = FirebasePerformance.Instance.NewTrace(operation.ToString());
+                #endif
             }
 
             public void Start()
             {
+                #if USE_ANALYTICS
                 firebaseTrace.Start();
+                #endif
             }
 
             public void Stop()
             {
+                #if USE_ANALYTICS
                 firebaseTrace.Stop();
+                #endif
             }
         }
     }

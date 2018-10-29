@@ -44,6 +44,12 @@ namespace Toggl.Giskard.Views
         public event EventHandler BoundariesChanged;
         public event EventHandler ValueChanged;
 
+        public BeginningOfWeek BeginningOfWeek
+        {
+            get => (BeginningOfWeek)(FirstDayOfWeek - 1);
+            set => FirstDayOfWeek = (int)value + 1;
+        }
+
         protected override void OnFinishInflate()
         {
             base.OnFinishInflate();

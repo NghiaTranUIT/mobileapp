@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.Suggestions;
 using Toggl.Foundation.Tests.Generators;
 using Xunit;
 
@@ -34,6 +35,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     AccessRestrictionStorage,
                     StopwatchProvider
                 );
+
+            protected override void AdditionalViewModelSetup()
+            {
+                base.AdditionalViewModelSetup();
+                var provider = Substitute.For<ISuggestionProvider>();
+                provider.GetSuggestions().Returns(Observable.Empty<Suggestion>());
+                SuggestionProviderContainer.Providers.Returns(new[] { provider }.ToList().AsReadOnly());
+            }
         }
 
         public sealed class TheConstructor : MainTabViewModelTest

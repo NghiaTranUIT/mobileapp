@@ -69,6 +69,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         //Properties
         public IObservable<TextFieldInfo> TextFieldInfoObservable { get; }
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
 
         private bool isRunning => !Duration.HasValue;
 
@@ -358,6 +359,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             hasAnyTags = (await dataSource.Tags.GetAll()).Any();
             hasAnyProjects = (await dataSource.Projects.GetAll()).Any();
+
+            dataSource.User.Current
+                      .Subscribe(onUserChanged)
+                      .DisposedBy(disposeBag);
         }
 
         public override void ViewAppeared()
@@ -396,6 +401,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             await navigationService.Close(this);
             return true;
+        }
+
+        private void onUserChanged(IThreadSafeUser user) 
+        {
+            BeginningOfWeek = user.BeginningOfWeek;
         }
 
         private async Task selectSuggestion(AutocompleteSuggestion suggestion)
@@ -603,7 +613,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var preferences = await dataSource.Preferences.Current.FirstAsync();
 
-            var parameters = SelectTimeParameters.CreateFromOrigin(origin, StartTime, stopTime)
+            var parameters = SelectTimeParameters.CreateFromOrigin(origin, BeginningOfWeek, StartTime, stopTime)
                 .WithFormats(preferences.DateFormat, preferences.TimeOfDayFormat);
 
             var result = await navigationService

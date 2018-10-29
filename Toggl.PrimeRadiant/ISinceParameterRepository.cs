@@ -9,5 +9,7 @@ namespace Toggl.PrimeRadiant
         void Set<T>(DateTimeOffset? since);
 
         bool Supports<T>();
+
+        void Reset();
     }
 }

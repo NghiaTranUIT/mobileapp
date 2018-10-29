@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Models;
 using Toggl.PrimeRadiant.Realm.Models;
 
@@ -74,12 +76,29 @@ namespace Toggl.PrimeRadiant.Realm
         public bool Supports<T>()
             => typesToIdsMapping.TryGetValue(typeof(T), out _);
 
+        public void Reset()
+            => typesToIdsMapping.Values.ForEach(delete);
+
         private static long getId<T>()
         {
             if (typesToIdsMapping.TryGetValue(typeof(T), out var id))
                 return id;
 
             throw new ArgumentException($"Since parameters for the type {typeof(T).FullName} cannot be stored.");
+        }
+
+        private void delete(long id)
+        {
+            lock (storageAccess)
+            {
+                try
+                {
+                    realmAdapter.Delete(id);
+                }
+                catch (InvalidOperationException)
+                {
+                }
+            }
         }
     }
 }

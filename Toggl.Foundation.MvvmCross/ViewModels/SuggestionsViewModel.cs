@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.ViewModels;
@@ -16,92 +19,62 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed class SuggestionsViewModel : MvxViewModel
     {
-        private readonly ITogglDataSource dataSource;
+        public IObservable<Suggestion[]> Suggestions { get; private set; }
+
+        public IObservable<bool> IsEmpty { get; private set; }
+
+        public InputAction<Suggestion> StartTimeEntryAction { get; private set; }
+
         private readonly IInteractorFactory interactorFactory;
         private readonly IOnboardingStorage onboardingStorage;
         private readonly ISuggestionProviderContainer suggestionProviders;
-
-        private bool areStartButtonsEnabled = true;
-        private IDisposable emptyDatabaseDisposable;
-
-        public MvxObservableCollection<Suggestion> Suggestions { get; }
-            = new MvxObservableCollection<Suggestion>();
-
-        public bool IsEmpty => Suggestions.None();
-
-        public MvxAsyncCommand<Suggestion> StartTimeEntryCommand { get; set; }
+        private readonly ISchedulerProvider schedulerProvider;
 
         public SuggestionsViewModel(
             ITogglDataSource dataSource,
             IInteractorFactory interactorFactory,
             IOnboardingStorage onboardingStorage,
-            ISuggestionProviderContainer suggestionProviders)
+            ISuggestionProviderContainer suggestionProviders,
+            ISchedulerProvider schedulerProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(suggestionProviders, nameof(suggestionProviders));
             Ensure.Argument.IsNotNull(onboardingStorage, nameof(onboardingStorage));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
 
-            this.dataSource = dataSource;
             this.interactorFactory = interactorFactory;
             this.onboardingStorage = onboardingStorage;
             this.suggestionProviders = suggestionProviders;
-
-            StartTimeEntryCommand = new MvxAsyncCommand<Suggestion>(startTimeEntry, _ => areStartButtonsEnabled);
+            this.schedulerProvider = schedulerProvider;
         }
 
-        public async override Task Initialize()
+        public override async Task Initialize()
         {
             await base.Initialize();
 
-            emptyDatabaseDisposable = dataSource
-                .TimeEntries
-                .IsEmpty
-                .FirstAsync()
-                .Subscribe(fetchSuggestions);
-        }
+            StartTimeEntryAction = InputAction<Suggestion>.FromAsync(suggestion => startTimeEntry(suggestion));
 
-        private void fetchSuggestions(bool databaseIsEmpty)
-        {
-            Suggestions.Clear();
-
-            if (databaseIsEmpty) return;
-
-            suggestionProviders
+            Suggestions = suggestionProviders
                 .Providers
                 .Select(provider => provider.GetSuggestions())
                 .Aggregate(Observable.Merge)
-                .Subscribe(addSuggestion);
-        }
+                .ToArray()
+                .AsDriver(onErrorJustReturn: new Suggestion[0], schedulerProvider: schedulerProvider);
 
-        private void addSuggestion(Suggestion suggestion)
-        {
-            Suggestions.Add(suggestion);
-
-            RaisePropertyChanged();
+            IsEmpty = Suggestions
+                .Select(suggestions => suggestions.Length == 0)
+                .StartWith(true)
+                .AsDriver(onErrorJustReturn: true, schedulerProvider: schedulerProvider);
         }
 
         private async Task startTimeEntry(Suggestion suggestion)
         {
-            areStartButtonsEnabled = false;
-            StartTimeEntryCommand.RaiseCanExecuteChanged();
-
             onboardingStorage.SetTimeEntryContinued();
 
             await interactorFactory
                 .StartSuggestion(suggestion)
-                .Execute()
-                .Do(_ =>
-                {
-                    areStartButtonsEnabled = true;
-                    StartTimeEntryCommand.RaiseCanExecuteChanged();
-                });
-        }
-
-        public override void ViewDestroy(bool viewFinishing = true)
-        {
-            base.ViewDestroy(viewFinishing);
-            emptyDatabaseDisposable?.Dispose();
+                .Execute();
         }
     }
 }

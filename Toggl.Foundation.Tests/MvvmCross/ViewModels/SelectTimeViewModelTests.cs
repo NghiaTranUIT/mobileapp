@@ -26,13 +26,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected override SelectTimeViewModel CreateViewModel()
                 => new SelectTimeViewModel(DataSource, NavigationService, InteractorFactory, TimeService);
 
-            protected SelectTimeParameters CreateParameter(DateTimeOffset start, DateTimeOffset? stop)
+            protected SelectTimeParameters CreateParameter(DateTimeOffset start, DateTimeOffset? stop, BeginningOfWeek beginningOfWeek = BeginningOfWeek.Sunday)
             {
                 var dateFormat = DateFormat.FromLocalizedDateFormat("MM.DD.YYYY");
                 var timeFormat = TimeFormat.FromLocalizedTimeFormat("H:mm");
 
                 return SelectTimeParameters
-                    .CreateFromOrigin(StartTime, start, stop)
+                    .CreateFromOrigin(StartTime, beginningOfWeek, start, stop)
                     .WithFormats(dateFormat, timeFormat);
             }
         }
@@ -252,6 +252,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         Arg.Is<SelectTimeResultsParameters>(param => ensureResultTimesAreInUtc(
                             param, universalStartTime, universalStopTime))
                    );
+            }
+
+            [Fact, LogIfTooSlow]
+            public void SetsBeginningOfWeekFromParameter()
+            {
+                var startTime = DateTimeOffset.UtcNow;
+                var stopTime = DateTimeOffset.UtcNow.AddHours(1);
+                var beginningOfWeek = BeginningOfWeek.Thursday;
+
+                var parameter = CreateParameter(startTime, stopTime, beginningOfWeek);
+                ViewModel.Prepare(parameter);
+
+                ViewModel.BeginningOfWeek.Should().Be(beginningOfWeek);
             }
 
             private bool ensureResultTimesAreInUtc(SelectTimeResultsParameters param,
