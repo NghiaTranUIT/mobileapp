@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -134,16 +135,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                           .Select(projects => projects.Any())
                           .Subscribe(hasProjects => IsEmpty = !hasProjects);
 
-            await Task.Run(() =>
-            {
-                infoSubject.AsObservable()
-                           .StartWith(Text)
-                           .Select(text => text.SplitToQueryWords())
-                           .SelectMany(query => interactorFactory.GetProjectsAutocompleteSuggestions(query).Execute())
-                           .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
-                           .Select(setSelectedProject)
-                           .Subscribe(onSuggestions);
-            });
+            infoSubject.AsObservable()
+                       .StartWith(Text)
+                       .Select(text => text.SplitToQueryWords())
+                       .ObserveOn(NewThreadScheduler.Default)
+                       .SelectMany(query => interactorFactory.GetProjectsAutocompleteSuggestions(query).Execute())
+                       .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
+                       .Select(setSelectedProject)
+                       .Subscribe(onSuggestions);
         }
 
         private IEnumerable<ProjectSuggestion> setSelectedProject(IEnumerable<ProjectSuggestion> suggestions)
