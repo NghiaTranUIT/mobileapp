@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using Toggl.Foundation.Sync.Tests.Extensions;
 using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
 using Toggl.Ultrawave;
+using Toggl.Ultrawave.Helpers;
 using Toggl.Ultrawave.Network;
+using Toggl.Ultrawave.Tests.Integration.Helper;
 
 namespace Toggl.Foundation.Sync.Tests.Helpers
 {
@@ -99,6 +102,19 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
                                     : timeEntry);
                             }))
                     .Merge();
+            }
+
+            // activate pricing plans
+            if (state.PricingPlans.Any())
+            {
+                var pricingPlanActivator = new SubscriptionPlanActivator();
+
+                await state.PricingPlans
+                    .Where(keyValuePair => keyValuePair.Value != PricingPlans.Free)
+                    .Select(keyValuePair =>
+                        pricingPlanActivator.EnsureWorkspaceIsOnPlan(user, keyValuePair.Key, keyValuePair.Value))
+                    .ToArray()
+                    .Apply(Task.WhenAll);
             }
 
             await Api.User.Update(user)

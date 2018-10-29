@@ -109,16 +109,17 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         public async Task WorksWithPaidFeatures()
         {
             var server = await Server.Create();
-            var pricingPlanActivator = new SubscriptionPlanActivator();
-            await pricingPlanActivator.EnsureDefaultWorkspaceIsOnPlan(
-                server.InitialServerState.User,
-                PricingPlans.StarterAnnual);
-
             var arrangedState = server.InitialServerState.With(
-                projects: new[] { new MockProject { Color = "#abcdef" } });
+                projects: new[] { new MockProject { Color = "#abcdef" } },
+                pricingPlans: New<IDictionary<long, PricingPlans>>.Value(
+                    new Dictionary<long, PricingPlans>
+                    {
+                        [server.InitialServerState.Workspaces.Single().Id] = PricingPlans.StarterAnnual
+                    }));
+
             Func<Task> pushingProjectWithCustomColor = () => server.Push(arrangedState);
 
-            pushingProjectWithCustomColor.Should().NotThrow<PaymentRequiredException>();
+            pushingProjectWithCustomColor.Should().NotThrow();
         }
     }
 }

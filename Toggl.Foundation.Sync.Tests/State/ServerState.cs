@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
+using Toggl.Ultrawave.Helpers;
 
 namespace Toggl.Foundation.Sync.Tests.State
 {
@@ -15,6 +16,7 @@ namespace Toggl.Foundation.Sync.Tests.State
         public ISet<ITask> Tasks { get; }
         public ISet<ITimeEntry> TimeEntries { get; }
         public ISet<IWorkspace> Workspaces { get; }
+        public IDictionary<long, PricingPlans> PricingPlans { get; }
 
         public ServerState(
             IUser user,
@@ -24,7 +26,8 @@ namespace Toggl.Foundation.Sync.Tests.State
             IEnumerable<ITag> tags = null,
             IEnumerable<ITask> tasks = null,
             IEnumerable<ITimeEntry> timeEntries = null,
-            IEnumerable<IWorkspace> workspaces = null)
+            IEnumerable<IWorkspace> workspaces = null,
+            IDictionary<long, PricingPlans> pricingPlans = null)
         {
             User = user;
             Clients = new HashSet<IClient>(clients ?? new IClient[0]);
@@ -34,6 +37,7 @@ namespace Toggl.Foundation.Sync.Tests.State
             Tasks = new HashSet<ITask>(tasks ?? new ITask[0]);
             TimeEntries = new HashSet<ITimeEntry>(timeEntries ?? new ITimeEntry[0]);
             Workspaces = new HashSet<IWorkspace>(workspaces ?? new IWorkspace[0]);
+            PricingPlans = pricingPlans ?? new Dictionary<long, PricingPlans>();
         }
 
         public ServerState With(
@@ -44,7 +48,8 @@ namespace Toggl.Foundation.Sync.Tests.State
             New<IEnumerable<ITag>> tags = default(New<IEnumerable<ITag>>),
             New<IEnumerable<ITask>> tasks = default(New<IEnumerable<ITask>>),
             New<IEnumerable<ITimeEntry>> timeEntries = default(New<IEnumerable<ITimeEntry>>),
-            New<IEnumerable<IWorkspace>> workspaces = default(New<IEnumerable<IWorkspace>>))
+            New<IEnumerable<IWorkspace>> workspaces = default(New<IEnumerable<IWorkspace>>),
+            New<IDictionary<long, PricingPlans>> pricingPlans = default(New<IDictionary<long, PricingPlans>>))
             => new ServerState(
                 user.ValueOr(User),
                 clients.ValueOr(Clients),
@@ -53,6 +58,7 @@ namespace Toggl.Foundation.Sync.Tests.State
                 tags.ValueOr(Tags),
                 tasks.ValueOr(Tasks),
                 timeEntries.ValueOr(TimeEntries),
-                workspaces.ValueOr(Workspaces));
+                workspaces.ValueOr(Workspaces),
+                pricingPlans.ValueOr(PricingPlans));
     }
 }
