@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -7,16 +8,15 @@ using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
-using Toggl.Ultrawave.Exceptions;
 using Toggl.Ultrawave.Helpers;
-using Toggl.Ultrawave.Tests.Integration.Helper;
+using Toggl.Ultrawave.Tests.Integration;
 using Xunit;
 
 namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
 {
     public sealed class ServerTests
     {
-        [Fact]
+        [Fact, LogTestInfo]
         public async Task SetsUserDataCorrectly()
         {
             var server = await Server.Create();
@@ -31,7 +31,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
             finalServerState.User.Email.Should().Be(randomEmail);
         }
 
-        [Fact]
+        [Fact, LogTestInfo]
         public async Task SetsPreferencesCorrectly()
         {
             var server = await Server.Create();
@@ -50,7 +50,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
             finalServerState.Preferences.DurationFormat.Should().Be(differentDurationFormat);
         }
 
-        [Fact]
+        [Fact, LogTestInfo]
         public async Task CorrectlySetsIdsOfConnectedEntities()
         {
             var server = await Server.Create();
@@ -105,7 +105,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
             tags.ForEach(tag => tag.WorkspaceId.Should().Be(workspace.Id));
         }
 
-        [Fact]
+        [Fact, LogTestInfo]
         public async Task WorksWithPaidFeatures()
         {
             var server = await Server.Create();
