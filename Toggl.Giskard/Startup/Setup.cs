@@ -114,6 +114,7 @@ namespace Toggl.Giskard
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator(ApplicationContext))
                     .WithPlatformInfo(platformInfo)
+                    .WithStopwatchProvider<AndroidFirebaseStopwatchProvider>()
                     .WithIntentDonationService(new NoopIntentDonationService())
                     .WithPrivateSharedStorageService(new NoopPrivateSharedStorageService())
 

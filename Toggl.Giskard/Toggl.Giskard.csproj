@@ -30,9 +30,9 @@
     <DefineConstants>DEBUG;__DROID__</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AndroidSupportedAbis>arm64-v8a;armeabi;armeabi-v7a;x86</AndroidSupportedAbis>
+    <AndroidSupportedAbis>arm64-v8a;armeabi;armeabi-v7a;x86;x86_64</AndroidSupportedAbis>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
-    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
@@ -190,7 +190,7 @@
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Firebase.Perf">
-      <HintPath>..\packages\Xamarin.Firebase.Perf.60.1142.1\lib\MonoAndroid80\Xamarin.Firebase.Perf.dll</HintPath>
+      <HintPath>Xamarin.Firebase.Perf.dll</HintPath>
     </Reference>
     <Reference Include="MvvmCross">
       <HintPath>..\packages\MvvmCross.6.1.2\lib\monoandroid81\MvvmCross.dll</HintPath>
@@ -269,6 +269,10 @@
       <DependentUpon>OutdatedAppActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Activities\SelectTagsActivity.cs" />
+    <Compile Include="Activities\SendFeedbackActivity.cs" />
+    <Compile Include="Activities\SendFeedbackActivity.ViewBinds.cs">
+      <DependentUpon>SendFeedbackActivity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Adapters\SelectCreatableEntityRecyclerAdapter.cs" />
     <Compile Include="Adapters\SelectTagsRecyclerAdapter.cs" />
     <Compile Include="Activities\SelectProjectActivity.cs" />
@@ -278,6 +282,7 @@
     <Compile Include="Extensions\OnboardingExtensions.cs" />
     <Compile Include="Extensions\PopupOffsets.cs" />
     <Compile Include="Extensions\PopupWindowWithDefaultGravityExtenstions.cs" />
+    <Compile Include="Extensions\TracingExtensions.cs" />
     <Compile Include="Extensions\Reactive\RecyclerViewExtensions.cs" />
     <Compile Include="Helper\PersistentNotificationsHelper.cs" />
     <Compile Include="Fragments\NoWorkspaceFragment.cs" />
@@ -469,6 +474,15 @@
     <Compile Include="Extensions\Reactive\RecyclerAdapterExtensions.cs" />
     <Compile Include="Extensions\Reactive\SwipeRefreshLayoutExtensions.cs" />
     <Compile Include="Extensions\Reactive\JavaObjectExtensions.cs" />
+    <Compile Include="Activities\TokenResetActivity.ViewBinds.cs">
+      <DependentUpon>TokenResetActivity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Services\AndroidFirebaseStopwatchProvider.cs" />
+    <Compile Include="ViewHolders\SelectDefaultWorkspaceViewHolder.cs" />
+    <Compile Include="Fragments\SelectDefaultWorkspaceFragment.cs" />
+    <Compile Include="Fragments\SelectDefaultWorkspaceFragment.ViewBinds.cs">
+		<DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
+	</Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
@@ -866,6 +880,8 @@
     <AndroidResource Include="Resources\layout\ReportsActivityWorkspaceName.axml" />
     <AndroidResource Include="Resources\drawable\workspace_white.xml" />
     <AndroidResource Include="Resources\values-v23\Strings.xml" />
+    <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragment.axml" />
+    <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragmentCell.axml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj">

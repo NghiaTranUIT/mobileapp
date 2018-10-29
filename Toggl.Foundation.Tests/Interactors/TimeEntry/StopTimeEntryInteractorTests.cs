@@ -12,6 +12,7 @@ using Toggl.Foundation.Exceptions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
+using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
@@ -59,7 +60,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
 
             DataSource
                 .TimeEntries
-                .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>())
+                .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>(), Arg.Is(true))
                 .Returns(callInfo =>
                     Observable
                          .Return(timeEntries)
@@ -85,6 +86,33 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
         }
 
         [Fact, LogIfTooSlow]
+        public async ThreadingTask UpdatesTheInaccessibleRunningTimeEntry()
+        {
+            var workspace = new MockWorkspace(1, isInaccessible: true);
+
+            var start = now.AddHours(-2);
+            var duration = (long)(now - start).TotalSeconds;
+            var timeEntries = new List<IDatabaseTimeEntry>
+                {
+                    new MockTimeEntry(33, workspace, start: start),
+                    new MockTimeEntry(11, workspace, start: start, duration: duration),
+                    new MockTimeEntry(22, workspace, start: start, duration: duration),
+                };
+
+            DataSource
+                .TimeEntries
+                .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>(), Arg.Is(true))
+                .Returns(callInfo =>
+                    Observable
+                         .Return(timeEntries)
+                         .Select(x => x.Where(callInfo.Arg<Func<IDatabaseTimeEntry, bool>>()).Cast<IThreadSafeTimeEntry>()));
+
+            await interactor.Execute();
+
+            await DataSource.Received().TimeEntries.Update(Arg.Is<IThreadSafeTimeEntry>(te => te.IsInaccessible == true));
+        }
+
+        [Fact, LogIfTooSlow]
         public async ThreadingTask SetsTheCurrentTimeAsAt()
         {
             await interactor.Execute();
@@ -105,7 +133,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
 
             DataSource
                 .TimeEntries
-                .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>())
+                .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>(), Arg.Is(true))
                 .Returns(callInfo =>
                     Observable
                          .Return(timeEntries)

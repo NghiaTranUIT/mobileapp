@@ -129,6 +129,9 @@ namespace Toggl.Foundation
             var persistTimeEntries =
                 new PersistListState<ITimeEntry, IDatabaseTimeEntry, IThreadSafeTimeEntry>(dataSource.TimeEntries, TimeEntry.Clean);
 
+            var deleteRunningInaccessibleTImeEntry =
+                new DeleteInaccessibleRunningTimeEntryState(dataSource.TimeEntries);
+
             var updateTimeEntriesSinceDate = new SinceDateUpdatingState<ITimeEntry, IDatabaseTimeEntry>(database.SinceParameters);
 
             var persistTasks =
@@ -150,7 +153,8 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(fetchAllSince.FetchStarted, detectLosingAccessToWorkspaces);
 
             // detect losing access to workspaces
-            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, persistWorkspaces);
+            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, deleteRunningInaccessibleTImeEntry);
+            transitions.ConfigureTransition(deleteRunningInaccessibleTImeEntry.Continue, persistWorkspaces);
 
             // detect gaining access to new workspaces
             // (not implemented yet)

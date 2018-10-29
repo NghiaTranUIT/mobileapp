@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.Suggestions;
 using Toggl.Foundation.Tests.Generators;
 using Xunit;
 
@@ -31,8 +32,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     RemoteConfigService,
                     SuggestionProviderContainer,
                     IntentDonationService,
-                    AccessRestrictionStorage
+                    AccessRestrictionStorage,
+                    StopwatchProvider
                 );
+
+            protected override void AdditionalViewModelSetup()
+            {
+                base.AdditionalViewModelSetup();
+                var provider = Substitute.For<ISuggestionProvider>();
+                provider.GetSuggestions().Returns(Observable.Empty<Suggestion>());
+                SuggestionProviderContainer.Providers.Returns(new[] { provider }.ToList().AsReadOnly());
+            }
         }
 
         public sealed class TheConstructor : MainTabViewModelTest
@@ -55,7 +65,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     bool useRemoteConfigService,
                     bool useIntentDonationService,
                     bool useAccessRestrictionStorage,
-                    bool useSuggestionProviderContainer)
+                    bool useSuggestionProviderContainer,
+                    bool useStopwatchProvider)
+
             {
                 var timeService = useTimeService ? TimeService : null;
                 var dataSource = useDataSource ? DataSource : null;
@@ -73,6 +85,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var accessRestrictionStorage = useAccessRestrictionStorage ? AccessRestrictionStorage : null;
                 var suggestionProviderContainer = useSuggestionProviderContainer ? SuggestionProviderContainer : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new MainTabBarViewModel(
@@ -91,7 +104,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         remoteConfigService,
                         suggestionProviderContainer,
                         intentDonationService,
-                        accessRestrictionStorage
+                        accessRestrictionStorage,
+                        stopwatchProvider
                     );
 
                 tryingToConstructWithEmptyParameters

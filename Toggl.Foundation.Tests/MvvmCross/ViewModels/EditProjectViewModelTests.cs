@@ -33,7 +33,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             protected override EditProjectViewModel CreateViewModel()
-                => new EditProjectViewModel(DataSource, DialogService, InteractorFactory, NavigationService);
+                => new EditProjectViewModel(DataSource, DialogService, InteractorFactory, NavigationService, StopwatchProvider);
         }
 
         public abstract class EditProjectWithSpecificNameViewModelTest : EditProjectViewModelTest
@@ -151,15 +151,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useDataSource,
                 bool useDialogService,
                 bool useInteractorFactory,
-                bool useNavigationService)
+                bool useNavigationService,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var dialogService = useDialogService ? DialogService : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var navigationService = useNavigationService ? NavigationService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new EditProjectViewModel(dataSource, dialogService, interactorFactory, navigationService);
+                    () => new EditProjectViewModel(dataSource, dialogService, interactorFactory, navigationService, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();

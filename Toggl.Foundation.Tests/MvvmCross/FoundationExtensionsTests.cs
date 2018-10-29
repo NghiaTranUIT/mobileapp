@@ -15,6 +15,7 @@ using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave.Network;
 using Xunit;
+using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 
 namespace Toggl.Foundation.Tests.MvvmCross
 {
@@ -34,6 +35,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
         private readonly IGoogleService googleService = Substitute.For<IGoogleService>();
         private readonly ILicenseProvider licenseProvider = Substitute.For<ILicenseProvider>();
         private readonly IAnalyticsService analyticsService = Substitute.For<IAnalyticsService>();
+        private readonly IStopwatchProvider stopwatchProvider = Substitute.For<IStopwatchProvider>();
         private readonly IBackgroundService backgroundService = Substitute.For<IBackgroundService>();
         private readonly IPlatformConstants platformConstants = Substitute.For<IPlatformConstants>();
         private readonly IRemoteConfigService remoteConfigService = Substitute.For<IRemoteConfigService>();
@@ -187,6 +189,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
                     .WithGoogleService(googleService)
                     .WithLicenseProvider(licenseProvider)
                     .WithAnalyticsService(analyticsService)
+                    .WithStopwatchProvider(stopwatchProvider)
                     .WithBackgroundService(backgroundService)
                     .WithSchedulerProvider(schedulerProvider)
                     .WithPlatformConstants(platformConstants)

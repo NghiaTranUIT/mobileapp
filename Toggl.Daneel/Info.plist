@@ -68,5 +68,7 @@
 	<string>Toggl</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Toggl needs access to your calendar in order to display its events</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

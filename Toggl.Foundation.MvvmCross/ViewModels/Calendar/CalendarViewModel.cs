@@ -12,6 +12,7 @@ using Toggl.Foundation;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Calendar;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -39,6 +40,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
         private readonly IOnboardingStorage onboardingStorage;
         private readonly IPermissionsService permissionsService;
         private readonly IMvxNavigationService navigationService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private readonly ISubject<bool> shouldShowOnboardingSubject;
         private readonly CompositeDisposable disposeBag = new CompositeDisposable();
@@ -74,7 +76,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             IOnboardingStorage onboardingStorage,
             ISchedulerProvider schedulerProvider,
             IPermissionsService permissionsService,
-            IMvxNavigationService navigationService)
+            IMvxNavigationService navigationService,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
@@ -87,6 +90,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             Ensure.Argument.IsNotNull(permissionsService, nameof(permissionsService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.timeService = timeService;
@@ -98,6 +102,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             this.onboardingStorage = onboardingStorage;
             this.navigationService = navigationService;
             this.permissionsService = permissionsService;
+            this.stopwatchProvider = stopwatchProvider;
 
             var isCompleted = onboardingStorage.CompletedCalendarOnboarding();
             shouldShowOnboardingSubject = new BehaviorSubject<bool>(!isCompleted);
@@ -238,6 +243,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             {
                 case CalendarItemSource.TimeEntry when calendarItem.TimeEntryId.HasValue:
                     analyticsService.EditViewOpenedFromCalendar.Track();
+                    var stopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.EditTimeEntryFromCalendar);
+                    stopwatch.Start();
                     await navigationService.Navigate<EditTimeEntryViewModel, long>(calendarItem.TimeEntryId.Value);
                     break;
 

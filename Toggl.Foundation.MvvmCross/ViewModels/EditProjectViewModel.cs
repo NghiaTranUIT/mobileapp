@@ -9,6 +9,7 @@ using MvvmCross.UI;
 using MvvmCross.ViewModels;
 using PropertyChanged;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.DTOs;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Helper;
@@ -29,12 +30,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IDialogService dialogService;
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private bool areCustomColorsEnabled;
         private long? clientId;
         private long workspaceId;
         private long initialWorkspaceId;
         private HashSet<string> projectNames = new HashSet<string>();
+        private IStopwatch navigationFromStartTimeEntryViewModelStopwatch;
 
         public bool IsPrivate { get; set; }
 
@@ -76,16 +79,19 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ITogglDataSource dataSource,
             IDialogService dialogService,
             IInteractorFactory interactorFactory,
-            IMvxNavigationService navigationService)
+            IMvxNavigationService navigationService,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(dialogService, nameof(dialogService));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.dialogService = dialogService;
             this.navigationService = navigationService;
+            this.stopwatchProvider = stopwatchProvider;
             this.interactorFactory = interactorFactory;
 
             DoneCommand = new MvxAsyncCommand(done);
@@ -106,16 +112,27 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public override async Task Initialize()
         {
+            navigationFromStartTimeEntryViewModelStopwatch = stopwatchProvider.Get(MeasuredOperation.OpenCreateProjectViewFromStartTimeEntryView);
+            stopwatchProvider.Remove(MeasuredOperation.OpenCreateProjectViewFromStartTimeEntryView);
+
             var defaultWorkspace = await interactorFactory.GetDefaultWorkspace().Execute();
             var allWorkspaces = await interactorFactory.GetAllWorkspaces().Execute();
             var workspace = defaultWorkspace.IsEligibleForProjectCreation()
                 ? defaultWorkspace
                 : allWorkspaces.First(ws => ws.IsEligibleForProjectCreation());
+
             areCustomColorsEnabled = await interactorFactory.AreCustomColorsEnabledForWorkspace(workspace.Id).Execute();
             workspaceId = initialWorkspaceId = workspace.Id;
             WorkspaceName = workspace.Name;
 
             await setupNameAlreadyTakenError();
+        }
+
+        public override void ViewAppeared()
+        {
+            base.ViewAppeared();
+            navigationFromStartTimeEntryViewModelStopwatch?.Stop();
+            navigationFromStartTimeEntryViewModelStopwatch = null;
         }
 
         private async Task setupNameAlreadyTakenError()

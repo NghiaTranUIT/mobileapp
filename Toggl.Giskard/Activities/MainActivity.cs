@@ -14,6 +14,7 @@ using Android.Support.V7.Widget.Helper;
 using Android.Views;
 using MvvmCross.Droid.Support.V7.AppCompat;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.MvvmCross.Collections.Changes;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
@@ -23,6 +24,7 @@ using Toggl.Giskard.BroadcastReceivers;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.Helper;
+using Toggl.Giskard.Services;
 using Toggl.Giskard.ViewHelpers;
 using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.Sync.SyncProgress;
@@ -42,12 +44,15 @@ namespace Toggl.Giskard.Activities
         private NotificationManager notificationManager;
         private MainRecyclerAdapter mainRecyclerAdapter;
         private LinearLayoutManager layoutManager;
+        private AndroidFirebaseStopwatchProvider localStopwatchProvider = new AndroidFirebaseStopwatchProvider();
 
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
+            var onCreateStopwatch = localStopwatchProvider.Create(MeasuredOperation.MainActivityOnCreate);
+            onCreateStopwatch.Start();
             SetContentView(Resource.Layout.MainActivity);
             OverridePendingTransition(Resource.Animation.abc_fade_in, Resource.Animation.abc_fade_out);
 
@@ -64,7 +69,8 @@ namespace Toggl.Giskard.Activities
 
             mainRecyclerAdapter = new MainRecyclerAdapter(ViewModel.TimeEntries, ViewModel.TimeService)
             {
-                SuggestionsViewModel = ViewModel.SuggestionsViewModel
+                SuggestionsViewModel = ViewModel.SuggestionsViewModel,
+                StopwatchProvider = localStopwatchProvider
             };
 
             this.Bind(mainRecyclerAdapter.TimeEntryTaps, ViewModel.SelectTimeEntry.Inputs);
@@ -100,6 +106,7 @@ namespace Toggl.Giskard.Activities
                     .DisposedBy(DisposeBag);
 
             setupOnboardingSteps();
+            onCreateStopwatch.Stop();
         }
 
         private void reload()

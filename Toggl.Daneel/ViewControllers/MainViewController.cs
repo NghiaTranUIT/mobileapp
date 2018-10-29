@@ -29,6 +29,7 @@ using Toggl.PrimeRadiant.Settings;
 using UIKit;
 using static Toggl.Foundation.MvvmCross.Helper.Animation;
 using Toggl.Daneel.ExtensionKit;
+using Toggl.Daneel.ExtensionKit.Analytics;
 using Toggl.Multivac;
 using MvvmCross;
 
@@ -164,10 +165,6 @@ namespace Toggl.Daneel.ViewControllers
                       .For(v => v.BindTap())
                       .To(vm => vm.EditTimeEntryCommand);
 
-            bindingSet.Bind(suggestionsView)
-                      .For(v => v.SuggestionTappedCommad)
-                      .To(vm => vm.SuggestionsViewModel.StartTimeEntryCommand);
-
             bindingSet.Bind(StartTimeEntryButton)
                       .For(v => v.BindLongPress())
                       .To(vm => vm.AlternativeStartTimeEntryCommand);
@@ -219,6 +216,11 @@ namespace Toggl.Daneel.ViewControllers
                 SendFeedbackSuccessView.Rx().AnimatedIsVisible());
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.RatingViewModel.CloseFeedbackSuccessView);
 
+            // Suggestion View
+            this.Bind(suggestionsView.SuggestionTapped, ViewModel.SuggestionsViewModel.StartTimeEntryAction);
+            this.Bind(ViewModel.SuggestionsViewModel.IsEmpty.Invert(), suggestionsView.Rx().IsVisible());
+            this.Bind(ViewModel.SuggestionsViewModel.Suggestions, suggestionsView.OnSuggestions);
+
             ViewModel.ShouldReloadTimeEntryLog
                 .VoidSubscribe(reload)
                 .DisposedBy(disposeBag);
@@ -248,7 +250,6 @@ namespace Toggl.Daneel.ViewControllers
 
             suggestionsContaier.AddSubview(suggestionsView);
             suggestionsView.ConstrainInView(suggestionsContaier);
-            suggestionsView.DataContext = ViewModel.SuggestionsViewModel;
         }
 
         public override void ViewWillAppear(bool animated)
@@ -269,6 +270,16 @@ namespace Toggl.Daneel.ViewControllers
 #endif
         }
 
+        private void trackSiriEvents()
+        {
+            var events = SharedStorage.instance.PopTrackableEvents();
+
+            foreach (var e in events)
+            {
+                ViewModel.Track(new SiriTrackableEvent(e));
+            }
+        }
+
         private void onApplicationDidBecomeActive(NSNotification notification)
         {
             if (SharedStorage.instance.GetNeedsSync())
@@ -276,6 +287,7 @@ namespace Toggl.Daneel.ViewControllers
                 SharedStorage.instance.SetNeedsSync(false);
                 ViewModel.RefreshAction.Execute();
             }
+            trackSiriEvents();
         }
 
         private void toggleUndoDeletion(bool show)

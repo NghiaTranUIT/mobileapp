@@ -22,7 +22,7 @@ namespace SiriExtension
             }
 
             var version = NSBundle.MainBundle.InfoDictionary["CFBundleShortVersionString"].ToString();
-            var userAgent = new UserAgent("Daneel", $"{version}.SiriExtension");
+            var userAgent = new UserAgent("Daneel", $"{version} SiriExtension");
             var apiConfiguration = new ApiConfiguration(environment, Credentials.WithApiToken(apiToken), userAgent);
             return TogglApiFactory.WithConfiguration(apiConfiguration);
         }

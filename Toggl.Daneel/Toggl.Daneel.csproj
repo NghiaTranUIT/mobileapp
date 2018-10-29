@@ -658,6 +658,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analytics\SiriTrackableEvent.cs" />
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
@@ -945,7 +946,6 @@
     <Compile Include="Views\Suggestions\SuggestionView.designer.cs">
       <DependentUpon>SuggestionView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Converters\CollectionSizeToHeightConverter.cs" />
     <Compile Include="Binding\LayoutConstraintConstantTargetBinding.cs" />
     <Compile Include="Services\LicenseProvider.cs" />
     <Compile Include="Views\Settings\DateFormatViewCell.cs" />
@@ -1148,6 +1148,8 @@
     <Compile Include="Views\Reports\BarView.cs" />
     <Compile Include="Views\Reports\BarLegendLabel.cs" />
     <Compile Include="Views\Reports\EmptyBarView.cs" />
+    <Compile Include="Extensions\Reactive\UIBarButtonItemExtensions.cs" />
+    <Compile Include="Services\IosFirebaseStopwatchProvider.cs" />
     <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.cs" />
     <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.designer.cs">
       <DependentUpon>SelectDefaultWorkspaceViewController.cs</DependentUpon>

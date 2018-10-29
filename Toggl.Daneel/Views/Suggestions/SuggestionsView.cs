@@ -1,37 +1,34 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Reactive.Subjects;
 using MvvmCross.Binding.BindingContext;
-using MvvmCross.Commands;
 using MvvmCross.Platforms.Ios.Binding;
 using MvvmCross.Platforms.Ios.Binding.Views;
-using MvvmCross.ViewModels;
 using MvvmCross.Plugin.Color.Platforms.Ios;
-using MvvmCross.Plugin.Visibility;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Converters;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Suggestions;
+using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Daneel.Extensions.ViewBindingExtensions;
 
 namespace Toggl.Daneel.Suggestions
 {
-    public sealed class SuggestionsView : MvxView
+    public sealed class SuggestionsView: UIView
     {
-        private const int suggestionCount = 3;
         private const float titleSize = 12;
         private const float sideMargin = 16;
         private const float suggestionHeight = 64;
-        private const float distanceAbowTitleLabel = 20;
+        private const float distanceAboveTitleLabel = 20;
         private const float distanceBelowTitleLabel = 16;
         private const float distanceBetweenSuggestions = 12;
 
         private readonly UILabel titleLabel = new UILabel();
-        private readonly List<SuggestionView> suggestionViews
-            = new List<SuggestionView>(suggestionCount);
 
-        public IMvxCommand<Suggestion> SuggestionTappedCommad { get; set; }
+        private NSLayoutConstraint heightConstraint;
+
+        public ISubject<Suggestion> SuggestionTapped { get; } = new Subject<Suggestion>();
 
         public SuggestionsView()
         {
@@ -39,8 +36,7 @@ namespace Toggl.Daneel.Suggestions
             BackgroundColor = UIColor.White;
             ClipsToBounds = true;
 
-            for (int i = 0; i < suggestionCount; i++)
-                suggestionViews.Add(SuggestionView.Create());
+            heightConstraint = HeightAnchor.ConstraintEqualTo(1);
         }
 
         public override void MovedToSuperview()
@@ -51,64 +47,19 @@ namespace Toggl.Daneel.Suggestions
             WidthAnchor.ConstraintEqualTo(Superview.WidthAnchor).Active = true;
             CenterXAnchor.ConstraintEqualTo(Superview.CenterXAnchor).Active = true;
             //Actual value is set with bindings a few lines below
-            var heightConstraint = HeightAnchor.ConstraintEqualTo(1);
             heightConstraint.Active = true;
 
             prepareTitleLabel();
-            prepareSuggestionViews();
 
-            SetNeedsLayout();
             LayoutIfNeeded();
-
-            this.DelayBind(() =>
-            {
-                var heightConverter = new CollectionSizeToHeightConverter<Suggestion>(
-                    emptyHeight: 0,
-                    heightPerElement: suggestionHeight + distanceBetweenSuggestions,
-                    additionalHeight: distanceAbowTitleLabel
-                                    + distanceBelowTitleLabel
-                                    + (float)titleLabel.Frame.Height
-                );
-                heightConverter.MaxCollectionSize = suggestionViews.Count;
-
-                var bindingSet = this.CreateBindingSet<SuggestionsView, SuggestionsViewModel>();
-
-                bindingSet.Bind(this)
-                          .For(v => v.BindVisibility())
-                          .To(vm => vm.IsEmpty);
-
-                bindingSet.Bind(heightConstraint)
-                          .For(c => c.BindConstant())
-                          .To(vm => vm.Suggestions)
-                          .WithConversion(heightConverter);
-                
-                for (int i = 0; i < suggestionViews.Count; i++)
-                {
-                    bindingSet.Bind(suggestionViews[i])
-                              .For(v => v.Suggestion)
-                              .To(vm => vm.Suggestions[i]);
-                }
-
-                bindingSet.Apply();
-            });
         }
 
-        private void prepareTitleLabel()
+        public void OnSuggestions(Suggestion[] suggestions)
         {
-            AddSubview(titleLabel);
-            titleLabel.TranslatesAutoresizingMaskIntoConstraints = false;
-            titleLabel.Text = Resources.SuggestionsHeader;
-            titleLabel.Font = UIFont.SystemFontOfSize(titleSize, UIFontWeight.Medium);
-            titleLabel.TextColor = Color.Main.SuggestionsTitle.ToNativeColor();
-            titleLabel.TopAnchor.ConstraintEqualTo(Superview.TopAnchor, distanceAbowTitleLabel).Active = true;
-            titleLabel.LeadingAnchor.ConstraintEqualTo(Superview.LeadingAnchor, sideMargin).Active = true;
-        }
-
-        private void prepareSuggestionViews()
-        {
-            for (int i = 0; i < suggestionViews.Count; i++)
+            for (int i = 0; i < suggestions.Length; i++)
             {
-                var suggestionView = suggestionViews[i];
+                var suggestionView = SuggestionView.Create();
+                suggestionView.Suggestion = suggestions[i];
                 AddSubview(suggestionView);
                 suggestionView.TranslatesAutoresizingMaskIntoConstraints = false;
                 suggestionView.HeightAnchor.ConstraintEqualTo(suggestionHeight).Active = true;
@@ -118,14 +69,39 @@ namespace Toggl.Daneel.Suggestions
 
                 suggestionView.AddGestureRecognizer(new UITapGestureRecognizer(() =>
                 {
-                    SuggestionTappedCommad?.Execute(suggestionView.Suggestion);
+                    SuggestionTapped.OnNext(suggestionView.Suggestion);
                 }));
             }
+            heightConstraint.Constant = heightForSuggestionCount(suggestions.Length);
+            heightConstraint.Active = true;
+            SetNeedsLayout();
+        }
+
+        private void prepareTitleLabel()
+        {
+            AddSubview(titleLabel);
+            titleLabel.TranslatesAutoresizingMaskIntoConstraints = false;
+            titleLabel.Text = Resources.SuggestionsHeader;
+            titleLabel.Font = UIFont.SystemFontOfSize(titleSize, UIFontWeight.Medium);
+            titleLabel.TextColor = Color.Main.SuggestionsTitle.ToNativeColor();
+            titleLabel.TopAnchor.ConstraintEqualTo(Superview.TopAnchor, distanceAboveTitleLabel).Active = true;
+            titleLabel.LeadingAnchor.ConstraintEqualTo(Superview.LeadingAnchor, sideMargin).Active = true;
         }
 
         private float distanceFromTitleLabel(int index)
             => distanceBelowTitleLabel
                + index * distanceBetweenSuggestions
                + index * suggestionHeight;
+
+        private float heightForSuggestionCount(int count)
+        {
+            if (count == 0)
+            {
+                return 0;
+            }
+            return count * (suggestionHeight + distanceBetweenSuggestions) + distanceAboveTitleLabel
+                                                                           + distanceBelowTitleLabel
+                                                                           + (float) titleLabel.Frame.Height;
+        }
     }
 }

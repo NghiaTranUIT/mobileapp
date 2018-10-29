@@ -1,14 +1,18 @@
-﻿using System;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Reactive.Testing;
 using NSubstitute;
+using System;
+using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
-using Toggl.Foundation.Login;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.Tests.Extensions;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Xunit;
 using static Toggl.Multivac.Extensions.EmailExtensions;
 using static Toggl.Multivac.Extensions.PasswordExtensions;
@@ -25,6 +29,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected static readonly Password ValidPassword = "123456".ToPassword();
             protected static readonly Password InvalidPassword = Password.Empty;
 
+            protected ITestableObserver<T> Observe<T>(IObservable<T> observable)
+            {
+                var observer = TestScheduler.CreateObserver<T>();
+                observable.Subscribe(observer);
+                return observer;
+            }
+
             protected override TokenResetViewModel CreateViewModel()
                 => new TokenResetViewModel(
                     LoginManager,
@@ -33,13 +44,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     NavigationService,
                     UserPreferences,
                     OnboardingStorage,
-                    AnalyticsService);
+                    AnalyticsService,
+                    SchedulerProvider);
         }
 
         public sealed class TheConstructor : TokenResetViewModelTest
         {
-            [Theory, LogIfTooSlow]
-            [ConstructorData]
+            [Theory, LogIfTooSlow, ConstructorData]
             public void ThrowsIfAnyOfTheArgumentsIsNull(
                 bool userLoginManager,
                 bool userNavigationService,
@@ -47,7 +58,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useDialogService,
                 bool useUserPreferences,
                 bool useOnboardingStorage,
-                bool useAnalyticsService
+                bool useAnalyticsService,
+                bool useSchedulerProvider
             )
             {
                 var loginManager = userLoginManager ? LoginManager : null;
@@ -57,9 +69,18 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var userPreferences = useUserPreferences ? UserPreferences : null;
                 var onboardingStorage = useOnboardingStorage ? OnboardingStorage : null;
                 var analyticsService = useAnalyticsService ? AnalyticsService : null;
+                var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new TokenResetViewModel(loginManager, dataSource, dialogService, navigationService, userPreferences, onboardingStorage, analyticsService);
+                    () => new TokenResetViewModel(
+                        loginManager,
+                        dataSource,
+                        dialogService,
+                        navigationService,
+                        userPreferences,
+                        onboardingStorage,
+                        analyticsService,
+                        schedulerProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -69,139 +90,184 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheNextIsEnabledProperty : TokenResetViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void ReturnsFalseWhenThePasswordIsNotValid()
+            public async Task ReturnsFalseWhenThePasswordIsNotValid()
             {
-                ViewModel.Password = InvalidPassword;
+                var nextIsEnabledObserver = Observe(ViewModel.NextIsEnabled);
 
-                ViewModel.NextIsEnabled.Should().BeFalse();
+                await ViewModel.SetPassword.Execute(InvalidPassword.ToString());
+
+                TestScheduler.Start();
+                nextIsEnabledObserver.LastValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
-            public void ReturnsTrueIfThePasswordIsValid()
+            public async Task ReturnsTrueIfThePasswordIsValid()
             {
-                ViewModel.Password = ValidPassword;
+                var nextIsEnabledObserver = Observe(ViewModel.NextIsEnabled);
 
-                ViewModel.NextIsEnabled.Should().BeTrue();
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
+
+                TestScheduler.Start();
+                nextIsEnabledObserver.LastValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
-            public void ReturnsFalseWheThePasswordIsValidButTheViewIsLoading()
+            public async Task ReturnsFalseWheThePasswordIsValidButTheViewIsLoading()
             {
                 var scheduler = new TestScheduler();
                 var never = Observable.Never<ITogglDataSource>();
                 LoginManager.RefreshToken(Arg.Any<Password>()).Returns(never);
-                ViewModel.Password = ValidPassword;
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
+                var nextIsEnabledObserver = Observe(ViewModel.NextIsEnabled);
 
-                ViewModel.DoneCommand.Execute();
+                ViewModel.Done.Execute();
 
-                ViewModel.NextIsEnabled.Should().BeFalse();
+                TestScheduler.Start();
+                nextIsEnabledObserver.LastValue().Should().BeFalse();
+            }
+        }
+
+        public sealed class TheSetPasswordCommand : TokenResetViewModelTest
+        {
+            [Fact, LogIfTooSlow]
+            public async Task IsSuccessfullyEmmited()
+            {
+                var passwordObserver = Observe(ViewModel.Password);
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
+
+                TestScheduler.Start();
+                passwordObserver.LastValue().Should().Be(ValidPassword);
             }
         }
 
         public sealed class TheDoneCommand : TokenResetViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void DoesNotAttemptToLoginWhileThePasswordIsNotValid()
+            public async Task DoesNotAttemptToLoginWhileThePasswordIsNotValid()
             {
-                ViewModel.Password = InvalidPassword;
+                await ViewModel.SetPassword.Execute(InvalidPassword.ToString());
+                var executionObserver = TestScheduler.CreateObserver<Unit>();
 
-                ViewModel.DoneCommand.Execute();
+                ViewModel.Done.Execute().Subscribe(executionObserver);
 
-                LoginManager.DidNotReceive().RefreshToken(Arg.Any<Password>());
+                TestScheduler.Start();
+                executionObserver.Messages.Last().Value.Kind.Should().Be(NotificationKind.OnError);
+                await LoginManager.DidNotReceive().RefreshToken(Arg.Any<Password>());
             }
 
             [Fact, LogIfTooSlow]
-            public void CallsTheLoginManagerWhenThePasswordIsValid()
+            public async Task CallsTheLoginManagerWhenThePasswordIsValid()
             {
-                ViewModel.Password = ValidPassword;
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
 
-                ViewModel.DoneCommand.Execute();
+                await ViewModel.Done.Execute();
 
-                LoginManager.Received().RefreshToken(Arg.Is(ValidPassword));
+                await LoginManager.Received().RefreshToken(Arg.Is(ValidPassword));
             }
 
             [Fact, LogIfTooSlow]
-            public void NavigatesToTheMainViewModelModelWhenTheTokenRefreshSucceeds()
+            public async Task NavigatesToTheMainViewModelModelWhenTheTokenRefreshSucceeds()
             {
-                ViewModel.Password = ValidPassword;
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
                 LoginManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Return(Substitute.For<ITogglDataSource>()));
 
-                ViewModel.DoneCommand.Execute();
+                await ViewModel.Done.Execute();
 
-                NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
+                await NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
             }
 
             [Fact, LogIfTooSlow]
-            public void StopsTheViewModelLoadStateWhenItCompletes()
+            public async Task StopsTheViewModelLoadStateWhenItCompletes()
             {
-                ViewModel.Password = ValidPassword;
+                await ViewModel.Initialize();
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
+                var isLoadingObserver = Observe(ViewModel.IsLoading);
+
                 LoginManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Return(Substitute.For<ITogglDataSource>()));
 
-                ViewModel.DoneCommand.Execute();
+                await ViewModel.Done.Execute();
 
-                ViewModel.IsLoading.Should().BeFalse();
+                TestScheduler.Start();
+                isLoadingObserver.LastValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
-            public void StopsTheViewModelLoadStateWhenItErrors()
+            public async Task StopsTheViewModelLoadStateWhenItErrors()
             {
-                ViewModel.Password = ValidPassword;
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
                 LoginManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Throw<ITogglDataSource>(new Exception()));
+                var isLoadingObserver = Observe(ViewModel.IsLoading);
 
-                ViewModel.DoneCommand.Execute();
+                ViewModel.Done.Execute();
 
-                ViewModel.IsLoading.Should().BeFalse();
+                TestScheduler.Start();
+                var messages = isLoadingObserver.Messages.ToList();
+                isLoadingObserver.LastValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
-            public void DoesNotNavigateWhenTheLoginFails()
+            public async Task DoesNotNavigateWhenTheLoginFails()
             {
-                ViewModel.Password = ValidPassword;
+                await ViewModel.SetPassword.Execute(ValidPassword.ToString());
                 LoginManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Throw<ITogglDataSource>(new Exception()));
 
-                ViewModel.DoneCommand.Execute();
+                ViewModel.Done.Execute();
 
-                NavigationService.DidNotReceive().Navigate<MainViewModel>();
+                await NavigationService.DidNotReceive().Navigate<MainViewModel>();
             }
         }
 
         public sealed class TheSignOutCommand : TokenResetViewModelTest
         {
-            [Fact, LogIfTooSlow]
-            public void LogsTheUserOut()
+            private async Task setup(bool hasUnsyncedData = false, bool userConfirmsSignout = true) 
             {
-                ViewModel.SignOutCommand.Execute();
+                DialogService.Confirm(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                             .Returns(Observable.Return(userConfirmsSignout));
+                DataSource.HasUnsyncedData().Returns(Observable.Return(hasUnsyncedData));
 
-                DataSource.Received().Logout();
+                await ViewModel.Initialize();
             }
 
             [Fact, LogIfTooSlow]
-            public void ResetsUserPreferences()
+            public async Task LogsTheUserOut()
             {
-                ViewModel.SignOutCommand.Execute();
+                await setup();
+
+                await ViewModel.SignOut.Execute();
+
+                await DataSource.Received().Logout();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ResetsUserPreferences()
+            {
+                await setup();
+
+                await ViewModel.SignOut.Execute();
 
                 UserPreferences.Received().Reset();
             }
 
             [Fact, LogIfTooSlow]
-            public void NavigatesToTheLoginViewModel()
+            public async Task NavigatesToTheLoginViewModel()
             {
-                ViewModel.SignOutCommand.Execute();
+                await setup();
 
-                NavigationService.Received().Navigate<LoginViewModel>();
+                await ViewModel.SignOut.Execute();
+
+                await NavigationService.Received().Navigate<LoginViewModel>();
             }
 
             [Fact, LogIfTooSlow]
             public async Task AsksForPermissionIfThereIsUnsyncedData()
             {
-                DataSource.HasUnsyncedData().Returns(Observable.Return(true));
-                await ViewModel.Initialize();
+                await setup(hasUnsyncedData: true);
 
-                ViewModel.SignOutCommand.Execute();
+                await ViewModel.SignOut.Execute();
 
                 await DialogService.Received().Confirm(
                     Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
@@ -210,23 +276,21 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task DoesNotLogTheUserOutIfPermissionIsDenied()
             {
-                DialogService.Confirm(
-                    Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                    .Returns(Observable.Return(false));
-                DataSource.HasUnsyncedData().Returns(Observable.Return(true));
-                await ViewModel.Initialize();
+                await setup(hasUnsyncedData: true, userConfirmsSignout: false);
 
-                ViewModel.SignOutCommand.Execute();
+                await ViewModel.SignOut.Execute();
 
                 await DataSource.DidNotReceive().Logout();
             }
 
             [Fact, LogIfTooSlow]
-            public void TracksLogoutEvent()
+            public async Task TracksLogoutEvent()
             {
-                ViewModel.SignOutCommand.Execute();
+                await setup();
 
-                AnalyticsService.Logout.Received().Track(Analytics.LogoutSource.TokenReset);
+                await ViewModel.SignOut.Execute();
+
+                AnalyticsService.Logout.Received().Track(LogoutSource.TokenReset);
             }
         }
     }

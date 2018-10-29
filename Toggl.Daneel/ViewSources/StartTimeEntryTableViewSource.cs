@@ -46,6 +46,8 @@ namespace Toggl.Daneel.ViewSources
 
         public bool ShouldShowNoProjectsInfoMessage { get; set; }
 
+        public Action TableRenderCallback { get; set; }
+
         public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
 
         public IMvxCommand<AutocompleteSuggestion> SelectSuggestionCommand { get; set; }
@@ -72,6 +74,14 @@ namespace Toggl.Daneel.ViewSources
             if (!UseGrouping) return null;
 
             return base.GetViewForHeader(tableView, section);
+        }
+
+        public override void WillDisplay(UITableView tableView, UITableViewCell cell, NSIndexPath indexPath)
+        {
+            if (tableView.IndexPathsForVisibleRows.Last().Row == indexPath.Row)
+            {
+                TableRenderCallback();
+            }
         }
 
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)

@@ -10,6 +10,7 @@ using MvvmCross.ViewModels;
 using PropertyChanged;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
@@ -33,12 +34,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IDialogService dialogService;
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
+        private readonly IStopwatchProvider stopwatchProvider;
         private readonly Subject<string> infoSubject = new Subject<string>();
 
         private long? taskId;
         private long? projectId;
         private long workspaceId;
         private bool shouldShowProjectCreationSuggestion;
+        private IStopwatch navigationFromEditTimeEntryViewModelStopwatch;
 
         private List<IThreadSafeWorkspace> allWorkspaces = new List<IThreadSafeWorkspace>();
 
@@ -94,17 +97,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ITogglDataSource dataSource,
             IInteractorFactory interactorFactory,
             IMvxNavigationService navigationService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(dialogService, nameof(dialogService));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.dialogService = dialogService;
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
+            this.stopwatchProvider = stopwatchProvider;
 
             CloseCommand = new MvxAsyncCommand(close);
             CreateProjectCommand = new MvxAsyncCommand(createProject);
@@ -122,6 +128,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public override async Task Initialize()
         {
             await base.Initialize();
+            navigationFromEditTimeEntryViewModelStopwatch = stopwatchProvider.Get(MeasuredOperation.OpenSelectProjectFromEditView);
+            stopwatchProvider.Remove(MeasuredOperation.OpenSelectProjectFromEditView);
 
             var workspaces = await interactorFactory.GetAllWorkspaces().Execute();
 
@@ -141,6 +149,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                        .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
                        .Select(setSelectedProject)
                        .Subscribe(onSuggestions);
+        }
+
+        public override void ViewAppeared()
+        {
+            base.ViewAppeared();
+            navigationFromEditTimeEntryViewModelStopwatch?.Stop();
+            navigationFromEditTimeEntryViewModelStopwatch = null;
         }
 
         private IEnumerable<ProjectSuggestion> setSelectedProject(IEnumerable<ProjectSuggestion> suggestions)

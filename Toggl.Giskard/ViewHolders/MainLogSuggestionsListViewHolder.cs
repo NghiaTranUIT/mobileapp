@@ -28,8 +28,6 @@ namespace Toggl.Giskard.ViewHolders
 
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
-        private int currentSuggestionCard = 1;
-
         public MainLogSuggestionsListViewHolder(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
         {
         }
@@ -47,52 +45,42 @@ namespace Toggl.Giskard.ViewHolders
             var snapHelper = new SuggestionsRecyclerViewSnapHelper(snapMargin);
             snapHelper.AttachToRecyclerView(suggestionsRecyclerView);
 
-            this.Bind(snapHelper.CurrentIndexObservable, onCurrentSuggestionIndexChanged);
 
             mainSuggestionsRecyclerAdapter = new MainSuggestionsRecyclerAdapter();
-            this.Bind(mainSuggestionsRecyclerAdapter.SuggestionTaps, onSuggestionTapped);
+            this.Bind(mainSuggestionsRecyclerAdapter.SuggestionTaps, suggestionsViewModel.StartTimeEntryAction.Inputs);
 
             suggestionsRecyclerView.SetAdapter(mainSuggestionsRecyclerAdapter);
 
-            var collectionChangesObservable = Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
-                e => this.suggestionsViewModel.Suggestions.CollectionChanged += e,
-                e => this.suggestionsViewModel.Suggestions.CollectionChanged -= e);
+            this.Bind(suggestionsViewModel.Suggestions, onSuggestionsChanged);
+            this.Bind(suggestionsViewModel.IsEmpty.Invert(), updateViewVisibility);
 
-            var collectionChangedObservable = collectionChangesObservable
-                .Select(args => this.suggestionsViewModel.Suggestions.ToImmutableList())
-                .StartWith(this.suggestionsViewModel.Suggestions.ToImmutableList());
+            var suggestionCount = suggestionsViewModel.Suggestions.Select(s => s.Length);
+            var currentIndexAndSuggestionCount =
+                Observable.CombineLatest(snapHelper.CurrentIndexObservable, suggestionCount,
+                    (currIndx, count) => (currIndx, count));
 
-            var suggestionsCountObservable = collectionChangesObservable
-                .Select(args => this.suggestionsViewModel.Suggestions.Count)
-                .StartWith(this.suggestionsViewModel.Suggestions.Count)
-                .DistinctUntilChanged();
-
-            this.Bind(collectionChangedObservable, onSuggestionsCollectionChanged);
-            this.Bind(suggestionsCountObservable, onCollectionCountChanged);
+            currentIndexAndSuggestionCount.Do(tuple =>
+            {
+                var currIdx = tuple.Item1;
+                var count = tuple.Item2;
+                onCurrentSuggestionIndexChanged(count, currIdx);
+            })
+            .Subscribe()
+            .DisposedBy(DisposeBag);
         }
 
-        public void UpdateView()
+        private void updateViewVisibility(bool visible)
         {
-            if (suggestionsViewModel.Suggestions.None())
+            if (visible)
+            {
+                hintTextView.Visibility = ViewStates.Visible;
+                suggestionsRecyclerView.Visibility = ViewStates.Visible;
+            }
+            else
             {
                 hintTextView.Visibility = ViewStates.Gone;
                 indicatorTextView.Visibility = ViewStates.Gone;
                 suggestionsRecyclerView.Visibility = ViewStates.Gone;
-            }
-            else
-            {
-                hintTextView.Visibility = ViewStates.Visible;
-                suggestionsRecyclerView.Visibility = ViewStates.Visible;
-                updateHintText();
-            }
-        }
-
-        private void onSuggestionTapped(Suggestion suggestion)
-        {
-            if (suggestionsViewModel == null) return;
-            if (suggestionsViewModel.StartTimeEntryCommand.CanExecute())
-            {
-                suggestionsViewModel.StartTimeEntryCommand.Execute(suggestion);
             }
         }
 
@@ -105,27 +93,13 @@ namespace Toggl.Giskard.ViewHolders
             DisposeBag.Dispose();
         }
 
-        private void onSuggestionsCollectionChanged(ImmutableList<Suggestion> suggestions)
+        private void onSuggestionsChanged(Suggestion[] suggestions)
         {
-            mainSuggestionsRecyclerAdapter.UpdateDataset(suggestions);
-            UpdateView();
+            mainSuggestionsRecyclerAdapter.UpdateDataset(suggestions.ToImmutableList());
         }
 
-        private void onCurrentSuggestionIndexChanged(int currentIndex)
+        private void onCurrentSuggestionIndexChanged(int numberOfSuggestions, int currentIndex)
         {
-            currentSuggestionCard = currentIndex;
-            updateHintText();
-        }
-
-        private void onCollectionCountChanged(int itemCount)
-        {
-            updateHintText();
-        }
-
-        private void updateHintText()
-        {
-            var numberOfSuggestions = suggestionsViewModel.Suggestions.Count;
-
             switch (numberOfSuggestions)
             {
                 case 0:
@@ -137,13 +111,12 @@ namespace Toggl.Giskard.ViewHolders
                     break;
 
                 default:
-                    var indicatorText = $"{currentSuggestionCard} {TogglResources.Of.ToUpper()} {numberOfSuggestions}";
+                    var indicatorText = $"{currentIndex} {TogglResources.Of.ToUpper()} {numberOfSuggestions}";
                     hintTextView.Text = TogglResources.WorkingOnThese;
                     indicatorTextView.Visibility = ViewStates.Visible;
                     indicatorTextView.Text = indicatorText;
                     break;
             }
-
         }
     }
 }

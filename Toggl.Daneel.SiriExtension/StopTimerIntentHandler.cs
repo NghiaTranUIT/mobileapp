@@ -12,6 +12,7 @@ using Toggl.Multivac.Models;
 using SiriExtension.Models;
 using SiriExtension.Exceptions;
 using Toggl.Daneel.ExtensionKit;
+using Toggl.Daneel.ExtensionKit.Analytics;
 
 namespace SiriExtension
 {
@@ -54,6 +55,8 @@ namespace SiriExtension
                         );
                         response.EntryStart = te.Start.ToUnixTimeSeconds();
                         response.EntryDuration = te.Duration;
+
+                        SharedStorage.instance.AddSiriTrackingEvent(SiriTrackingEvent.StopTimer());
                         
                         // Once Xamarin's bug if fixed we have to use tha above response instead of this one.
                         //var response = new StopTimerIntentResponse(StopTimerIntentResponseCode.Success, null);
@@ -61,6 +64,8 @@ namespace SiriExtension
                     },
                     exception =>
                     {
+
+                        SharedStorage.instance.AddSiriTrackingEvent(SiriTrackingEvent.Error(exception.Message));
                         completion(responseFromException(exception));
                     });
         }

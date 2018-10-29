@@ -1,15 +1,17 @@
+using System.Reactive.Linq;
 using CoreText;
 using Foundation;
 using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding;
 using MvvmCross.Platforms.Ios.Presenters.Attributes;
-using MvvmCross.Plugin.Visibility;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Converters;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using UIKit;
-using static Toggl.Daneel.Extensions.ViewBindingExtensions;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -34,60 +36,24 @@ namespace Toggl.Daneel.ViewControllers
 
             prepareViews();
 
-            var invertedBoolConverter = new BoolToConstantValueConverter<bool>(false, true);
+            this.Bind(ViewModel.Error, ErrorLabel.Rx().Text());
+            this.Bind(ViewModel.Email.SelectToString(), EmailLabel.Rx().Text());
+            this.Bind(ViewModel.Password.SelectToString(), PasswordTextField.Rx().TextObserver());
+            this.Bind(PasswordTextField.Rx().Text(), ViewModel.SetPassword);
+            this.Bind(ViewModel.IsPasswordMasked, PasswordTextField.Rx().SecureTextEntry());
 
-            var bindingSet = this.CreateBindingSet<TokenResetViewController, TokenResetViewModel>();
-
-            //Text
-            bindingSet.Bind(ErrorLabel).To(vm => vm.Error);
-            bindingSet.Bind(PasswordTextField)
-                      .For(v => v.BindSecureTextEntry())
-                      .To(vm => vm.IsPasswordMasked);
-
-            bindingSet.Bind(EmailLabel)
-                      .To(vm => vm.Email)
-                      .WithConversion(new EmailToStringValueConverter());
-
-            bindingSet.Bind(PasswordTextField)
-                      .To(vm => vm.Password)
-                      .WithConversion(new PasswordToStringValueConverter());
-
-            //Commands
-            bindingSet.Bind(SignOutButton).To(vm => vm.SignOutCommand);
-
-            bindingSet.Bind(nextButton)
-                      .For(v => v.BindCommand())
-                      .To(vm => vm.DoneCommand);
-
-            bindingSet.Bind(ShowPasswordButton)
-                      .For(v => v.BindTap())
-                      .To(vm => vm.TogglePasswordVisibilityCommand);
+            this.Bind(SignOutButton.Rx().Tap(), ViewModel.SignOut);
+            this.Bind(ShowPasswordButton.Rx().Tap(), ViewModel.TogglePasswordVisibility);
+            this.Bind(nextButton.Rx().Tap(), ViewModel.Done);
+            this.Bind(PasswordTextField.Rx().ShouldReturn(), ViewModel.Done);
 
             //Enabled
-            bindingSet.Bind(PasswordTextField)
-                      .For(v => v.BindShouldReturn())
-                      .To(vm => vm.DoneCommand);
-
-            bindingSet.Bind(nextButton)
-                      .For(v => v.Enabled)
-                      .To(vm => vm.NextIsEnabled);
+            this.Bind(ViewModel.NextIsEnabled, nextButton.Rx().Enabled());
 
             //Visibility
-            bindingSet.Bind(ErrorView)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.HasError);
-
-            bindingSet.Bind(ShowPasswordButton)
-                      .For(v => v.BindVisibility())
-                      .To(vm => vm.IsLoading)
-                      .WithConversion(new MvxInvertedVisibilityValueConverter());
-
-            bindingSet.Bind(ActivityIndicatorView)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.IsLoading);
-
-            //State
-            bindingSet.Apply();
+            this.Bind(ViewModel.HasError, ErrorView.Rx().IsVisible());
+            this.Bind(ViewModel.IsLoading.Invert(), ShowPasswordButton.Rx().IsVisible());
+            this.Bind(ViewModel.IsLoading, ActivityIndicatorView.Rx().IsVisible());
 
             PasswordTextField.BecomeFirstResponder();
         }

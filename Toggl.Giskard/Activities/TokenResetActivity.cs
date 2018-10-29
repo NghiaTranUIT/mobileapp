@@ -2,10 +2,11 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Support.V7.Widget;
-using MvvmCross.Droid.Support.V7.AppCompat;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
+using Toggl.Giskard.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.Resources;
 
 namespace Toggl.Giskard.Activities
@@ -14,10 +15,8 @@ namespace Toggl.Giskard.Activities
     [Activity(Theme = "@style/AppTheme",
               ScreenOrientation = ScreenOrientation.Portrait,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed class TokenResetActivity : MvxAppCompatActivity<TokenResetViewModel>
+    public sealed partial class TokenResetActivity : ReactiveActivity<TokenResetViewModel>
     {
-        private Toolbar toolbar;
-
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
@@ -29,14 +28,19 @@ namespace Toggl.Giskard.Activities
         {
             base.OnCreate(savedInstanceState, persistentState);
 
-            toolbar = FindViewById<Toolbar>(Resource.Id.Toolbar);
             toolbar.Title = LoginTitle;
-
             SetSupportActionBar(toolbar);
-
             SupportActionBar.SetDisplayHomeAsUpEnabled(false);
             SupportActionBar.SetDisplayShowHomeEnabled(false);
             this.CancelAllNotifications();
+
+            this.Bind(ViewModel.Email.SelectToString(), emailLabel.Rx().TextObserver());
+            this.Bind(ViewModel.Password.SelectToString(), passwordEditText.Rx().TextObserver());
+
+            this.Bind(ViewModel.IsLoading, progressBar.Rx().IsVisible());
+
+            this.Bind(signoutLabel.Rx().Tap(), ViewModel.SignOut);
+            this.Bind(doneButton.Rx().Tap(), ViewModel.Done);
         }
     }
 }
