@@ -115,6 +115,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private bool isEditViewOpen = false;
         private object isEditViewOpenLock = new object();
 
+        private bool noWorkspaceViewPresented;
+        private bool noDefaultWorkspaceViewPresented;
+
         private DateTimeOffset? currentTimeEntryStart;
 
         public TimeEntriesViewModel TimeEntriesViewModel { get; }
@@ -167,7 +170,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             TimeService = timeService;
 
-            SuggestionsViewModel = new SuggestionsViewModel(dataSource, interactorFactory, onboardingStorage, suggestionProviders);
+            SuggestionsViewModel = new SuggestionsViewModel(dataSource, interactorFactory, onboardingStorage, suggestionProviders, schedulerProvider);
             RatingViewModel = new RatingViewModel(timeService, dataSource, ratingService, analyticsService, onboardingStorage, navigationService, SchedulerProvider);
             TimeEntriesViewModel = new TimeEntriesViewModel(dataSource, interactorFactory, analyticsService, SchedulerProvider);
 
@@ -222,8 +225,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var isWelcome = onboardingStorage.IsNewUser;
 
-            var noTimeEntries = TimeEntriesViewModel.Empty
-                .Select( e => e && SuggestionsViewModel.IsEmpty )
+            var noTimeEntries = Observable
+                .CombineLatest(TimeEntriesViewModel.Empty, SuggestionsViewModel.IsEmpty,
+                    (isTimeEntryEmpty, isSuggestionEmpty) => isTimeEntryEmpty && isSuggestionEmpty)
                 .DistinctUntilChanged();
 
             ShouldShowEmptyState = ObservableAddons.CombineLatestAll(
@@ -371,9 +375,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             base.ViewAppearing();
 
             IsInManualMode = userPreferences.IsManualModeEnabled;
-            if (accessRestrictionStorage.HasNoWorkspace())
+            if (accessRestrictionStorage.HasNoWorkspace() && !noWorkspaceViewPresented)
             {
                 navigationService.Navigate<NoWorkspaceViewModel>();
+                noWorkspaceViewPresented = true;
+            }
+
+            if (accessRestrictionStorage.HasNoDefaultWorkspace() && !noDefaultWorkspaceViewPresented)
+            {
+                navigationService.Navigate<SelectDefaultWorkspaceViewModel>();
+                noDefaultWorkspaceViewPresented = true;
             }
         }
 

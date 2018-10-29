@@ -44,6 +44,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private IDisposable tickingDisposable;
         private IDisposable confirmDisposable;
         private IDisposable preferencesDisposable;
+        private IDisposable userDisposable;
         private IStopwatch stopwatchFromCalendar;
         private IStopwatch stopwatchFromMainLog;
 
@@ -126,6 +127,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public DateFormat DateFormat { get; private set; }
 
         public TimeFormat TimeFormat { get; private set; }
+
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
 
         public DateTimeOffset StartTime { get; set; }
 
@@ -296,6 +299,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             preferencesDisposable = dataSource.Preferences.Current
                 .Subscribe(onPreferencesChanged);
 
+            userDisposable = dataSource.User.Current
+                .Subscribe(onUserChanged);
+
             await updateFeaturesAvailability();
         }
 
@@ -430,7 +436,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.EditViewTapped.Track(tapSource);
 
             var parameters = SelectTimeParameters
-                .CreateFromOrigin(origin, StartTime, StopTime)
+                .CreateFromOrigin(origin, BeginningOfWeek, StartTime, StopTime)
                 .WithFormats(DateFormat, TimeFormat);
 
             var data = await navigationService
@@ -609,6 +615,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return $"{tag.UnicodeSafeSubstring(0, maxTagLength)}...";
         }
 
+        private void onUserChanged(IThreadSafeUser user)
+        {
+            BeginningOfWeek = user.BeginningOfWeek;
+        }
+
         private void onPreferencesChanged(IThreadSafePreferences preferences)
         {
             durationFormat = preferences.DurationFormat;
@@ -629,6 +640,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             confirmDisposable?.Dispose();
             tickingDisposable?.Dispose();
             preferencesDisposable?.Dispose();
+            userDisposable?.Dispose();
         }
 
         private void OnProjectChanged()

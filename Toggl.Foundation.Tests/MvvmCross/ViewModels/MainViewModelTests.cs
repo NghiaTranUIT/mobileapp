@@ -74,6 +74,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 RemoteConfigService
                     .RatingViewConfiguration
                     .Returns(Observable.Return(defaultRemoteConfiguration));
+
+                var provider = Substitute.For<ISuggestionProvider>();
+                provider.GetSuggestions().Returns(Observable.Empty<Suggestion>());
+                SuggestionProviderContainer.Providers.Returns(new[] { provider }.ToList().AsReadOnly());
             }
         }
 
@@ -172,6 +176,52 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ViewAppearing();
 
                 await NavigationService.DidNotReceive().Navigate<NoWorkspaceViewModel>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask DoesNotNavigateToNoWorkspaceViewSeveralTimes()
+            {
+                AccessRestrictionStorage.HasNoWorkspace().Returns(true);
+
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+
+                await NavigationService.Received(1).Navigate<NoWorkspaceViewModel>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask NavigatesToSelectDefaultWorkspaceViewModelWhenNoDefaultWorkspaceStateIsSet()
+            {
+                AccessRestrictionStorage.HasNoDefaultWorkspace().Returns(true);
+
+                ViewModel.ViewAppearing();
+
+                await NavigationService.Received().Navigate<SelectDefaultWorkspaceViewModel>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask DoesNotNavigateToSelectDefaultWorkspaceViewModelWhenNoDefaultWorkspaceStateIsNotSet()
+            {
+                AccessRestrictionStorage.HasNoDefaultWorkspace().Returns(false);
+
+                ViewModel.ViewAppearing();
+
+                await NavigationService.DidNotReceive().Navigate<SelectDefaultWorkspaceViewModel>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask DoesNotNavigateToSelectDefaultWorkspaceViewSeveralTimes()
+            {
+                AccessRestrictionStorage.HasNoDefaultWorkspace().Returns(true);
+
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+
+                await NavigationService.Received(1).Navigate<SelectDefaultWorkspaceViewModel>();
             }
         }
 
@@ -839,9 +889,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, true)
-                );
+                observer.Messages.Last().Value.Value.Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -854,9 +902,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -869,9 +915,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -884,9 +928,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
         }
 
@@ -918,9 +961,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowWelcomeBack.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -933,9 +974,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowWelcomeBack.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -948,9 +987,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowWelcomeBack.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
         }
 

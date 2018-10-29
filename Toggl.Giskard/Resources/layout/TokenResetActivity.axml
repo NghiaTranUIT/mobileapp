@@ -9,7 +9,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <TextView
-        tools:text="@string/Login"
+        tools:text="@string/LoginLabel"
         android:textSize="19sp"
         android:textColor="#000000"
         android:letterSpacing="-0.01"
@@ -20,7 +20,6 @@
         android:layout_height="wrap_content" />
     <EditText
         android:id="@+id/TokenResetPassword"
-        local:MvxBind="Text PasswordToString(Password)"
         android:lines="1"
         android:maxLines="1"
         android:hint="Password"
@@ -38,7 +37,7 @@
         android:layout_marginRight="50dp"
         android:layout_width="match_parent" />
     <ProgressBar
-        local:MvxBind="Visibility Visibility(IsLoading)"
+        android:id="@+id/TokenResetProgressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="30dp"
         android:layout_height="30dp"
@@ -56,7 +55,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/TokenResetPassword" />
     <TextView
-        android:id="@+id/TokenResetMessageEnterPassword"
+        android:id="@+id/TokenResetMessageEnterPasswordLabel"
         android:textSize="12sp"
         android:paddingLeft="16dp"
         android:fontFamily="sans-serif-medium"
@@ -66,7 +65,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/TokenResetMessageWarning" />
     <TextView
-        local:MvxBind="Text EmailToString(Email)"
+        android:id="@+id/TokenResetEmailLabel"
         android:textSize="12sp"
         tools:text="something@toggl.com"
         android:paddingLeft="16dp"
@@ -76,7 +75,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/TokenResetMessageEnterPassword" />
     <TextView
-        local:MvxBind="Click SignOutCommand"
+        android:id="@+id/TokenResetSignOutLabel"
         android:textSize="14sp"
         android:clickable="true"
         android:gravity="bottom"
@@ -92,7 +91,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true" />
     <android.support.design.widget.FloatingActionButton
-        local:MvxBind="Click DoneCommand"
+        android:id="@+id/TokenResetDoneButton"
         local:elevation="4dp"
         local:borderWidth="0dp"
         android:scaleType="fitCenter"

@@ -21,12 +21,16 @@ namespace Toggl.Daneel.Services
 
             public void Start()
             {
+                #if USE_ANALYTICS
                 firebaseTrace = Performance.StartTrace(Operation.ToString());
+                #endif
             }
 
             public void Stop()
             {
+                #if USE_ANALYTICS
                 firebaseTrace.Stop();
+                #endif
             }
         }
     }

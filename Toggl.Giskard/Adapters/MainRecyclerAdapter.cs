@@ -63,13 +63,7 @@ namespace Toggl.Giskard.Adapters
 
         protected override bool TryBindCustomViewType(RecyclerView.ViewHolder holder, int position)
         {
-            if (holder is MainLogSuggestionsListViewHolder suggestionsViewHolder)
-            {
-                suggestionsViewHolder.UpdateView();
-                return true;
-            }
-
-            return false;
+            return holder is MainLogSuggestionsListViewHolder;
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)

@@ -165,10 +165,6 @@ namespace Toggl.Daneel.ViewControllers
                       .For(v => v.BindTap())
                       .To(vm => vm.EditTimeEntryCommand);
 
-            bindingSet.Bind(suggestionsView)
-                      .For(v => v.SuggestionTappedCommad)
-                      .To(vm => vm.SuggestionsViewModel.StartTimeEntryCommand);
-
             bindingSet.Bind(StartTimeEntryButton)
                       .For(v => v.BindLongPress())
                       .To(vm => vm.AlternativeStartTimeEntryCommand);
@@ -220,6 +216,11 @@ namespace Toggl.Daneel.ViewControllers
                 SendFeedbackSuccessView.Rx().AnimatedIsVisible());
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.RatingViewModel.CloseFeedbackSuccessView);
 
+            // Suggestion View
+            this.Bind(suggestionsView.SuggestionTapped, ViewModel.SuggestionsViewModel.StartTimeEntryAction);
+            this.Bind(ViewModel.SuggestionsViewModel.IsEmpty.Invert(), suggestionsView.Rx().IsVisible());
+            this.Bind(ViewModel.SuggestionsViewModel.Suggestions, suggestionsView.OnSuggestions);
+
             ViewModel.ShouldReloadTimeEntryLog
                 .VoidSubscribe(reload)
                 .DisposedBy(disposeBag);
@@ -249,7 +250,6 @@ namespace Toggl.Daneel.ViewControllers
 
             suggestionsContaier.AddSubview(suggestionsView);
             suggestionsView.ConstrainInView(suggestionsContaier);
-            suggestionsView.DataContext = ViewModel.SuggestionsViewModel;
         }
 
         public override void ViewWillAppear(bool animated)

@@ -130,15 +130,21 @@ namespace Toggl.Multivac.Extensions
         public static IObservable<T> Do<T>(this IObservable<T> observable, Action action)
             => observable.Do(_ => action());
 
-        public static void CompleteWith<T>(this IObserver<T> observer, T item) 
+        public static void CompleteWith<T>(this IObserver<T> observer, T item)
         {
             observer.OnNext(item);
             observer.OnCompleted();
         }
 
+        public static void CompleteWithUnit(this IObserver<Unit> observer)
+            => observer.CompleteWith(Unit.Default);
+
         public static IObservable<Unit> ToUnitObservable<T>(this Task<T> task)
             => Observable
             .FromAsync(async () => await task)
             .SelectUnit();
+
+        public static IObservable<string> SelectToString<T>(this IObservable<T> observable)
+            => observable.Select(item => item.ToString());
     }
 }
