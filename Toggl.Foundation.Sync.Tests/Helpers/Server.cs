@@ -74,7 +74,9 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             var tags = (IEnumerable<ITag>)state.Tags;
             var tasks = (IEnumerable<ITask>)state.Tasks;
             var timeEntries = (IEnumerable<ITimeEntry>)state.TimeEntries;
-            var workspaces = (IEnumerable<IWorkspace>)state.Workspaces;
+
+            // do not push the default workspace twice
+            var workspaces = state.Workspaces.Where(ws => ws.Id != InitialServerState.Workspaces.Single().Id).ToList();
 
             if (workspaces.Any())
             {
