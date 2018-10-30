@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Net;
+using System.Net.Http;
 using Toggl.Multivac;
 using Toggl.Ultrawave.ApiClients;
 using Toggl.Ultrawave.ApiClients.Interfaces;
@@ -55,16 +56,21 @@ namespace Toggl.Ultrawave
 
     public static class TogglApiFactory
     {
-        internal static IApiClient CreateDefaultApiClient(UserAgent userAgent)
+        internal static IApiClient CreateDefaultApiClient(UserAgent userAgent, IWebProxy proxy)
         {
-            var httpHandler = new HttpClientHandler { AutomaticDecompression = GZip | Deflate };
+            var httpHandler = new HttpClientHandler
+            {
+                AutomaticDecompression = GZip | Deflate,
+                Proxy = proxy,
+                UseProxy = proxy != null
+            };
             var httpClient = new HttpClient(httpHandler);
             return new ApiClient(httpClient, userAgent);
         }
 
-        public static ITogglApi WithConfiguration(ApiConfiguration configuration)
+        public static ITogglApi WithConfiguration(ApiConfiguration configuration, IWebProxy proxy)
         {
-            var apiClient = CreateDefaultApiClient(configuration.UserAgent);
+            var apiClient = CreateDefaultApiClient(configuration.UserAgent, proxy);
             return new TogglApi(configuration, apiClient);
         }
     }

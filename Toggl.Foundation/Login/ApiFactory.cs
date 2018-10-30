@@ -1,4 +1,5 @@
-﻿using Toggl.Multivac;
+﻿using System.Net;
+using Toggl.Multivac;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
 
@@ -10,18 +11,22 @@ namespace Toggl.Foundation.Login
 
         public ApiEnvironment Environment { get; }
 
-        public ApiFactory(ApiEnvironment apiEnvironment, UserAgent userAgent)
+        public IWebProxy Proxy { get; }
+
+        public ApiFactory(ApiEnvironment apiEnvironment, UserAgent userAgent, IWebProxy proxy)
         {
             Ensure.Argument.IsNotNull(userAgent, nameof(userAgent));
+            Ensure.Argument.IsNotNull(proxy, nameof(proxy));
 
             UserAgent = userAgent;
             Environment = apiEnvironment;
+            Proxy = proxy;
         }
 
         public ITogglApi CreateApiWith(Credentials credentials)
         {
             var configuration = new ApiConfiguration(Environment, credentials, UserAgent);
-            return TogglApiFactory.WithConfiguration(configuration);
+            return TogglApiFactory.WithConfiguration(configuration, Proxy);
         }
     }
 }
