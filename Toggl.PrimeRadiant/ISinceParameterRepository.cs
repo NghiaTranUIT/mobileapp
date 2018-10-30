@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Toggl.PrimeRadiant
 {
@@ -11,5 +12,7 @@ namespace Toggl.PrimeRadiant
         bool Supports<T>();
 
         void Reset();
+
+        IDictionary<string, DateTimeOffset?> GetAll();
     }
 }

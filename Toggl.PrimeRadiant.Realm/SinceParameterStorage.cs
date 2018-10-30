@@ -37,18 +37,7 @@ namespace Toggl.PrimeRadiant.Realm
         {
             var id = getId<T>();
 
-            lock (storageAccess)
-            {
-                try
-                {
-                    var record = realmAdapter.Get(id);
-                    return record.Since;
-                }
-                catch (InvalidOperationException)
-                {
-                    return null;
-                }
-            }
+            return getById(id);
         }
 
         public void Set<T>(DateTimeOffset? since)
@@ -79,12 +68,31 @@ namespace Toggl.PrimeRadiant.Realm
         public void Reset()
             => typesToIdsMapping.Values.ForEach(delete);
 
+        public IDictionary<string, DateTimeOffset?> GetAll()
+            => typesToIdsMapping.ToDictionary(pair => pair.Key.Name, pair => getById(pair.Value));
+
         private static long getId<T>()
         {
             if (typesToIdsMapping.TryGetValue(typeof(T), out var id))
                 return id;
 
             throw new ArgumentException($"Since parameters for the type {typeof(T).FullName} cannot be stored.");
+        }
+
+        private DateTimeOffset? getById(long id)
+        {
+            lock (storageAccess)
+            {
+                try
+                {
+                    var record = realmAdapter.Get(id);
+                    return record.Since;
+                }
+                catch (InvalidOperationException)
+                {
+                    return null;
+                }
+            }
         }
 
         private void delete(long id)
