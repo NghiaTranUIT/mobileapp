@@ -53,7 +53,7 @@ namespace Toggl.Daneel.ViewControllers
 
             this.Bind(HelpView.Rx().Tap(), ViewModel.OpenHelpView);
             this.Bind(LogoutButton.Rx().Tap(), ViewModel.TryLogout);
-            // this.Bind(AboutView.Rx().Tap(), ViewModel.OpenAboutView);
+            this.Bind(AboutView.Rx().Tap(), ViewModel.OpenAboutView);
             this.Bind(FeedbackView.Rx().Tap(), ViewModel.SubmitFeedback);
             this.Bind(DateFormatView.Rx().Tap(), ViewModel.SelectDateFormat);
             this.Bind(WorkspaceView.Rx().Tap(), ViewModel.PickDefaultWorkspace);
@@ -82,7 +82,7 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(useTwentyFourHourFormat => TwentyFourHourClockSwitch.SetState(useTwentyFourHourFormat, false))
                 .DisposedBy(DisposeBag);
 
-            AboutView.Rx().Tap()
+            ExportView.Rx().Tap()
                 .SelectMany(_ => ViewModel.ExportData().ToObservable())
                 .Subscribe(serializedData =>
                 {

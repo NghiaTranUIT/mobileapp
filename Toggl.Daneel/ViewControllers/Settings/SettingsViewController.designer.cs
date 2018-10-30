@@ -49,6 +49,9 @@ namespace Toggl.Daneel.ViewControllers
 		UIKit.UIView EmailView { get; set; }
 
 		[Outlet]
+		UIKit.UIView ExportView { get; set; }
+
+		[Outlet]
 		UIKit.UIView FeedbackView { get; set; }
 
 		[Outlet]
@@ -333,6 +336,11 @@ namespace Toggl.Daneel.ViewControllers
 			if (WorkspaceView != null) {
 				WorkspaceView.Dispose ();
 				WorkspaceView = null;
+			}
+
+			if (ExportView != null) {
+				ExportView.Dispose ();
+				ExportView = null;
 			}
 		}
 	}
