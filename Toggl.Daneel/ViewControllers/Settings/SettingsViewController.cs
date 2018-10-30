@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using Foundation;
@@ -85,13 +84,13 @@ namespace Toggl.Daneel.ViewControllers
 
             AboutView.Rx().Tap()
                 .SelectMany(_ => ViewModel.ExportData().ToObservable())
-                .Subscribe((string serializedData) =>
+                .Subscribe(serializedData =>
                 {
-                    const string fileName = "TogglDump.json";
+                    const string fileName = "TogglMobileAppExport.zip";
                     var directory = NSFileManager.DefaultManager.GetTemporaryDirectory();
                     var filePath = directory.Append(fileName, isDirectory: false);
 
-                    var data = NSData.FromString(serializedData);
+                    var data = NSData.FromArray(serializedData);
                     if (!data.Save(filePath, NSDataWritingOptions.Atomic, out var error))
                     {
                         // I don't want to deal with this rn..

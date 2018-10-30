@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using Toggl.Multivac.Models;
 using Toggl.Ultrawave.Models;
+using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
+using Toggl.Ultrawave.Network;
 
 namespace Toggl.Ultrawave.Serialization
 {
     public static class AppStateSerialization
     {
-        public static string Serialize(
+        public static byte[] Serialize(
+            UserAgent userAgent,
             IUser user,
             IPreferences preferences,
             IList<IWorkspace> workspaces,
@@ -22,6 +29,7 @@ namespace Toggl.Ultrawave.Serialization
         {
             var appState = new AppState
             {
+                AppVersion = $"{userAgent.Name} {userAgent.Version}",
                 User = user as User ?? new User(user),
                 Preferences = preferences as Preferences ?? new Preferences(preferences),
                 Workspaces = workspaces?.Select(ws => ws as Workspace ?? new Workspace(ws)).ToList<IWorkspace>() ?? new List<IWorkspace>(),
@@ -35,13 +43,34 @@ namespace Toggl.Ultrawave.Serialization
                 SinceDates = sinceDates ?? new Dictionary<string, DateTimeOffset?>(),
             };
 
-            var serializer = new JsonSerializer();
-
-            return serializer.Serialize(appState, SerializationReason.Post, appState.Features.FirstOrDefault());
+            return appState.Apply(toJson).Apply(toZip);
         }
 
+        private static string toJson(AppState state)
+        {
+            var serializer = new JsonSerializer();
+            return serializer.Serialize(state, SerializationReason.Post, state.Features.FirstOrDefault());
+        }
+
+        private static byte[] toZip(string json)
+        {
+            var bytes = Encoding.UTF8.GetBytes(json);
+            using (var stream = new MemoryStream(bytes))
+            using (var output = new MemoryStream())
+            {
+                using (var zip = new GZipStream(output, CompressionMode.Compress))
+                {
+                    stream.CopyTo(zip);
+                }
+
+                return output.ToArray();
+            }
+        }
+
+        [Preserve(AllMembers = true)]
         private sealed class AppState
         {
+            public string AppVersion { get; set; }
             public IUser User { get; set; }
             public IPreferences Preferences { get; set; }
             public IList<IWorkspace> Workspaces { get; set; }

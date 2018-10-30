@@ -294,7 +294,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             feedbackService.SubmitFeedback();
         }
 
-        public async Task<string> ExportData()
+        public async Task<byte[]> ExportData()
         {
             var user = await dataSource.User.Get();
             var preferences = await dataSource.Preferences.Get();
@@ -307,7 +307,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var features = await dataSource.WorkspaceFeatures.GetAll().Select(data => data.ToList<IWorkspaceFeatureCollection>());
             var sinceDates = database.SinceParameters.GetAll();
 
-            return AppStateSerialization.Serialize(user, preferences, workspaces, timeEntries, tags, tasks, projects, clients, features, sinceDates);
+            return AppStateSerialization.Serialize(
+                userAgent, user, preferences, workspaces, timeEntries, tags, tasks, projects, clients, features, sinceDates);
         }
 
         public Task SelectDefaultWorkspace(SelectableWorkspaceViewModel workspace)
