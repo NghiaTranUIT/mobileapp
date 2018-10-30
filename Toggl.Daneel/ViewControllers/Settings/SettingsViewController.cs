@@ -11,6 +11,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac.Extensions;
 using UIKit;
 using Math = System.Math;
+using Toggl.Foundation;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -82,30 +83,16 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(useTwentyFourHourFormat => TwentyFourHourClockSwitch.SetState(useTwentyFourHourFormat, false))
                 .DisposedBy(DisposeBag);
 
+            const string genericExportErrorMessage =
+                "It was not possible to export the data from the app. " +
+                "The data is either corrupted or you don't have enough " +
+                "free space on your device.";
+
             ExportView.Rx().Tap()
                 .SelectMany(_ => ViewModel.ExportData().ToObservable())
-                .Subscribe(serializedData =>
-                {
-                    const string fileName = "TogglMobileAppExport.zip";
-                    var directory = NSFileManager.DefaultManager.GetTemporaryDirectory();
-                    var filePath = directory.Append(fileName, isDirectory: false);
-
-                    var data = NSData.FromArray(serializedData);
-                    if (!data.Save(filePath, NSDataWritingOptions.Atomic, out var error))
-                    {
-                        // I don't want to deal with this rn..
-                        return;
-                    }
-
-                    var vc = new UIActivityViewController(
-                        activityItems: new[] {filePath},
-                        applicationActivities: new UIActivity[0]);
-
-                    PresentViewController(vc, true, () =>
-                    {
-                        // we are done.. not sure what to do with it now
-                    });
-                })
+                .Subscribe(
+                    saveExportedData,
+                    _ => handleExportError(genericExportErrorMessage))
                 .DisposedBy(DisposeBag);
         }
 
@@ -127,6 +114,55 @@ namespace Toggl.Daneel.ViewControllers
             setIndicatorSyncColor(SyncedIcon);
             setIndicatorSyncColor(SyncingIndicator);
             setIndicatorSyncColor(LoggingOutIndicator);
+        }
+
+        private void saveExportedData(byte[] serializedData)
+        {
+            if (!writeDataToTemporaryFile(serializedData, out var filePath))
+            {
+                return;
+            }
+
+            var viewController = new UIActivityViewController(
+                activityItems: new NSObject[] { filePath },
+                applicationActivities: new UIActivity[0]);
+
+            PresentViewController(viewController, true, () => { });
+        }
+
+        private void handleExportError(string error)
+        {
+            const string alertTitle = "Data Export Failed";
+
+            var alert = new UIAlertView
+            {
+                Title = alertTitle,
+                Message = error
+            };
+
+            alert.AddButton(Resources.Ok);
+
+            alert.Show();
+        }
+
+        private bool writeDataToTemporaryFile(byte[] serializedData, out NSUrl filePath)
+        {
+            filePath = generateTemporaryFilePath();
+            var data = NSData.FromArray(serializedData);
+            if (data.Save(filePath, NSDataWritingOptions.Atomic, out var error))
+            {
+                return true;
+            }
+
+            handleExportError(error.LocalizedDescription);
+            return false;
+        }
+
+        private NSUrl generateTemporaryFilePath()
+        {
+            const string fileName = "TogglMobileAppExport.zip";
+            var directory = NSFileManager.DefaultManager.GetTemporaryDirectory();
+            return directory.Append(fileName, isDirectory: false);
         }
 
         private void hideCalendarSettingsSection()
