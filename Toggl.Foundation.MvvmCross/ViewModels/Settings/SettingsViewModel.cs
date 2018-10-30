@@ -24,8 +24,12 @@ using Toggl.Foundation.Services;
 using Toggl.Foundation.Sync;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
+using Toggl.Multivac.Models;
+using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Settings;
+using Toggl.Ultrawave.ApiClients;
 using Toggl.Ultrawave.Network;
+using Toggl.Ultrawave.Serialization;
 using static Toggl.Multivac.Extensions.CommonFunctions;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
@@ -53,6 +57,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IPrivateSharedStorageService privateSharedStorageService;
         private readonly IIntentDonationService intentDonationService;
         private readonly IStopwatchProvider stopwatchProvider;
+        private readonly ITogglDatabase database;
 
         private bool isSyncing;
         private bool isLoggingOut;
@@ -118,7 +123,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IMvxNavigationService navigationService,
             IPrivateSharedStorageService privateSharedStorageService,
             IIntentDonationService intentDonationService,
-            IStopwatchProvider stopwatchProvider)
+            IStopwatchProvider stopwatchProvider,
+            ITogglDatabase database)
         {
             Ensure.Argument.IsNotNull(userAgent, nameof(userAgent));
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
@@ -134,6 +140,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(privateSharedStorageService, nameof(privateSharedStorageService));
             Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
             Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
+            Ensure.Argument.IsNotNull(database, nameof(database));
 
             this.userAgent = userAgent;
             this.dataSource = dataSource;
@@ -149,6 +156,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.privateSharedStorageService = privateSharedStorageService;
             this.intentDonationService = intentDonationService;
             this.stopwatchProvider = stopwatchProvider;
+            this.database = database;
 
             IsSynced = dataSource.SyncManager.ProgressObservable.SelectMany(checkSynced);
 
@@ -286,10 +294,26 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             feedbackService.SubmitFeedback();
         }
 
+        public async Task<string> ExportData()
+        {
+            var user = await dataSource.User.Get();
+            var preferences = await dataSource.Preferences.Get();
+            var workspaces = await dataSource.Workspaces.GetAll().Select(data => data.ToList<IWorkspace>());
+            var timeEntries = await dataSource.TimeEntries.GetAll().Select(data => data.ToList<ITimeEntry>());
+            var clients = await dataSource.Clients.GetAll().Select(data => data.ToList<IClient>());
+            var tasks = await dataSource.Tasks.GetAll().Select(data => data.ToList<ITask>());
+            var projects = await dataSource.Projects.GetAll().Select(data => data.ToList<IProject>());
+            var tags = await dataSource.Tags.GetAll().Select(data => data.ToList<ITag>());
+            var features = await dataSource.WorkspaceFeatures.GetAll().Select(data => data.ToList<IWorkspaceFeatureCollection>());
+            var sinceDates = database.SinceParameters.GetAll();
+
+            return AppStateSerialization.Serialize(user, preferences, workspaces, timeEntries, tags, tasks, projects, clients, features, sinceDates);
+        }
+
         public Task SelectDefaultWorkspace(SelectableWorkspaceViewModel workspace)
             => changeDefaultWorkspace(workspace.WorkspaceId);
 
-        private async Task toggleUseTwentyFourHourClock() 
+        private async Task toggleUseTwentyFourHourClock()
         {
             var timeFormat = currentPreferences.TimeOfDayFormat.IsTwentyFourHoursFormat
                 ? TimeFormat.TwelveHoursFormat
