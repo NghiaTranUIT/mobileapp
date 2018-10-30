@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
@@ -20,11 +23,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed class SelectClientViewModel : MvxViewModel<SelectClientParameters, long?>
     {
-        private readonly IInteractorFactory interactorFactory;
-        private readonly IMvxNavigationService navigationService;
-        private long workspaceId;
-        private long selectedClientId;
-        private IEnumerable<IThreadSafeClient> allClients;
+        public ISubject<string> ClientFilterText { get; } = new BehaviorSubject<string>(string.Empty);
 
         public ObservableGroupedOrderedCollection<SelectableClientViewModel> Clients { get; } =
             new ObservableGroupedOrderedCollection<SelectableClientViewModel>(
@@ -37,11 +36,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public InputAction<string> CreateClientAction { get; }
         public InputAction<string> SelectClientAction { get; }
 
-        public SelectClientViewModel(IInteractorFactory interactorFactory, IMvxNavigationService navigationService)
+        private readonly IInteractorFactory interactorFactory;
+        private readonly IMvxNavigationService navigationService;
+        private readonly ISchedulerProvider schedulerProvider;
+        private long workspaceId;
+        private long selectedClientId;
+        private IEnumerable<IThreadSafeClient> allClients;
+        private CompositeDisposable disposeBag = new CompositeDisposable();
+
+        public SelectClientViewModel(
+            IInteractorFactory interactorFactory,
+            IMvxNavigationService navigationService)
         {
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
-
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
 
@@ -62,9 +70,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
 
-            allClients
-                .Select(toSelectableViewModel)
-                .Do(client => Clients.InsertItem(client));
+            ClientFilterText
+                .Debug("TEXT")
+                .Select(text => allClients.Where(c => c.Name.ContainsIgnoringCase(text)).Select(toSelectableViewModel))
+                .Do(cs => Console.WriteLine(cs.Count()))
+
+                .Subscribe(clients => Clients.ReplaceWith(clients))
+                .DisposedBy(disposeBag);
         }
 
         private SelectableClientViewModel toSelectableViewModel(IThreadSafeClient client)
@@ -84,5 +96,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var client = await interactorFactory.CreateClient(clientName, workspaceId).Execute();
             await navigationService.Close(this, client.Id);
         }
+
+
     }
 }

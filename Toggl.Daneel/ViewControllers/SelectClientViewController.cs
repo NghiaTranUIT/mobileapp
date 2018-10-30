@@ -7,6 +7,7 @@ using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewControllers
@@ -23,10 +24,14 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            var source = new ClientTableViewSource(SuggestionsTableView, ViewModel.Clients);
-            SuggestionsTableView.Source = source;
+            var tableViewSource = new ClientTableViewSource(SuggestionsTableView, ViewModel.Clients);
 
             this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseAction);
+            this.Bind(SearchTextField.Rx().Text(), ViewModel.ClientFilterText);
+            SuggestionsTableView
+                .Rx()
+                .Bind(tableViewSource)
+                .DisposedBy(DisposeBag);
 
             SearchTextField.BecomeFirstResponder();
         }
