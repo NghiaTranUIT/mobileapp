@@ -1,5 +1,6 @@
 ﻿using Toggl.Multivac;
 using Toggl.Multivac.Models;
+using System.Linq;
 
 namespace Toggl.Ultrawave.Models
 {
@@ -203,7 +204,7 @@ namespace Toggl.Ultrawave.Models
         public WorkspaceFeatureCollection(IWorkspaceFeatureCollection entity)
         {
             WorkspaceId = entity.WorkspaceId;
-            Features = entity.Features;
+            Features = entity.Features.Select(feature => feature as WorkspaceFeature ?? new WorkspaceFeature(feature));
         }
     }
 }
