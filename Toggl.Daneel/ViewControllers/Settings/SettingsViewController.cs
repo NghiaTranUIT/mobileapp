@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using Foundation;
 using MvvmCross.Platforms.Ios.Presenters.Attributes;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
@@ -51,7 +54,7 @@ namespace Toggl.Daneel.ViewControllers
 
             this.Bind(HelpView.Rx().Tap(), ViewModel.OpenHelpView);
             this.Bind(LogoutButton.Rx().Tap(), ViewModel.TryLogout);
-            this.Bind(AboutView.Rx().Tap(), ViewModel.OpenAboutView);
+            // this.Bind(AboutView.Rx().Tap(), ViewModel.OpenAboutView);
             this.Bind(FeedbackView.Rx().Tap(), ViewModel.SubmitFeedback);
             this.Bind(DateFormatView.Rx().Tap(), ViewModel.SelectDateFormat);
             this.Bind(WorkspaceView.Rx().Tap(), ViewModel.PickDefaultWorkspace);
@@ -78,6 +81,32 @@ namespace Toggl.Daneel.ViewControllers
             ViewModel.UseTwentyFourHourFormat
                 .FirstAsync()
                 .Subscribe(useTwentyFourHourFormat => TwentyFourHourClockSwitch.SetState(useTwentyFourHourFormat, false))
+                .DisposedBy(DisposeBag);
+
+            AboutView.Rx().Tap()
+                .SelectMany(_ => ViewModel.ExportData().ToObservable())
+                .Subscribe((string serializedData) =>
+                {
+                    const string fileName = "TogglDump.json";
+                    var directory = NSFileManager.DefaultManager.GetTemporaryDirectory();
+                    var filePath = directory.Append(fileName, isDirectory: false);
+
+                    var data = NSData.FromString(serializedData);
+                    if (!data.Save(filePath, NSDataWritingOptions.Atomic, out var error))
+                    {
+                        // I don't want to deal with this rn..
+                        return;
+                    }
+
+                    var vc = new UIActivityViewController(
+                        activityItems: new[] {filePath},
+                        applicationActivities: new UIActivity[0]);
+
+                    PresentViewController(vc, true, () =>
+                    {
+                        // we are done.. not sure what to do with it now
+                    });
+                })
                 .DisposedBy(DisposeBag);
         }
 
