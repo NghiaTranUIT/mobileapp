@@ -35,6 +35,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public UIAction CloseAction { get; }
         public InputAction<string> CreateClientAction { get; }
         public InputAction<string> SelectClientAction { get; }
+        public CompositeDisposable DisposeBag = new CompositeDisposable();
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
@@ -42,7 +43,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private long workspaceId;
         private long selectedClientId;
         private IEnumerable<IThreadSafeClient> allClients;
-        private CompositeDisposable disposeBag = new CompositeDisposable();
 
         public SelectClientViewModel(
             IInteractorFactory interactorFactory,
@@ -56,6 +56,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             CloseAction = UIAction.FromAsync(close);
             CreateClientAction = InputAction<string>.FromAsync(createClient);
             SelectClientAction = InputAction<string>.FromAsync(selectClient);
+        }
+
+        ~SelectClientViewModel()
+        {
+            DisposeBag.Dispose();
         }
 
         public override void Prepare(SelectClientParameters parameter)
@@ -76,7 +81,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .Do(cs => Console.WriteLine(cs.Count()))
 
                 .Subscribe(clients => Clients.ReplaceWith(clients))
-                .DisposedBy(disposeBag);
+                .DisposedBy(DisposeBag);
         }
 
         private SelectableClientViewModel toSelectableViewModel(IThreadSafeClient client)
@@ -96,7 +101,5 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var client = await interactorFactory.CreateClient(clientName, workspaceId).Execute();
             await navigationService.Close(this, client.Id);
         }
-
-
     }
 }

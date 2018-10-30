@@ -36,6 +36,12 @@ namespace Toggl.Daneel.ViewControllers
             SearchTextField.BecomeFirstResponder();
         }
 
+        public override void ViewDidDisappear(bool animated)
+        {
+            base.ViewDidDisappear(animated);
+            ViewModel.DisposeBag.Dispose();
+        }
+
         public async Task<bool> Dismiss()
         {
             ViewModel.CloseAction.Execute(Unit.Default);
