@@ -100,6 +100,7 @@ namespace Toggl.Daneel
             var schedulerProvider = new IOSSchedulerProvider();
             var calendarService = new CalendarService(permissionsService);
             var notificationService = new NotificationService(permissionsService, timeService);
+            var proxy = CoreFoundation.CFNetwork.GetDefaultProxy();
 
             var foundation =
                 TogglFoundation
@@ -117,7 +118,7 @@ namespace Toggl.Daneel
                     .WithPlatformConstants(platformConstants)
                     .WithRemoteConfigService(remoteConfigService)
                     .WithNotificationService(notificationService)
-                    .WithApiFactory(new ApiFactory(environment, userAgent))
+                    .WithApiFactory(new ApiFactory(environment, userAgent, proxy))
                     .WithBackgroundService(new BackgroundService(timeService))
                     .WithApplicationShortcutCreator<ApplicationShortcutCreator>()
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
