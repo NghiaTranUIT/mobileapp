@@ -1,11 +1,12 @@
 ﻿using System;
 
 using Foundation;
+using Toggl.Daneel.Cells;
 using UIKit;
 
 namespace Toggl.Daneel.Views.EntityCreation
 {
-    public partial class CreateEntityViewCell : UITableViewCell
+    public partial class CreateEntityViewCell : BaseTableHeaderFooterView<string>
     {
         public static readonly NSString Key = new NSString("CreateEntityViewCell");
         public static readonly UINib Nib;
@@ -18,6 +19,11 @@ namespace Toggl.Daneel.Views.EntityCreation
         protected CreateEntityViewCell(IntPtr handle) : base(handle)
         {
             // Note: this .ctor should not contain any initialization logic.
+        }
+
+        protected override void UpdateView()
+        {
+            TextLabel.Text = Item;
         }
     }
 }

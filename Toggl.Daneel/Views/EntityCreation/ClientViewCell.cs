@@ -2,11 +2,13 @@
 using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Binding.Views;
+using Toggl.Daneel.Cells;
+using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public partial class ClientViewCell : MvxTableViewCell
+    public partial class ClientViewCell : BaseTableViewCell<SelectableClientViewModel>
     {
         public static readonly NSString Key = new NSString(nameof(ClientViewCell));
         public static readonly UINib Nib;
@@ -21,18 +23,9 @@ namespace Toggl.Daneel.Views
             // Note: this .ctor should not contain any initialization logic.
         }
 
-        public override void AwakeFromNib()
+        protected override void UpdateView()
         {
-            base.AwakeFromNib();
-
-            this.DelayBind(() =>
-            {
-                var bindingSet = this.CreateBindingSet<ClientViewCell, string>();
-
-                bindingSet.Bind(NameLabel).To(vm => vm);
-
-                bindingSet.Apply();
-            });
+            NameLabel.Text = Item.Name;
         }
     }
 }

@@ -4,73 +4,55 @@ using MvvmCross.Binding.Extensions;
 using MvvmCross.Commands;
 using MvvmCross.Platforms.Ios.Binding.Views;
 using Toggl.Daneel.Views;
+using Toggl.Daneel.Views.EntityCreation;
+using Toggl.Foundation.MvvmCross.Collections;
+using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
-    public sealed class ClientTableViewSource : MvxTableViewSource
+    public sealed class ClientTableViewSource : ReactiveSectionedListTableViewSource<SelectableClientViewModel, ClientViewCell>
     {
-        private const string cellIdentifier = nameof(ClientViewCell);
-        private const string createEntityCellIdentifier = nameof(MvxCreateEntityViewCell);
 
-        public string Text { get; set; }
+        private const int rowHeight = 48;
+
+        private const string cellIdentifier = nameof(ClientViewCell);
+        private const string createEntityCellIdentifier = nameof(CreateEntityViewCell);
 
         public bool SuggestCreation { get; set; }
 
-        public IMvxCommand CreateClientCommand { get; set; }
-
-        public ClientTableViewSource(UITableView tableView)
-            : base(tableView)
+        public ClientTableViewSource(UITableView tableView,
+            ObservableGroupedOrderedCollection<SelectableClientViewModel> collection)
+            : base(collection, cellIdentifier)
         {
             tableView.SeparatorStyle = UITableViewCellSeparatorStyle.None;
             tableView.RegisterNibForCellReuse(ClientViewCell.Nib, cellIdentifier);
-            tableView.RegisterNibForCellReuse(MvxCreateEntityViewCell.Nib, createEntityCellIdentifier);
+            tableView.RegisterNibForHeaderFooterViewReuse(CreateEntityViewCell.Nib, createEntityCellIdentifier);
         }
 
-        public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
+        public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath) => rowHeight;
+
+        public override nfloat GetHeightForHeader(UITableView tableView, nint section) => rowHeight;
+
+        public override UIView GetViewForHeader(UITableView tableView, nint section)
         {
-            var item = GetItemAt(indexPath);
-            var cell = GetOrCreateCellFor(tableView, indexPath, item);
-            cell.SelectionStyle = UITableViewCellSelectionStyle.None;
-
-            if (item != null && cell is IMvxBindable bindable)
-                bindable.DataContext = item;
-
-            return cell;
-        }
-
-        public override nint RowsInSection(UITableView tableview, nint section)
-           => base.RowsInSection(tableview, section) + (SuggestCreation ? 1 : 0);
-
-        protected override object GetItemAt(NSIndexPath indexPath)
-        {
-            if (!SuggestCreation) return base.GetItemAt(indexPath);
-
-            var index = (int)indexPath.Item;
-            if (index == 0)
-                return $"Create client \"{Text.Trim()}\"";
-
-            return ItemsSource.ElementAt(index - 1);
+            var header = (CreateEntityViewCell) tableView.DequeueReusableHeaderFooterView(createEntityCellIdentifier);
+            header.Item = "CREATE HEADER";
+            return header;
         }
 
         public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
         {
+            Console.WriteLine("ROW SELECTED");
             if (SuggestCreation && indexPath.Item == 0)
             {
-                CreateClientCommand.Execute();
                 return;
             }
-
             base.RowSelected(tableView, indexPath);
         }
 
-        protected override UITableViewCell GetOrCreateCellFor(UITableView tableView, NSIndexPath indexPath, object item)
+        public override void RefreshHeader(UITableView tableView, int section)
         {
-            var isCreationCell = SuggestCreation && indexPath.Item == 0;
-            var identifier = isCreationCell ? createEntityCellIdentifier : cellIdentifier;
-            return tableView.DequeueReusableCell(identifier, indexPath);
         }
-
-        public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath) => 48;
     }
 }

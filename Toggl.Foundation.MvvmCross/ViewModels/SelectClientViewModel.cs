@@ -8,6 +8,7 @@ using MvvmCross.ViewModels;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
@@ -23,30 +24,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
         private long workspaceId;
         private long selectedClientId;
-        private SelectableClientViewModel noClient;
         private IEnumerable<IThreadSafeClient> allClients;
 
-        public string Text { get; set; } = "";
-
-        public bool SuggestCreation
-        {
-            get
-            {
-                var text = Text.Trim();
-                return !string.IsNullOrEmpty(text)
-                    && Suggestions.None(s => s.Name == text)
-                    && text.LengthInBytes() <= MaxClientNameLengthInBytes;
-            }
-        }
+        public ObservableGroupedOrderedCollection<SelectableClientViewModel> Clients { get; } =
+            new ObservableGroupedOrderedCollection<SelectableClientViewModel>(
+                indexKey: c => c.Id,
+                orderingKey: c => c.Name,
+                groupingKey: _ => "Group"
+            );
 
         public UIAction CloseAction { get; }
-
-        public IMvxAsyncCommand CreateClientCommand { get; }
-
-        public IMvxAsyncCommand<string> SelectClientCommand { get; }
-
-        public MvxObservableCollection<SelectableClientViewModel> Suggestions { get; }
-            = new MvxObservableCollection<SelectableClientViewModel>();
+        public InputAction<string> CreateClientAction { get; }
+        public InputAction<string> SelectClientAction { get; }
 
         public SelectClientViewModel(IInteractorFactory interactorFactory, IMvxNavigationService navigationService)
         {
@@ -57,15 +46,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
 
             CloseAction = UIAction.FromAsync(close);
-            CreateClientCommand = new MvxAsyncCommand(createClient);
-            SelectClientCommand = new MvxAsyncCommand<string>(selectClient);
+            CreateClientAction = InputAction<string>.FromAsync(createClient);
+            SelectClientAction = InputAction<string>.FromAsync(selectClient);
         }
 
         public override void Prepare(SelectClientParameters parameter)
         {
             workspaceId = parameter.WorkspaceId;
             selectedClientId = parameter.SelectedClientId;
-            noClient = new SelectableClientViewModel(Resources.NoClient, selectedClientId == 0);
         }
 
         public override async Task Initialize()
@@ -74,23 +62,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
 
-            Suggestions.Add(noClient);
-            Suggestions.AddRange(allClients.Select(c => new SelectableClientViewModel(c.Name, c.Id == selectedClientId)));
+            allClients
+                .Select(toSelectableViewModel)
+                .Do(client => Clients.InsertItem(client));
         }
 
-        private void OnTextChanged()
-        {
-            Suggestions.Clear();
-            var text = Text.Trim();
-            Suggestions.AddRange(
-                allClients
-                    .Where(c => c.Name.ContainsIgnoringCase(text))
-                    .Select(c => new SelectableClientViewModel(c.Name, c.Id == selectedClientId))
-            );
-
-            if (!string.IsNullOrEmpty(Text)) return;
-            Suggestions.Insert(0, noClient);
-        }
+        private SelectableClientViewModel toSelectableViewModel(IThreadSafeClient client)
+            => new SelectableClientViewModel(client.Id, client.Name);
 
         private Task close()
             => navigationService.Close(this, null);
@@ -101,11 +79,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             await navigationService.Close(this, clientId);
         }
 
-        private async Task createClient()
+        private async Task createClient(string clientName)
         {
-            if (!SuggestCreation) return;
-
-            var client = await interactorFactory.CreateClient(Text.Trim(), workspaceId).Execute();
+            var client = await interactorFactory.CreateClient(clientName, workspaceId).Execute();
             await navigationService.Close(this, client.Id);
         }
     }

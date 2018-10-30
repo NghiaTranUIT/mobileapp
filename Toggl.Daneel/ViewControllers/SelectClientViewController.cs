@@ -23,30 +23,8 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            var source = new ClientTableViewSource(SuggestionsTableView);
+            var source = new ClientTableViewSource(SuggestionsTableView, ViewModel.Clients);
             SuggestionsTableView.Source = source;
-
-            var bindingSet = this.CreateBindingSet<SelectClientViewController, SelectClientViewModel>();
-
-            bindingSet.Bind(source).To(vm => vm.Suggestions);
-            bindingSet.Bind(SearchTextField).To(vm => vm.Text);
-            bindingSet.Bind(source)
-                      .For(v => v.SelectionChangedCommand)
-                      .To(vm => vm.SelectClientCommand);
-
-            bindingSet.Bind(source)
-                      .For(v => v.CreateClientCommand)
-                      .To(vm => vm.CreateClientCommand);
-
-            bindingSet.Bind(source)
-                      .For(v => v.SuggestCreation)
-                      .To(vm => vm.SuggestCreation);
-
-            bindingSet.Bind(source)
-                      .For(v => v.Text)
-                      .To(vm => vm.Text);
-
-            bindingSet.Apply();
 
             this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseAction);
 

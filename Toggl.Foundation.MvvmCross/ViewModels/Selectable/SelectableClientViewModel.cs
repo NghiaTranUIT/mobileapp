@@ -1,21 +1,20 @@
-﻿using MvvmCross.ViewModels;
-using Toggl.Multivac;
+﻿using Toggl.Multivac;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
-    [Preserve(AllMembers = true)]
-    public sealed class SelectableClientViewModel : MvxNotifyPropertyChanged
+    public sealed class SelectableClientViewModel
     {
+        public long Id { get; set; }
+
         public string Name { get; set; }
 
-        public bool Selected { get; set; }
-
-        public SelectableClientViewModel(string name, bool selected)
+        public SelectableClientViewModel(long id, string name)
         {
+            Ensure.Argument.IsNotNull(Id, nameof(Id));
             Ensure.Argument.IsNotNullOrWhiteSpaceString(name, nameof(name));
 
+            Id = id;
             Name = name;
-            Selected = selected;
         }
 
         public override string ToString() => Name;
