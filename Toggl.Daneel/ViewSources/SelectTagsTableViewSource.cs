@@ -13,7 +13,7 @@ namespace Toggl.Daneel.ViewSources
     public sealed class SelectTagsTableViewSource : MvxTableViewSource
     {
         private const string tagCellIdentifier = nameof(SelectableTagViewCell);
-        private const string createCellIdentifier = nameof(CreateEntityViewCell);
+        private const string createCellIdentifier = nameof(MvxCreateEntityViewCell);
 
         public string CurrentQuery { get; set; }
 
@@ -25,7 +25,7 @@ namespace Toggl.Daneel.ViewSources
             : base(tableView)
         {
             tableView.RegisterNibForCellReuse(SelectableTagViewCell.Nib, tagCellIdentifier);
-            tableView.RegisterNibForCellReuse(CreateEntityViewCell.Nib, createCellIdentifier);
+            tableView.RegisterNibForCellReuse(MvxCreateEntityViewCell.Nib, createCellIdentifier);
         }
 
         public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath) => 48;

@@ -11,17 +11,17 @@ using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public partial class CreateEntityViewCell : MvxTableViewCell
+    public partial class MvxCreateEntityViewCell : MvxTableViewCell
     {
-        public static readonly NSString Key = new NSString(nameof(CreateEntityViewCell));
+        public static readonly NSString Key = new NSString(nameof(MvxCreateEntityViewCell));
         public static readonly UINib Nib;
 
-        static CreateEntityViewCell()
+        static MvxCreateEntityViewCell()
         {
-            Nib = UINib.FromName(nameof(CreateEntityViewCell), NSBundle.MainBundle);
+            Nib = UINib.FromName(nameof(MvxCreateEntityViewCell), NSBundle.MainBundle);
         }
 
-        protected CreateEntityViewCell(IntPtr handle) : base(handle)
+        protected MvxCreateEntityViewCell(IntPtr handle) : base(handle)
         {
             // Note: this .ctor should not contain any initialization logic.
         }
@@ -32,7 +32,7 @@ namespace Toggl.Daneel.Views
 
             this.DelayBind(() =>
             {
-                var bindingSet = this.CreateBindingSet<CreateEntityViewCell, string>();
+                var bindingSet = this.CreateBindingSet<MvxCreateEntityViewCell, string>();
 
                 bindingSet.Bind(TextLabel)
                           .For(v => v.AttributedText)

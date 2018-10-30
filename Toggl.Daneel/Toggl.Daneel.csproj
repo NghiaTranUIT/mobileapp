@@ -593,7 +593,7 @@
     <InterfaceDefinition Include="Views\StartTimeEntry\WorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\Suggestions\SuggestionsEmptyViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\ClientViewCell.xib" />
-    <InterfaceDefinition Include="Views\EntityCreation\CreateEntityViewCell.xib" />
+    <InterfaceDefinition Include="Views\EntityCreation\MvxCreateEntityViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\SelectableTagViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\WorkspaceViewCell.xib" />
     <InterfaceDefinition Include="ViewControllers\ReportsCalendarViewController.xib" />
@@ -871,9 +871,9 @@
     <Compile Include="Views\EntityCreation\ClientViewCell.designer.cs">
       <DependentUpon>ClientViewCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="Views\EntityCreation\CreateEntityViewCell.cs" />
-    <Compile Include="Views\EntityCreation\CreateEntityViewCell.designer.cs">
-      <DependentUpon>CreateEntityViewCell.cs</DependentUpon>
+    <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.cs" />
+    <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.designer.cs">
+      <DependentUpon>MvxCreateEntityViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\EntityCreation\SelectableTagViewCell.cs" />
     <Compile Include="Views\EntityCreation\SelectableTagViewCell.designer.cs">

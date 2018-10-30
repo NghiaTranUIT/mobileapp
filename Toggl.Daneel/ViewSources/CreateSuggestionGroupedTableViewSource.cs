@@ -12,7 +12,7 @@ namespace Toggl.Daneel.ViewSources
         : GroupedCollectionTableViewSource<WorkspaceGroupedCollection<T>, T>
         where T : class
     {
-        protected const string CreateEntityCellIdentifier = nameof(CreateEntityViewCell);
+        protected const string CreateEntityCellIdentifier = nameof(MvxCreateEntityViewCell);
 
         public string Text { get; set; }
 
@@ -34,7 +34,7 @@ namespace Toggl.Daneel.ViewSources
         protected CreateSuggestionGroupedTableViewSource(UITableView tableView, string cellIdentifier, string headerCellIdentifier)
             : base(tableView, cellIdentifier, headerCellIdentifier)
         {
-            tableView.RegisterNibForCellReuse(CreateEntityViewCell.Nib, CreateEntityCellIdentifier);
+            tableView.RegisterNibForCellReuse(MvxCreateEntityViewCell.Nib, CreateEntityCellIdentifier);
         }
 
         public override UIView GetViewForHeader(UITableView tableView, nint section)

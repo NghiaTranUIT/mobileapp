@@ -11,7 +11,7 @@ namespace Toggl.Daneel.ViewSources
     public sealed class ClientTableViewSource : MvxTableViewSource
     {
         private const string cellIdentifier = nameof(ClientViewCell);
-        private const string createEntityCellIdentifier = nameof(CreateEntityViewCell);
+        private const string createEntityCellIdentifier = nameof(MvxCreateEntityViewCell);
 
         public string Text { get; set; }
 
@@ -24,7 +24,7 @@ namespace Toggl.Daneel.ViewSources
         {
             tableView.SeparatorStyle = UITableViewCellSeparatorStyle.None;
             tableView.RegisterNibForCellReuse(ClientViewCell.Nib, cellIdentifier);
-            tableView.RegisterNibForCellReuse(CreateEntityViewCell.Nib, createEntityCellIdentifier);
+            tableView.RegisterNibForCellReuse(MvxCreateEntityViewCell.Nib, createEntityCellIdentifier);
         }
 
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)

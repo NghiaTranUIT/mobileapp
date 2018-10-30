@@ -9,8 +9,8 @@ using System.CodeDom.Compiler;
 
 namespace Toggl.Daneel.Views
 {
-	[Register ("CreateEntityViewCell")]
-	partial class CreateEntityViewCell
+	[Register ("MvxCreateEntityViewCell")]
+	partial class MvxCreateEntityViewCell
 	{
 		[Outlet]
 		UIKit.UILabel TextLabel { get; set; }
