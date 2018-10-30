@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Reactive.Concurrency;
 using Android.Content;
 using Android.OS;
@@ -89,6 +90,7 @@ namespace Toggl.Giskard
             var schedulerProvider = new AndroidSchedulerProvider();
             var permissionsService = new PermissionsService();
             var calendarService = new CalendarService(permissionsService);
+            var proxy = createProxy();
 
             ApplicationContext.RegisterReceiver(new TimezoneChangedBroadcastReceiver(timeService),
                 new IntentFilter(Intent.ActionTimezoneChanged));
@@ -109,7 +111,7 @@ namespace Toggl.Giskard
                     .WithPlatformConstants(platformConstants)
                     .WithNotificationService<NotificationService>()
                     .WithRemoteConfigService<RemoteConfigService>()
-                    .WithApiFactory(new ApiFactory(environment, userAgent))
+                    .WithApiFactory(new ApiFactory(environment, userAgent, proxy))
                     .WithBackgroundService(new BackgroundService(timeService))
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator(ApplicationContext))
@@ -159,6 +161,21 @@ namespace Toggl.Giskard
              */
             var loginManager = Mvx.Resolve<ILoginManager>();
             var dataSource = loginManager.GetDataSourceIfLoggedIn();
+        }
+
+        private static IWebProxy createProxy()
+        {
+            var host = Java.Lang.JavaSystem.GetProperty("http.proxyHost");
+            var port = Java.Lang.JavaSystem.GetProperty("http.proxyPort");
+
+            if (!string.IsNullOrEmpty(host))
+            {
+                host = host.TrimEnd('/');
+            }
+
+            return !string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(port)
+                ? new WebProxy($"{host}:{port}", BypassOnLocal: true)
+                : new WebProxy();
         }
     }
 }
