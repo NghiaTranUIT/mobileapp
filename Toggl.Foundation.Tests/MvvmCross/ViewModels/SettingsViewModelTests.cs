@@ -86,7 +86,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useNavigationService,
                 bool usePrivateSharedStorageService,
                 bool useIntentDonationService,
-                bool useStopwatchProvider)
+                bool useStopwatchProvider,
+                bool useDatabase)
             {
                 var userAgent = useUserAgent ? UserAgent : null;
                 var dataSource = useDataSource ? DataSource : null;
@@ -102,6 +103,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var privateSharedStorageService = usePrivateSharedStorageService ? PrivateSharedStorageService : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
+                var database = useDatabase ? Database : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new SettingsViewModel(
@@ -118,7 +120,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         navigationService,
                         privateSharedStorageService,
                         intentDonationService,
-                        stopwatchProvider);
+                        stopwatchProvider,
+                        database);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -836,6 +839,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await NavigationService.Received().Navigate<CalendarSettingsViewModel>();
             }
+        }
+
+        public sealed class TheExportDataMethod : SettingsViewModelTest
+        {
+            // todo add if we decide to create a PR into develop
         }
     }
 }
