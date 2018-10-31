@@ -25,7 +25,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectProjectViewModelTest : BaseViewModelTests<SelectProjectViewModel>
         {
             protected override SelectProjectViewModel CreateViewModel()
-            => new SelectProjectViewModel(DataSource, InteractorFactory, NavigationService, DialogService);
+            => new SelectProjectViewModel(DataSource, InteractorFactory, NavigationService, DialogService, SchedulerProvider);
         }
 
         public sealed class TheConstructor : SelectProjectViewModelTest
@@ -36,15 +36,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useDataSource,
                 bool useInteractorFactory,
                 bool useNavigationService,
-                bool useDialogService)
+                bool useDialogService,
+                bool useSchedulerProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var dialogService = useDialogService ? DialogService : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var navigationService = useNavigationService ? NavigationService : null;
+                var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService);
+                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService, schedulerProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -304,13 +306,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var text = "Some text";
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Text = text;
 
                 InteractorFactory
                     .Received()
                     .GetProjectsAutocompleteSuggestions(Arg.Is<IList<string>>(
-                        words => words.SequenceEqual(text.SplitToQueryWords())));
+                         words => words.SequenceEqual(text.SplitToQueryWords())));
             }
         }
 
@@ -449,6 +452,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(suggestions));
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Text = queryText;
 
@@ -467,6 +471,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(suggestionsObservable);
 
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(1);
                 ViewModel.Suggestions.First().Should().HaveCount(11);
@@ -534,6 +539,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(suggestionsObservable);
 
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(4);
                 foreach (var suggestionGroup in ViewModel.Suggestions)
@@ -561,9 +567,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
-                     .Returns(suggestionsObservable);
+                    .Returns(suggestionsObservable);
 
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(2);
                 foreach (var suggestionGroup in ViewModel.Suggestions)
@@ -587,6 +594,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var parameter = SelectProjectParameter.WithIds(null, null, 0);
                 ViewModel.Prepare(parameter);
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(1);
                 ViewModel.Suggestions.First().Should().OnlyContain(
@@ -601,6 +609,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var parameter = SelectProjectParameter.WithIds(selectedProjectId, null, 0);
                 ViewModel.Prepare(parameter);
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(1);
                 ViewModel.Suggestions.First().Should().OnlyContain(
