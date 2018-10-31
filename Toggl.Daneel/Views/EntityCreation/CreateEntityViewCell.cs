@@ -6,7 +6,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Views.EntityCreation
 {
-    public partial class CreateEntityViewCell : BaseTableHeaderFooterView<string>
+    public partial class CreateEntityViewCell : BaseTableViewCell<string>
     {
         public static readonly NSString Key = new NSString("CreateEntityViewCell");
         public static readonly UINib Nib;

@@ -28,25 +28,30 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public ObservableGroupedOrderedCollection<SelectableClientViewModel> Clients { get; } =
             new ObservableGroupedOrderedCollection<SelectableClientViewModel>(
                 indexKey: c => c.Id,
-                orderingKey: c => c.Name,
+                orderingKey: c => c.Id,
                 groupingKey: _ => "Group"
             );
 
         public UIAction CloseAction { get; }
         public InputAction<string> CreateClientAction { get; }
         public InputAction<SelectableClientViewModel> SelectClientAction { get; }
+
+        public IObservable<bool> ShowCreationSuggestion { get; }
+
         public CompositeDisposable DisposeBag = new CompositeDisposable();
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
         private readonly ISchedulerProvider schedulerProvider;
         private long workspaceId;
-        private long selectedClientId;
         private IEnumerable<IThreadSafeClient> allClients;
+        private ISubject<bool> showCreationSuggestion = new BehaviorSubject<bool>(false);
+        private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient);
 
         public SelectClientViewModel(
             IInteractorFactory interactorFactory,
-            IMvxNavigationService navigationService)
+            IMvxNavigationService navigationService,
+            ISchedulerProvider schedulerProvider)
         {
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
@@ -56,17 +61,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             CloseAction = UIAction.FromAsync(close);
             CreateClientAction = InputAction<string>.FromAsync(createClient);
             SelectClientAction = InputAction<SelectableClientViewModel>.FromAsync(selectClient);
-        }
-
-        ~SelectClientViewModel()
-        {
-            DisposeBag.Dispose();
+            ShowCreationSuggestion = showCreationSuggestion.AsDriver(false, schedulerProvider);
         }
 
         public override void Prepare(SelectClientParameters parameter)
         {
             workspaceId = parameter.WorkspaceId;
-            selectedClientId = parameter.SelectedClientId;
         }
 
         public override async Task Initialize()
@@ -76,10 +76,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
 
             ClientFilterText
-                .Debug("TEXT")
-                .Select(text => allClients.Where(c => c.Name.ContainsIgnoringCase(text)).Select(toSelectableViewModel))
-                .Do(cs => Console.WriteLine(cs.Count()))
+                .Select(text =>
+                {
+                    var selectableViewModels = allClients
+                        .Where(c => c.Name.ContainsIgnoringCase(text))
+                        .Select(toSelectableViewModel);
 
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        selectableViewModels = selectableViewModels.Prepend(noClient);
+                    }
+                    return selectableViewModels;
+                })
                 .Subscribe(clients => Clients.ReplaceWith(clients))
                 .DisposedBy(DisposeBag);
         }
