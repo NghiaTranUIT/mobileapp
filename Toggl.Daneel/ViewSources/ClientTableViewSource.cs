@@ -41,16 +41,6 @@ namespace Toggl.Daneel.ViewSources
             return header;
         }
 
-        public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
-        {
-            Console.WriteLine("ROW SELECTED");
-            if (SuggestCreation && indexPath.Item == 0)
-            {
-                return;
-            }
-            base.RowSelected(tableView, indexPath);
-        }
-
         public override void RefreshHeader(UITableView tableView, int section)
         {
         }

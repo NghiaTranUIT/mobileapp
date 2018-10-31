@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System;
+using System.Reactive;
 using System.Threading.Tasks;
 using MvvmCross.Binding.BindingContext;
 using Toggl.Daneel.Extensions;
@@ -28,6 +29,7 @@ namespace Toggl.Daneel.ViewControllers
 
             this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseAction);
             this.Bind(SearchTextField.Rx().Text(), ViewModel.ClientFilterText);
+            this.Bind(tableViewSource.ItemSelected, ViewModel.SelectClientAction);
             SuggestionsTableView
                 .Rx()
                 .Bind(tableViewSource)

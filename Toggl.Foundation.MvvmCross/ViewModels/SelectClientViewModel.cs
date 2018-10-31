@@ -34,7 +34,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public UIAction CloseAction { get; }
         public InputAction<string> CreateClientAction { get; }
-        public InputAction<string> SelectClientAction { get; }
+        public InputAction<SelectableClientViewModel> SelectClientAction { get; }
         public CompositeDisposable DisposeBag = new CompositeDisposable();
 
         private readonly IInteractorFactory interactorFactory;
@@ -55,7 +55,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             CloseAction = UIAction.FromAsync(close);
             CreateClientAction = InputAction<string>.FromAsync(createClient);
-            SelectClientAction = InputAction<string>.FromAsync(selectClient);
+            SelectClientAction = InputAction<SelectableClientViewModel>.FromAsync(selectClient);
         }
 
         ~SelectClientViewModel()
@@ -90,10 +90,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private Task close()
             => navigationService.Close(this, null);
 
-        private async Task selectClient(string clientName)
+        private async Task selectClient(SelectableClientViewModel client)
         {
-            var clientId = allClients.FirstOrDefault(c => c.Name == clientName)?.Id ?? 0;
-            await navigationService.Close(this, clientId);
+            await navigationService.Close(this, client.Id);
         }
 
         private async Task createClient(string clientName)
