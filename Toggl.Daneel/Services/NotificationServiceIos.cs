@@ -17,7 +17,7 @@ using FoundationResources = Toggl.Foundation.Resources;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class NotificationService : PermissionAwareNotificationService
+    public sealed class NotificationServiceIos : PermissionAwareNotificationService
     {
         public const string CalendarEventIdKey = "Id";
 
@@ -29,7 +29,7 @@ namespace Toggl.Daneel.Services
 
         private readonly ITimeService timeService;
 
-        public NotificationService(IPermissionsService permissionsService, ITimeService timeService)
+        public NotificationServiceIos(IPermissionsService permissionsService, ITimeService timeService)
             : base(permissionsService)
         {
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));

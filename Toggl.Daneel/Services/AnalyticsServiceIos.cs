@@ -9,7 +9,7 @@ using AppCenterAnalytics = Microsoft.AppCenter.Analytics.Analytics;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class AnalyticsService : BaseAnalyticsService
+    public sealed class AnalyticsServiceIos : BaseAnalyticsService
     {
         private const int maxAppCenterStringLength = 64;
 

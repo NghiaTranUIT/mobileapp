@@ -30,8 +30,8 @@ namespace Toggl.Daneel.ViewControllers.Calendar
                 Height = cardHeight
             };
 
-            this.Bind(EnableAccessButton.Rx().Tap(), ViewModel.EnableAccessAction);
-            this.Bind(ContinueWithoutAccessButton.Rx().Tap(), ViewModel.ContinueWithoutAccessAction);
+            this.Bind(EnableAccessButton.Rx().Tap(), ViewModel.EnableAccess);
+            this.Bind(ContinueWithoutAccessButton.Rx().Tap(), ViewModel.ContinueWithoutAccess);
         }
     }
 }

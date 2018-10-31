@@ -6,11 +6,11 @@ using Toggl.Multivac;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class MailService : IMailService
+    public sealed class MailServiceIos : IMailService
     {
         private readonly ITopViewControllerProvider topViewControllerProvider;
 
-        public MailService(ITopViewControllerProvider topViewControllerProvider)
+        public MailServiceIos(ITopViewControllerProvider topViewControllerProvider)
         {
             Ensure.Argument.IsNotNull(topViewControllerProvider, nameof(topViewControllerProvider));
 

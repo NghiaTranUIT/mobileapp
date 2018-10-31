@@ -48,7 +48,7 @@ namespace Toggl.Daneel
 
         protected override IMvxNavigationService InitializeNavigationService(IMvxViewModelLocatorCollection collection)
         {
-            analyticsService = new AnalyticsService();
+            analyticsService = new AnalyticsServiceIos();
             platformInfo = new PlatformInfo { Platform = Platform.Daneel };
 
             var loader = CreateViewModelLoader(collection);
@@ -81,25 +81,25 @@ namespace Toggl.Daneel
             var scheduler = Scheduler.Default;
             var timeService = new TimeService(scheduler);
             var topViewControllerProvider = (ITopViewControllerProvider)Presenter;
-            var mailService = new MailService(topViewControllerProvider);
-            var dialogService = new DialogService(topViewControllerProvider);
+            var mailService = new MailServiceIos(topViewControllerProvider);
+            var dialogService = new DialogServiceIos(topViewControllerProvider);
             var platformConstants = new PlatformConstants();
             var suggestionProviderContainer = new SuggestionProviderContainer(
                 new MostUsedTimeEntrySuggestionProvider(database, timeService, maxNumberOfSuggestions)
             );
-            var intentDonationService = new IntentDonationService();
-            var privateSharedStorageService = new PrivateSharedStorageService();
+            var intentDonationService = new IntentDonationServiceIos();
+            var privateSharedStorageService = new PrivateSharedStorageServiceIos();
 
             var appVersion = Version.Parse(version);
-            var keyValueStorage = new UserDefaultsStorage();
-            var permissionsService = new PermissionsService();
+            var keyValueStorage = new UserDefaultsStorageIos();
+            var permissionsService = new PermissionsServiceIos();
             var userAgent = new UserAgent(clientName, version);
             var settingsStorage = new SettingsStorage(Version.Parse(version), keyValueStorage);
-            var remoteConfigService = new RemoteConfigService();
+            var remoteConfigService = new RemoteConfigServiceIos();
             remoteConfigService.SetupDefaults(remoteConfigDefaultsFileName);
             var schedulerProvider = new IOSSchedulerProvider();
-            var calendarService = new CalendarService(permissionsService);
-            var notificationService = new NotificationService(permissionsService, timeService);
+            var calendarService = new CalendarServiceIos(permissionsService);
+            var notificationService = new NotificationServiceIos(permissionsService, timeService);
 
             var foundation =
                 TogglFoundation
@@ -109,9 +109,9 @@ namespace Toggl.Daneel
                     .WithMailService(mailService)
                     .WithTimeService(timeService)
                     .WithApiEnvironment(environment)
-                    .WithGoogleService<GoogleService>()
-                    .WithRatingService<RatingService>()
-                    .WithLicenseProvider<LicenseProvider>()
+                    .WithGoogleService<GoogleServiceIos>()
+                    .WithRatingService<RatingServiceIos>()
+                    .WithLicenseProvider<LicenseProviderIos>()
                     .WithAnalyticsService(analyticsService)
                     .WithSchedulerProvider(schedulerProvider)
                     .WithPlatformConstants(platformConstants)
@@ -122,14 +122,14 @@ namespace Toggl.Daneel
                     .WithApplicationShortcutCreator<ApplicationShortcutCreator>()
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithIntentDonationService(intentDonationService)
-                    .WithStopwatchProvider<IosFirebaseStopwatchProvider>()
+                    .WithStopwatchProvider<FirebaseStopwatchProviderIos>()
                     .WithPrivateSharedStorageService(privateSharedStorageService)
                     .WithPlatformInfo(platformInfo)
 
                     .StartRegisteringPlatformServices()
                     .WithDialogService(dialogService)
                     .WithLastTimeUsageStorage(settingsStorage)
-                    .WithBrowserService<BrowserService>()
+                    .WithBrowserService<BrowserServiceIos>()
                     .WithKeyValueStorage(keyValueStorage)
                     .WithUserPreferences(settingsStorage)
                     .WithCalendarService(calendarService)
@@ -137,7 +137,7 @@ namespace Toggl.Daneel
                     .WithNavigationService(navigationService)
                     .WithPermissionsService(permissionsService)
                     .WithAccessRestrictionStorage(settingsStorage)
-                    .WithPasswordManagerService<OnePasswordService>()
+                    .WithPasswordManagerService<OnePasswordServiceIos>()
                     .WithErrorHandlingService(new ErrorHandlingService(navigationService, settingsStorage))
                     .WithFeedbackService(new FeedbackService(userAgent, mailService, dialogService, platformConstants))
                     .Build();

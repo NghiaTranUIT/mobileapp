@@ -162,7 +162,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var suggestion = createSuggestion();
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 InteractorFactory.Received().StartSuggestion(suggestion);
             }
@@ -175,7 +175,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.StartSuggestion(Arg.Any<Suggestion>()).Returns(mockedInteractor);
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 await mockedInteractor.Received().Execute();
             }
@@ -191,8 +191,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Return(timeEntry));
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 InteractorFactory.Received(2).StartSuggestion(suggestion);
             }
@@ -203,8 +203,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var suggestion = createSuggestion();
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 OnboardingStorage.Received().SetTimeEntryContinued();
             }

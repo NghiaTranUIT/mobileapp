@@ -56,6 +56,14 @@ namespace Toggl.Daneel.Suggestions
 
         public void OnSuggestions(Suggestion[] suggestions)
         {
+            foreach (UIView view in Subviews)
+            {
+                if (view is SuggestionView)
+                {
+                    view.RemoveFromSuperview();
+                }
+            }
+
             for (int i = 0; i < suggestions.Length; i++)
             {
                 var suggestionView = SuggestionView.Create();

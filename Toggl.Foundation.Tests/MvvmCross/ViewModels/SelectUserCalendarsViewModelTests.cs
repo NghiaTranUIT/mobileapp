@@ -70,9 +70,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 userCalendars
                     .Where(calendar => selectedIds.Contains(calendar.Id))
                     .Select(calendar => new SelectableUserCalendarViewModel(calendar, false))
-                    .Do(calendar => ViewModel.SelectCalendarAction.Execute(calendar).Wait());
+                    .Do(calendar => ViewModel.SelectCalendar.Execute(calendar).Wait());
                 
-                await ViewModel.DoneAction.Execute(Unit.Default);
+                await ViewModel.Done.Execute(Unit.Default);
 
                 await NavigationService.Received().Close(ViewModel, Arg.Is<string[]>(ids => ids.SequenceEqual(selectedIds)));
             }
@@ -93,7 +93,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 {
                     var observer = Substitute.For<IObserver<bool>>();
 
-                    ViewModel.DoneAction.Enabled.Subscribe(observer);
+                    ViewModel.Done.Enabled.Subscribe(observer);
                     SchedulerProvider.TestScheduler.AdvanceBy(1);
 
                     observer.Received().OnNext(true);
@@ -113,7 +113,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 {
                     var observer = Substitute.For<IObserver<bool>>();
 
-                    ViewModel.DoneAction.Enabled.Subscribe(observer);
+                    ViewModel.Done.Enabled.Subscribe(observer);
                     SchedulerProvider.TestScheduler.AdvanceBy(1);
 
                     observer.Received().OnNext(false);
@@ -123,13 +123,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 public async Task EmitsTrueAfterOneCalendarHasBeenSelected()
                 {
                     var observer = Substitute.For<IObserver<bool>>();
-                    ViewModel.DoneAction.Enabled.Subscribe(observer);
+                    ViewModel.Done.Enabled.Subscribe(observer);
                     var selectableUserCalendar = new SelectableUserCalendarViewModel(
                         new UserCalendar(),
                         false
                     );
 
-                    await ViewModel.SelectCalendarAction.Execute(selectableUserCalendar);
+                    await ViewModel.SelectCalendar.Execute(selectableUserCalendar);
                     SchedulerProvider.TestScheduler.AdvanceBy(2);
 
                     Received.InOrder(() =>
@@ -143,7 +143,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 public void DoesNotEmitAnythingWhenSelectingAdditionalCalendars()
                 {
                     var observer = Substitute.For<IObserver<bool>>();
-                    ViewModel.DoneAction.Enabled.Subscribe(observer);
+                    ViewModel.Done.Enabled.Subscribe(observer);
                     var selectedableUserCalendars = Enumerable
                         .Range(0, 10)
                         .Select(id =>
@@ -153,7 +153,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         });
 
                     selectedableUserCalendars
-                        .ForEach(calendar => ViewModel.SelectCalendarAction.Execute(calendar).Wait());
+                        .ForEach(calendar => ViewModel.SelectCalendar.Execute(calendar).Wait());
                     SchedulerProvider.TestScheduler.AdvanceBy(2);
 
                     Received.InOrder(() =>
@@ -167,7 +167,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 public void EmitsFalseAfterAllTheCalendarsHaveBeenDeselected()
                 {
                     var observer = Substitute.For<IObserver<bool>>();
-                    ViewModel.DoneAction.Enabled.Subscribe(observer);
+                    ViewModel.Done.Enabled.Subscribe(observer);
                     var selectedableUserCalendars = Enumerable
                         .Range(0, 10)
                         .Select(id =>
@@ -178,10 +178,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                     //Select all the calendars
                     selectedableUserCalendars
-                        .ForEach(calendar => ViewModel.SelectCalendarAction.Execute(calendar).Wait());
+                        .ForEach(calendar => ViewModel.SelectCalendar.Execute(calendar).Wait());
                     //Deselect all the calendars
                     selectedableUserCalendars
-                        .ForEach(calendar => ViewModel.SelectCalendarAction.Execute(calendar).Wait());
+                        .ForEach(calendar => ViewModel.SelectCalendar.Execute(calendar).Wait());
                     SchedulerProvider.TestScheduler.AdvanceBy(3);
 
                     Received.InOrder(() =>

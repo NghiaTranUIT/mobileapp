@@ -11,7 +11,7 @@ using UserNotifications;
 namespace Toggl.Daneel.Services
 {
     [Preserve(AllMembers = true)]
-    public sealed class PermissionsService : IPermissionsService
+    public sealed class PermissionsServiceIos : IPermissionsService
     {
         private readonly UNAuthorizationOptions options = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
 

@@ -13,9 +13,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed class OutdatedAppViewModel : MvxViewModel
     {
-        public UIAction OpenWebsiteAction { get; }
+        public UIAction OpenWebsite { get; }
 
-        public UIAction UpdateAppAction { get; }
+        public UIAction UpdateApp { get; }
 
         private const string togglWebsiteUrl = "https://toggl.com";
 
@@ -27,8 +27,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             this.browserService = browserService;
 
-            UpdateAppAction = UIAction.FromAction(updateApp);
-            OpenWebsiteAction = UIAction.FromAction(openWebsite);
+            UpdateApp = UIAction.FromAction(updateApp);
+            OpenWebsite = UIAction.FromAction(openWebsite);
         }
 
         private void openWebsite()

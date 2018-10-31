@@ -79,7 +79,7 @@ namespace Toggl.Giskard.Activities
             this.Bind(ViewModel.TimeEntriesViewModel.ShouldShowUndo, showUndoDeletion);
 
             this.Bind(ViewModel.SyncProgressState, updateSyncingIndicator);
-            this.Bind(refreshLayout.Rx().Refreshed(), ViewModel.RefreshAction);
+            this.Bind(refreshLayout.Rx().Refreshed(), ViewModel.Refresh);
 
             setupLayoutManager(mainRecyclerAdapter);
 
@@ -162,7 +162,7 @@ namespace Toggl.Giskard.Activities
 
             void onRetryTapped(View view)
             {
-                ViewModel.RefreshAction.Execute();
+                ViewModel.Refresh.Execute();
             }
         }
 

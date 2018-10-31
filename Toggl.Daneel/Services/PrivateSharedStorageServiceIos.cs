@@ -5,7 +5,7 @@ using Toggl.Daneel.ExtensionKit;
 
 namespace Toggl.Daneel.Services
 {
-    public class PrivateSharedStorageService : IPrivateSharedStorageService
+    public class PrivateSharedStorageServiceIos : IPrivateSharedStorageService
     {        
         public void SaveApiToken(string apiToken)
         {

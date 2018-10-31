@@ -3,7 +3,7 @@ using Toggl.Foundation.Services;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class LicenseProvider : BaseLicenseProvider
+    public sealed class LicenseProviderIos : BaseLicenseProvider
     {
         protected override Dictionary<string, string> GetPlatformSpecificLicenses() => new Dictionary<string, string>
         {

@@ -13,7 +13,7 @@ using UIKit;
 namespace Toggl.Daneel.Services
 {
     [MvvmCross.Preserve(AllMembers = true)]
-    public sealed class GoogleService : NSObject, IGoogleService, ISignInDelegate, ISignInUIDelegate
+    public sealed class GoogleServiceIos : NSObject, IGoogleService, ISignInDelegate, ISignInUIDelegate
     {
         private const int cancelErrorCode = -5;
 

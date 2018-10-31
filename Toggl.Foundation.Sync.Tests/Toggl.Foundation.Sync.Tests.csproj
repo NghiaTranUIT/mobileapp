@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>$(SolutionDir)Toggl.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj" />
+    <ProjectReference Include="..\Toggl.Foundation.MvvmCross\Toggl.Foundation.MvvmCross.csproj" />
+    <ProjectReference Include="..\Toggl.Foundation.Tests\Toggl.Foundation.Tests.csproj" />
+    <ProjectReference Include="..\Toggl.Multivac\Toggl.Multivac.csproj" />
+    <ProjectReference Include="..\Toggl.Multivac.Tests\Toggl.Multivac.Tests.csproj" />
+    <ProjectReference Include="..\Toggl.PrimeRadiant\Toggl.PrimeRadiant.csproj" />
+    <ProjectReference Include="..\Toggl.PrimeRadiant.Realm\Toggl.PrimeRadiant.Realm.csproj" />
+    <ProjectReference Include="..\Toggl.Ultrawave\Toggl.Ultrawave.csproj" />
+    <ProjectReference Include="..\Toggl.Ultrawave.Tests.Integration\Toggl.Ultrawave.Tests.Integration.csproj" />
+  </ItemGroup>
+</Project>

@@ -84,7 +84,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public IMvxCommand ToggleManualMode { get; }
 
         // Inputs
-        public UIAction RefreshAction { get; }
+        public UIAction Refresh { get; }
         public InputAction<TimeEntryViewModel> DeleteTimeEntry { get; }
         public InputAction<TimeEntryViewModel> SelectTimeEntry { get; }
         public InputAction<TimeEntryViewModel> ContinueTimeEntry { get; }
@@ -187,7 +187,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             StartTimeEntryCommand = new MvxAsyncCommand(startTimeEntry, () => CurrentTimeEntryId.HasValue == false);
             AlternativeStartTimeEntryCommand = new MvxAsyncCommand(alternativeStartTimeEntry, () => CurrentTimeEntryId.HasValue == false);
 
-            RefreshAction = UIAction.FromAsync(refresh);
+            Refresh = UIAction.FromAsync(refresh);
             DeleteTimeEntry = InputAction<TimeEntryViewModel>.FromObservable(deleteTimeEntry);
             SelectTimeEntry = InputAction<TimeEntryViewModel>.FromAsync(timeEntrySelected);
             ContinueTimeEntry = InputAction<TimeEntryViewModel>.FromObservable(continueTimeEntry);
@@ -313,9 +313,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             dataSource
                 .Workspaces
+                .Created
+                .VoidSubscribe(onWorkspaceCreated)
+                .DisposedBy(disposeBag);
+
+            dataSource
+                .Workspaces
                 .Updated
                 .Subscribe(onWorkspaceUpdated)
                 .DisposedBy(disposeBag);
+        }
+
+        private async void onWorkspaceCreated()
+        {
+            await TimeEntriesViewModel.ReloadData();
         }
 
         private async void onWorkspaceUpdated(EntityUpdate<IThreadSafeWorkspace> update)
@@ -463,7 +474,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 return;
 
             onboardingStorage.TimeEntryWasTapped();
-            
+
             var editTimeEntryStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.EditTimeEntryFromMainLog);
             editTimeEntryStopwatch.Start();
 

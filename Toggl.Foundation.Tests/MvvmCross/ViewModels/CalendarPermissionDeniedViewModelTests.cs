@@ -43,7 +43,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async Task OpensAppSettings()
             {
-                await ViewModel.EnableAccessAction.Execute(Unit.Default);
+                await ViewModel.EnableAccess.Execute(Unit.Default);
 
                 PermissionsService.Received().OpenAppSettings();
             }
@@ -54,7 +54,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async Task ClosesTheViewModelAndReturnDefaultUnit()
             {
-                await ViewModel.ContinueWithoutAccessAction.Execute(Unit.Default);
+                await ViewModel.ContinueWithoutAccess.Execute(Unit.Default);
 
                 await NavigationService.Received().Close(ViewModel, Unit.Default);
             }

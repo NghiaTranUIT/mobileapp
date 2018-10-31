@@ -177,7 +177,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     }, observer.CompleteWithUnit);
 
                 return Disposable.Empty;
-            }).Debug("Execute");
+            });
 
         private void onDataSource(ITogglDataSource newDataSource)
         {

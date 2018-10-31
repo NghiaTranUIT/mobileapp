@@ -26,10 +26,9 @@ namespace Toggl.Foundation.MvvmCross
             var now = foundation.TimeService.CurrentDateTime;
             var lastUsed = foundation.OnboardingStorage.GetLastOpened();
             foundation.OnboardingStorage.SetLastOpened(now);
-            if (lastUsed == null) return foundation;
+            if (!lastUsed.HasValue) return foundation;
 
-            var lastUsedDate = DateTimeOffset.Parse(lastUsed);
-            var offset = now - lastUsedDate;
+            var offset = now - lastUsed;
             if (offset < TimeSpan.FromDays(newUserThreshold)) return foundation;
 
             foundation.OnboardingStorage.SetIsNewUser(false);

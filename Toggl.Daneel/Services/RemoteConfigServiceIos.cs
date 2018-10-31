@@ -8,7 +8,7 @@ using Toggl.Multivac;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class RemoteConfigService : IRemoteConfigService
+    public sealed class RemoteConfigServiceIos : IRemoteConfigService
     {
         public void SetupDefaults(string plistName)
         {

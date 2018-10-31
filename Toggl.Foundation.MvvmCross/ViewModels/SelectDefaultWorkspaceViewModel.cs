@@ -27,7 +27,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IImmutableList<SelectableWorkspaceViewModel> Workspaces { get; private set; }
 
-        public InputAction<SelectableWorkspaceViewModel> SelectWorkspaceAction { get; }
+        public InputAction<SelectableWorkspaceViewModel> SelectWorkspace { get; }
 
         public SelectDefaultWorkspaceViewModel(
             ITogglDataSource dataSource,
@@ -45,7 +45,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.accessRestrictionStorage = accessRestrictionStorage;
 
-            SelectWorkspaceAction = InputAction<SelectableWorkspaceViewModel>.FromObservable(selectWorkspace);
+            SelectWorkspace = InputAction<SelectableWorkspaceViewModel>.FromObservable(selectWorkspace);
         }
 
         public override async Task Initialize()

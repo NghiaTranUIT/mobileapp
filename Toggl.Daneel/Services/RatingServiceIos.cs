@@ -3,7 +3,7 @@ using Toggl.Foundation.Services;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class RatingService : IRatingService
+    public sealed class RatingServiceIos : IRatingService
     {
         public void AskForRating()
         {

@@ -12,7 +12,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Services
 {
-    public class IntentDonationService : IIntentDonationService
+    public class IntentDonationServiceIos : IIntentDonationService
     {
         private static string startTimerInvocationPhrase = "Start timer";
         private static string stopTimerInvocationPhrase = "Stop timer";

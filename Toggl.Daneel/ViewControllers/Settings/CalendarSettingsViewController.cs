@@ -34,8 +34,8 @@ namespace Toggl.Daneel.ViewControllers.Settings
             source.SectionHeaderBackgroundColor = Color.Settings.Background.ToNativeColor();
             UserCalendarsTableView.Source = source;
 
-            this.Bind(header.EnableCalendarAccessTapped, ViewModel.RequestAccessAction);
-            this.Bind(source.ItemSelected, ViewModel.SelectCalendarAction);
+            this.Bind(header.EnableCalendarAccessTapped, ViewModel.RequestAccess);
+            this.Bind(source.ItemSelected, ViewModel.SelectCalendar);
         }
     }
 }

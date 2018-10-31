@@ -24,7 +24,7 @@ namespace Toggl.Daneel.ViewControllers.Settings
             this.Bind(ViewModel.PermissionGranted.Invert(), OpenSettingsContainer.Rx().IsVisible());
             this.Bind(ViewModel.PermissionGranted, CalendarNotificationsContainer.Rx().IsVisible());
 
-            this.Bind(OpenSettingsButton.Rx().Tap(), ViewModel.RequestAccessAction);
+            this.Bind(OpenSettingsButton.Rx().Tap(), ViewModel.RequestAccess);
 
             this.Bind(CalendarNotificationsRow.Rx().Tap(), ViewModel.OpenUpcomingEvents);
             this.Bind(ViewModel.UpcomingEvents, CalendarNotificationsValue.Rx().Text());

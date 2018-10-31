@@ -12,7 +12,7 @@ using LoginHandler = AgileBits.OnePasswordLoginDictionaryCompletionBlock;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class OnePasswordService : NSObject, IPasswordManagerService
+    public sealed class OnePasswordServiceIos : NSObject, IPasswordManagerService
     {
         public bool IsAvailable => OnePasswordExtension.SharedExtension.IsAppExtensionAvailable;
 

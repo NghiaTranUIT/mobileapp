@@ -23,7 +23,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool> IsEmpty { get; private set; }
 
-        public InputAction<Suggestion> StartTimeEntryAction { get; private set; }
+        public InputAction<Suggestion> StartTimeEntry { get; private set; }
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IOnboardingStorage onboardingStorage;
@@ -53,7 +53,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             await base.Initialize();
 
-            StartTimeEntryAction = InputAction<Suggestion>.FromAsync(suggestion => startTimeEntry(suggestion));
+            StartTimeEntry = InputAction<Suggestion>.FromAsync(suggestion => startTimeEntry(suggestion));
 
             Suggestions = suggestionProviders
                 .Providers

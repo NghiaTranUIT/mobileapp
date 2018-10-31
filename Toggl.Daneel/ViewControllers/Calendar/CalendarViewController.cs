@@ -47,7 +47,7 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             this.Bind(ViewModel.ShouldShowOnboarding, OnboardingView.Rx().IsVisibleWithFade());
-            this.Bind(GetStartedButton.Rx().Tap(), ViewModel.GetStartedAction);
+            this.Bind(GetStartedButton.Rx().Tap(), ViewModel.GetStarted);
 
             var timeService = Mvx.Resolve<ITimeService>();
 

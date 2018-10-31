@@ -662,9 +662,10 @@
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
+    <Compile Include="Extensions\Reactive\ReactiveBindingHolderExtensions.cs" />
     <Compile Include="Extensions\SectionedIndexExtensions.cs" />
-    <Compile Include="Services\PermissionsService.cs" />
-    <Compile Include="Services\CalendarService.cs" />
+    <Compile Include="Services\PermissionsServiceIos.cs" />
+    <Compile Include="Services\CalendarServiceIos.cs" />
     <Compile Include="Extensions\Reactive\NSConstraintExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIApplicationExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIButtonExtensions.cs" />
@@ -674,8 +675,8 @@
     <Compile Include="Extensions\Reactive\UITableViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\UITextViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIViewExtensions.cs" />
-    <Compile Include="Services\IntentDonationService.cs" />
-    <Compile Include="Services\UserDefaultsStorage.cs" />
+    <Compile Include="Services\IntentDonationServiceIos.cs" />
+    <Compile Include="Services\UserDefaultsStorageIos.cs" />
     <Compile Include="Startup\IOSSchedulerProvider.cs" />
     <Compile Include="Startup\Setup.cs" />
     <Compile Include="Startup\SetupTargetFactories.cs">
@@ -692,7 +693,7 @@
       <DependentUpon>OnboardingViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Binding\ViewAnimatedBackgroundTargetBinding.cs" />
-    <Compile Include="Services\OnePasswordService.cs" />
+    <Compile Include="Services\OnePasswordServiceIos.cs" />
     <Compile Include="ViewControllers\Navigation\OnboardingFlowNavigationController.cs" />
     <Compile Include="Binding\BarButtonCommandTargetBinding.cs" />
     <Compile Include="Binding\ViewAnimatedVisibilityTargetBinding.cs" />
@@ -771,7 +772,7 @@
     <Compile Include="Views\Onboarding\ReportsPage.designer.cs">
       <DependentUpon>ReportsPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\DialogService.cs" />
+    <Compile Include="Services\DialogServiceIos.cs" />
     <Compile Include="Views\FadeView.cs" />
     <Compile Include="Views\Interfaces\IHeaderViewCellWithHideableTopSeparator.cs" />
     <Compile Include="Binding\NavigationItemHidesBackButtonTargetBinding.cs" />
@@ -809,8 +810,8 @@
     <Compile Include="ViewControllers\OutdatedAppViewController.designer.cs">
       <DependentUpon>OutdatedAppViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\BrowserService.cs" />
-    <Compile Include="Services\GoogleService.cs" />
+    <Compile Include="Services\BrowserServiceIos.cs" />
+    <Compile Include="Services\GoogleServiceIos.cs" />
     <Compile Include="ViewControllers\TokenResetViewController.cs" />
     <Compile Include="ViewControllers\TokenResetViewController.designer.cs">
       <DependentUpon>TokenResetViewController.cs</DependentUpon>
@@ -933,10 +934,10 @@
     <Compile Include="Binding\SpiderOnARopeViewIsVisibleTargetBinding.cs" />
     <Compile Include="ApplicationShortcutCreator.cs" />
     <Compile Include="Extensions\PointExtensions.cs" />
-    <Compile Include="Services\MailService.cs" />
+    <Compile Include="Services\MailServiceIos.cs" />
     <Compile Include="Autocomplete\TokenTextAttachment.cs" />
     <Compile Include="Autocomplete\AutocompleteExtensions.cs" />
-    <Compile Include="Services\AnalyticsService.cs" />
+    <Compile Include="Services\AnalyticsServiceIos.cs" />
     <Compile Include="Views\AutocompleteTextViewPlaceholder.cs" />
     <Compile Include="Views\EditDuration\DurationField.cs" />
     <Compile Include="Views\EditDuration\NumberKeyPressedEventArgs.cs" />
@@ -947,7 +948,7 @@
       <DependentUpon>SuggestionView.cs</DependentUpon>
     </Compile>
     <Compile Include="Binding\LayoutConstraintConstantTargetBinding.cs" />
-    <Compile Include="Services\LicenseProvider.cs" />
+    <Compile Include="Services\LicenseProviderIos.cs" />
     <Compile Include="Views\Settings\DateFormatViewCell.cs" />
     <Compile Include="Views\Settings\DateFormatViewCell.designer.cs">
       <DependentUpon>DateFormatViewCell.cs</DependentUpon>
@@ -1029,9 +1030,9 @@
       <DependentUpon>TermsOfServiceViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\RangeExtensions.cs" />
-    <Compile Include="Services\RemoteConfigService.cs" />
+    <Compile Include="Services\RemoteConfigServiceIos.cs" />
     <Compile Include="Extensions\ImageExtension.cs" />
-    <Compile Include="Services\RatingService.cs" />
+    <Compile Include="Services\RatingServiceIos.cs" />
     <Compile Include="ViewControllers\ReactiveViewController.cs" />
     <Compile Include="Cells\BaseTableViewCell.cs" />
     <Compile Include="Cells\BaseTableHeaderFooterView.cs" />
@@ -1119,7 +1120,7 @@
     <Compile Include="Cells\Calendar\EditingHourSupplementaryView.designer.cs">
       <DependentUpon>EditingHourSupplementaryView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\NotificationService.cs" />
+    <Compile Include="Services\NotificationServiceIos.cs" />
     <Compile Include="Extensions\NotificationExtensions.cs" />
     <Compile Include="ViewControllers\Settings\NotificationSettingsViewController.cs" />
     <Compile Include="ViewControllers\Settings\NotificationSettingsViewController.designer.cs">
@@ -1140,7 +1141,7 @@
     <Compile Include="Extensions\Reactive\UIControlExtensions.cs" />
     <Compile Include="Binding\LayoutConstraintActiveTargetBinding.cs" />
     <Compile Include="ViewControllers\IDismissableViewController.cs" />
-    <Compile Include="Services\PrivateSharedStorageService.cs" />
+    <Compile Include="Services\PrivateSharedStorageServiceIos.cs" />
     <Compile Include="Extensions\Reactive\FadeViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\NSObjectExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIStackViewExtensions.cs" />
@@ -1149,7 +1150,7 @@
     <Compile Include="Views\Reports\BarLegendLabel.cs" />
     <Compile Include="Views\Reports\EmptyBarView.cs" />
     <Compile Include="Extensions\Reactive\UIBarButtonItemExtensions.cs" />
-    <Compile Include="Services\IosFirebaseStopwatchProvider.cs" />
+    <Compile Include="Services\FirebaseStopwatchProviderIos.cs" />
     <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.cs" />
     <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.designer.cs">
       <DependentUpon>SelectDefaultWorkspaceViewController.cs</DependentUpon>

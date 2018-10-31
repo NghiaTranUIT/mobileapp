@@ -9,14 +9,15 @@ namespace Toggl.Multivac.Extensions
     {
     }
 
-    public abstract class RxAction<TInput, TElement> : IDisposable
+    public class RxAction<TInput, TElement> : IDisposable
     {
         public IObservable<Exception> Errors { get; }
         public IObservable<TElement> Elements { get; }
         public IObservable<bool> Executing { get; }
         public IObservable<bool> Enabled { get; }
         public ISubject<TInput> Inputs { get; }
-        public CompositeDisposable DisposeBag { get; }
+
+        private CompositeDisposable disposeBag { get; }
 
         private readonly IObservable<IObservable<TElement>> executionObservables;
 
@@ -27,7 +28,7 @@ namespace Toggl.Multivac.Extensions
                 enabledIf = Observable.Return(true);
             }
 
-            DisposeBag = new CompositeDisposable();
+            disposeBag = new CompositeDisposable();
             Inputs = new Subject<TInput>();
 
             var enabledSubject = new BehaviorSubject<bool>(false);
@@ -76,7 +77,7 @@ namespace Toggl.Multivac.Extensions
 
             Observable.CombineLatest(Executing, enabledIf, (executing, enabled) => !executing && enabled)
                 .Subscribe(enabledSubject)
-                .DisposedBy(DisposeBag);
+                .DisposedBy(disposeBag);
         }
 
         public IObservable<TElement> Execute(TInput value)
@@ -91,7 +92,7 @@ namespace Toggl.Multivac.Extensions
                 .Take(1)
                 .SelectMany(CommonFunctions.Identity)
                 .Subscribe(subject)
-                .DisposedBy(DisposeBag);
+                .DisposedBy(disposeBag);
 
             Inputs.OnNext(value);
             return subject.AsObservable();
@@ -99,7 +100,7 @@ namespace Toggl.Multivac.Extensions
 
         public void Dispose()
         {
-            DisposeBag?.Dispose();
+            disposeBag?.Dispose();
         }
     }
 }

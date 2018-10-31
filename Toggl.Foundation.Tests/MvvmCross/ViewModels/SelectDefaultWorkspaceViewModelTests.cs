@@ -96,7 +96,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
                 var selectedWorkspace = ViewModel.Workspaces.First();
 
-                await ViewModel.SelectWorkspaceAction.Execute(selectedWorkspace);
+                await ViewModel.SelectWorkspace.Execute(selectedWorkspace);
 
                 InteractorFactory.Received().SetDefaultWorkspace(selectedWorkspace.WorkspaceId);
                 await setDefaultWorkspaceInteractor.Received().Execute();
@@ -107,7 +107,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var selectedWorkspace = new SelectableWorkspaceViewModel(new MockWorkspace(), false);
 
-                await ViewModel.SelectWorkspaceAction.Execute(selectedWorkspace);
+                await ViewModel.SelectWorkspace.Execute(selectedWorkspace);
 
                 await NavigationService.Received().Close(ViewModel);
             }

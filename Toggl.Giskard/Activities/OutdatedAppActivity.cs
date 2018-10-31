@@ -24,8 +24,8 @@ namespace Toggl.Giskard.Activities
             OverridePendingTransition(Resource.Animation.abc_fade_in, Resource.Animation.abc_fade_out);
             initializeViews();
 
-            this.Bind(updateAppButton.Rx().Tap(), ViewModel.UpdateAppAction);
-            this.Bind(openWebsiteButton.Rx().Tap(), ViewModel.OpenWebsiteAction);
+            this.Bind(updateAppButton.Rx().Tap(), ViewModel.UpdateApp);
+            this.Bind(openWebsiteButton.Rx().Tap(), ViewModel.OpenWebsite);
         }
     }
 }

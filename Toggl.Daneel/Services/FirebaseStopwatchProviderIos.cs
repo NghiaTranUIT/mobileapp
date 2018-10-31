@@ -3,7 +3,7 @@ using Toggl.Foundation.Diagnostics;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class IosFirebaseStopwatchProvider : BaseStopwatchProvider
+    public sealed class FirebaseStopwatchProviderIos : BaseStopwatchProvider
     {
         protected override IStopwatch NativeCreate(MeasuredOperation operation)
             => new IosFirebaseStopwatch(operation);

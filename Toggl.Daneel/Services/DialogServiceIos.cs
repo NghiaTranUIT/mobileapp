@@ -10,11 +10,11 @@ using UIKit;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class DialogService : IDialogService
+    public sealed class DialogServiceIos : IDialogService
     {
         private readonly ITopViewControllerProvider topViewControllerProvider;
 
-        public DialogService(ITopViewControllerProvider topViewControllerProvider)
+        public DialogServiceIos(ITopViewControllerProvider topViewControllerProvider)
         {
             Ensure.Argument.IsNotNull(topViewControllerProvider, nameof(topViewControllerProvider));
 

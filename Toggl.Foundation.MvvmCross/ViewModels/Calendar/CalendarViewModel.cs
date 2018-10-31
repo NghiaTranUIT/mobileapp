@@ -53,7 +53,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
 
         public IObservable<DateTime> Date { get; }
 
-        public UIAction GetStartedAction { get; }
+        public UIAction GetStarted { get; }
 
         public UIAction SelectCalendars { get; }
 
@@ -120,7 +120,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
 
             Date = Observable.Return(timeService.CurrentDateTime.Date);
 
-            GetStartedAction = UIAction.FromAsync(getStarted);
+            GetStarted = UIAction.FromAsync(getStarted);
 
             OnItemTapped = InputAction<CalendarItem>.FromAsync(handleCalendarItem);
 

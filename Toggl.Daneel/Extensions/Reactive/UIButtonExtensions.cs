@@ -32,32 +32,5 @@ namespace Toggl.Daneel.Extensions.Reactive
                     null
                 );
             };
-
-        public static void BindToAction<TInput, TOutput>(this IReactive<UIButton> reactive, RxAction<TInput, TOutput> action, Func<UIButton, TInput> transform)
-        {
-            reactive.Tap()
-                .Select(_ => transform(reactive.Base))
-                .Subscribe(action.Inputs)
-                .DisposedBy(action.DisposeBag);
-
-            action.Enabled
-                .Subscribe(e => { reactive.Base.Enabled = e; })
-                .DisposedBy(action.DisposeBag);
-        }
-
-        public static void BindToAction<TInput, TOutput>(this IReactive<UIButton> reactive, RxAction<TInput, TOutput> action, TInput input)
-        {
-            reactive.BindToAction(action, _ => input);
-        }
-
-        public static void BindToAction<TOutput>(this IReactive<UIButton> reactive, RxAction<Unit, TOutput> action)
-        {
-            reactive.BindToAction(action, Unit.Default);
-        }
-
-        public static void BindToAction(this IReactive<UIButton> reactive, UIAction action)
-        {
-            reactive.BindToAction(action, Unit.Default);
-        }
     }
 }

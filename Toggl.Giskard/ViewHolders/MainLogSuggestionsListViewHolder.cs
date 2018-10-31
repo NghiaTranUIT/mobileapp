@@ -47,7 +47,7 @@ namespace Toggl.Giskard.ViewHolders
 
 
             mainSuggestionsRecyclerAdapter = new MainSuggestionsRecyclerAdapter();
-            this.Bind(mainSuggestionsRecyclerAdapter.SuggestionTaps, suggestionsViewModel.StartTimeEntryAction.Inputs);
+            this.Bind(mainSuggestionsRecyclerAdapter.SuggestionTaps, suggestionsViewModel.StartTimeEntry.Inputs);
 
             suggestionsRecyclerView.SetAdapter(mainSuggestionsRecyclerAdapter);
 

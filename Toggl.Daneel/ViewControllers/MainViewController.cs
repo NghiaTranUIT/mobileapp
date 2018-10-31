@@ -151,7 +151,7 @@ namespace Toggl.Daneel.ViewControllers
 
             // Refresh Control
             var refreshControl = new RefreshControl(ViewModel.SyncProgressState, tableViewSource);
-            this.Bind(refreshControl.Refresh, ViewModel.RefreshAction);
+            this.Bind(refreshControl.Refresh, ViewModel.Refresh);
             TimeEntriesLogTableView.CustomRefreshControl = refreshControl;
 
             //Commands
@@ -217,7 +217,7 @@ namespace Toggl.Daneel.ViewControllers
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.RatingViewModel.CloseFeedbackSuccessView);
 
             // Suggestion View
-            this.Bind(suggestionsView.SuggestionTapped, ViewModel.SuggestionsViewModel.StartTimeEntryAction);
+            this.Bind(suggestionsView.SuggestionTapped, ViewModel.SuggestionsViewModel.StartTimeEntry);
             this.Bind(ViewModel.SuggestionsViewModel.IsEmpty.Invert(), suggestionsView.Rx().IsVisible());
             this.Bind(ViewModel.SuggestionsViewModel.Suggestions, suggestionsView.OnSuggestions);
 
@@ -285,7 +285,7 @@ namespace Toggl.Daneel.ViewControllers
             if (SharedStorage.instance.GetNeedsSync())
             {
                 SharedStorage.instance.SetNeedsSync(false);
-                ViewModel.RefreshAction.Execute();
+                ViewModel.Refresh.Execute();
             }
             trackSiriEvents();
         }

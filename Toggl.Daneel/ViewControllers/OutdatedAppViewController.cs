@@ -32,8 +32,8 @@ namespace Toggl.Daneel.ViewControllers
                 Height = cardHeight
             };
 
-            this.Bind(UpdateButton.Rx().Tap(), ViewModel.UpdateAppAction);
-            this.Bind(WebsiteButton.Rx().Tap(), ViewModel.OpenWebsiteAction);
+            this.Bind(UpdateButton.Rx().Tap(), ViewModel.UpdateApp);
+            this.Bind(WebsiteButton.Rx().Tap(), ViewModel.OpenWebsite);
         }
 
     }

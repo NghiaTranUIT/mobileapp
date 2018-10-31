@@ -5,7 +5,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Services
 {
-    public sealed class BrowserService : IBrowserService
+    public sealed class BrowserServiceIos : IBrowserService
     {
         public void OpenStore()
         {

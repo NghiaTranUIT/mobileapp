@@ -832,7 +832,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task NavigatesToCalendarSettingsViewModel()
             {
-                await ViewModel.OpenCalendarSettingsAction.Execute(Unit.Default);
+                await ViewModel.OpenCalendarSettings.Execute(Unit.Default);
 
                 await NavigationService.Received().Navigate<CalendarSettingsViewModel>();
             }
