@@ -33,7 +33,7 @@ namespace Toggl.Daneel.ViewControllers
             this.Bind(tableViewSource.ItemSelected, ViewModel.SelectClientAction);
             this.Bind(tableViewSource.SuggestCreationTapped, ViewModel.CreateClientAction);
 
-            this.Bind(ViewModel.CreationSuggestion.Debug("CREATION SUGGESTION"), tableViewSource.SuggestCreation);
+            this.Bind(ViewModel.CreationSuggestion, tableViewSource.SuggestCreation);
             this.Bind(ViewModel.ClientFilterText, tableViewSource.SuggestCreationName);
 
             SuggestionsTableView
