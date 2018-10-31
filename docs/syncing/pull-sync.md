@@ -32,12 +32,12 @@ Conflict resolution
 
 We use conflict resolution and rivals resolution to avoid any data inconsistencies in our database - namely to prevent having two running time entries at one time in the database. There is a [dedicated chapter](conflict-resolution.md) which describes the conflict resolution algorithms.
 
-Ghost entities
---------------
+Placeholders
+------------
 
 Time entries keep references to the projects even after the projects were _archived_ (and possibly in other scenarios where user loses access to a project), this means that we cannot rely on the projects being in the database even if we respect the order of persisting the entities by types.
 
-To prevent the app from crashing and to increase the UX of the app, we create "ghost entities" 👻 for projects which are referenced by time entries but are not in the database instead of ignoring them or removing these references. We then later try to fetch the details of these projects using the reports API. This way we will be able to update our local data when user gains back the access to a project or if the project becomes active again.
+To prevent the app from crashing and to increase the UX of the app, we create placeholders for the projects which are referenced by time entries but are not in the database instead of ignoring them or removing these references. We then later try to fetch the details of these projects using the reports API. This way we will be able to update our local data when user gains back the access to a project or if the project becomes active again.
 
 Pruning old data
 ----------------
@@ -45,7 +45,7 @@ Pruning old data
 After all data is pulled and persisted, we remove unnecessary data as part of the pull-sync loop.
 
 - We remove any _time entry_ which was started more than _two months_ ago.
-- We remove any _ghost project_ which is not referenced by any time entry in the database.
+- We remove any _project placeholder_ which is not referenced by any time entry in the database.
 
 _Note: we might move the pruning to a separate loop in the future._
 
@@ -73,7 +73,7 @@ Individual states are instances of the `PersistSingletonState` (user, preference
 
 This basic logic is then wrapped in `SinceDateUpdatingPersistState` for the entities for which we store the `since` date. All states are wrapped with `ApiExceptionCatchingPersistState` which catches known exceptions and leads into the retry loop.
 
-The logic of creating project ghosts is implemented in the `CreateGhostProjectsState` and fetching the details of these projects using the reports API is done in `TryFetchInaccessibleProjectsState`.
+The logic of creating project placeholders is implemented in the `CreateArchivedProjectPlaceholdersState` and fetching the details of these projects using the reports API is done in `TryFetchInaccessibleProjectsState`.
 
 Retry loop uses the `CheckServerStatusState` and the `ResetAPIDelayState`.
 

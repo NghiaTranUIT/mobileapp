@@ -8,6 +8,8 @@ namespace Toggl.Foundation.Interactors
     {
         public IInteractor<IObservable<IEnumerable<SyncFailureItem>>> GetItemsThatFailedToSync()
             => new GetItemsThatFailedToSyncInteractor(dataSource);
+
+        public IInteractor<IObservable<bool>> HasFinishedSyncBefore()
+            => new HasFinsihedSyncBeforeInteractor(dataSource);
     }
 }
-

@@ -107,6 +107,30 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Reactive, Version=4.1.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263">
+      <HintPath>..\packages\System.Reactive.4.1.2\lib\netstandard2.0\System.Reactive.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces, Version=3.0.6000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263">
+      <HintPath>..\packages\System.Reactive.Interfaces.4.1.2\lib\netstandard2.0\System.Reactive.Interfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Linq, Version=3.0.6000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263">
+      <HintPath>..\packages\System.Reactive.Linq.4.1.2\lib\netstandard2.0\System.Reactive.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices, Version=3.0.6000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263">
+      <HintPath>..\packages\System.Reactive.PlatformServices.4.1.2\lib\netstandard2.0\System.Reactive.PlatformServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.1\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.iOS" />
@@ -118,9 +142,6 @@
     </Reference>
     <Reference Include="OnePasswordExtension">
       <HintPath>..\packages\Xamarin.1PasswordExtension.1.8.4\lib\Xamarin.iOS10\OnePasswordExtension.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.PlatformServices">
-      <HintPath>..\packages\System.Reactive.PlatformServices.3.0.0\lib\netstandard1.3\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
     <Reference Include="Google.Core">
       <HintPath>..\packages\Xamarin.Google.iOS.Core.3.1.0\lib\Xamarin.iOS10\Google.Core.dll</HintPath>
@@ -161,15 +182,6 @@
     <Reference Include="Realm.Sync">
       <HintPath>..\packages\Realm.3.0.0\lib\netstandard1.4\Realm.Sync.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reactive">
-      <HintPath>..\packages\System.Reactive.4.0.0\lib\netstandard2.0\System.Reactive.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.Linq">
-      <HintPath>..\packages\System.Reactive.Linq.4.0.0\lib\netstandard2.0\System.Reactive.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
     <Reference Include="Firebase.Core">
       <HintPath>..\packages\Xamarin.Firebase.iOS.Core.4.0.13.1\lib\Xamarin.iOS10\Firebase.Core.dll</HintPath>
     </Reference>
@@ -193,12 +205,6 @@
     </Reference>
     <Reference Include="System.Reactive.Core">
       <HintPath>..\packages\System.Reactive.Core.4.0.0\lib\netstandard2.0\System.Reactive.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.Interfaces">
-      <HintPath>..\packages\System.Reactive.Interfaces.4.0.0\lib\netstandard2.0\System.Reactive.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.PlatformServices">
-      <HintPath>..\packages\System.Reactive.PlatformServices.4.0.0\lib\netstandard2.0\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
     <Reference Include="Firebase.Core">
       <HintPath>..\packages\Xamarin.Firebase.iOS.Core.4.0.13.1\lib\Xamarin.iOS10\Firebase.Core.dll</HintPath>
@@ -553,6 +559,8 @@
     <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\icCalendarSmall.png" />
     <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\icCalendarSmall%402x.png" />
     <ImageAsset Include="Resources\Images.xcassets\icCalendarSmall.imageset\icCalendarSmall%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\togglLogoWithoutTextRed.imageset\Contents.json" />
+    <ImageAsset Include="Resources\Images.xcassets\togglLogoWithoutTextRed.imageset\togglLogoRed.pdf" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -632,6 +640,8 @@
     <InterfaceDefinition Include="ViewControllers\Settings\NotificationSettingsViewController.xib" />
     <InterfaceDefinition Include="ViewControllers\Settings\UpcomingEventsNotificationSettingsViewController.xib" />
     <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
+    <InterfaceDefinition Include="ViewControllers\SelectDefaultWorkspaceViewController.xib" />
+    <InterfaceDefinition Include="Cells\SelectDefaultWorkspaceTableViewCell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -648,12 +658,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analytics\SiriTrackableEvent.cs" />
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
+    <Compile Include="Extensions\Reactive\ReactiveBindingHolderExtensions.cs" />
     <Compile Include="Extensions\SectionedIndexExtensions.cs" />
-    <Compile Include="Services\PermissionsService.cs" />
-    <Compile Include="Services\CalendarService.cs" />
+    <Compile Include="Services\PermissionsServiceIos.cs" />
+    <Compile Include="Services\CalendarServiceIos.cs" />
     <Compile Include="Extensions\Reactive\NSConstraintExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIApplicationExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIButtonExtensions.cs" />
@@ -663,8 +675,8 @@
     <Compile Include="Extensions\Reactive\UITableViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\UITextViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIViewExtensions.cs" />
-    <Compile Include="Services\IntentDonationService.cs" />
-    <Compile Include="Services\UserDefaultsStorage.cs" />
+    <Compile Include="Services\IntentDonationServiceIos.cs" />
+    <Compile Include="Services\UserDefaultsStorageIos.cs" />
     <Compile Include="Startup\IOSSchedulerProvider.cs" />
     <Compile Include="Startup\Setup.cs" />
     <Compile Include="Startup\SetupTargetFactories.cs">
@@ -681,7 +693,7 @@
       <DependentUpon>OnboardingViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Binding\ViewAnimatedBackgroundTargetBinding.cs" />
-    <Compile Include="Services\OnePasswordService.cs" />
+    <Compile Include="Services\OnePasswordServiceIos.cs" />
     <Compile Include="ViewControllers\Navigation\OnboardingFlowNavigationController.cs" />
     <Compile Include="Binding\BarButtonCommandTargetBinding.cs" />
     <Compile Include="Binding\ViewAnimatedVisibilityTargetBinding.cs" />
@@ -760,7 +772,7 @@
     <Compile Include="Views\Onboarding\ReportsPage.designer.cs">
       <DependentUpon>ReportsPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\DialogService.cs" />
+    <Compile Include="Services\DialogServiceIos.cs" />
     <Compile Include="Views\FadeView.cs" />
     <Compile Include="Views\Interfaces\IHeaderViewCellWithHideableTopSeparator.cs" />
     <Compile Include="Binding\NavigationItemHidesBackButtonTargetBinding.cs" />
@@ -798,8 +810,8 @@
     <Compile Include="ViewControllers\OutdatedAppViewController.designer.cs">
       <DependentUpon>OutdatedAppViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\BrowserService.cs" />
-    <Compile Include="Services\GoogleService.cs" />
+    <Compile Include="Services\BrowserServiceIos.cs" />
+    <Compile Include="Services\GoogleServiceIos.cs" />
     <Compile Include="ViewControllers\TokenResetViewController.cs" />
     <Compile Include="ViewControllers\TokenResetViewController.designer.cs">
       <DependentUpon>TokenResetViewController.cs</DependentUpon>
@@ -922,10 +934,10 @@
     <Compile Include="Binding\SpiderOnARopeViewIsVisibleTargetBinding.cs" />
     <Compile Include="ApplicationShortcutCreator.cs" />
     <Compile Include="Extensions\PointExtensions.cs" />
-    <Compile Include="Services\MailService.cs" />
+    <Compile Include="Services\MailServiceIos.cs" />
     <Compile Include="Autocomplete\TokenTextAttachment.cs" />
     <Compile Include="Autocomplete\AutocompleteExtensions.cs" />
-    <Compile Include="Services\AnalyticsService.cs" />
+    <Compile Include="Services\AnalyticsServiceIos.cs" />
     <Compile Include="Views\AutocompleteTextViewPlaceholder.cs" />
     <Compile Include="Views\EditDuration\DurationField.cs" />
     <Compile Include="Views\EditDuration\NumberKeyPressedEventArgs.cs" />
@@ -935,9 +947,8 @@
     <Compile Include="Views\Suggestions\SuggestionView.designer.cs">
       <DependentUpon>SuggestionView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Converters\CollectionSizeToHeightConverter.cs" />
     <Compile Include="Binding\LayoutConstraintConstantTargetBinding.cs" />
-    <Compile Include="Services\LicenseProvider.cs" />
+    <Compile Include="Services\LicenseProviderIos.cs" />
     <Compile Include="Views\Settings\DateFormatViewCell.cs" />
     <Compile Include="Views\Settings\DateFormatViewCell.designer.cs">
       <DependentUpon>DateFormatViewCell.cs</DependentUpon>
@@ -1019,9 +1030,9 @@
       <DependentUpon>TermsOfServiceViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\RangeExtensions.cs" />
-    <Compile Include="Services\RemoteConfigService.cs" />
+    <Compile Include="Services\RemoteConfigServiceIos.cs" />
     <Compile Include="Extensions\ImageExtension.cs" />
-    <Compile Include="Services\RatingService.cs" />
+    <Compile Include="Services\RatingServiceIos.cs" />
     <Compile Include="ViewControllers\ReactiveViewController.cs" />
     <Compile Include="Cells\BaseTableViewCell.cs" />
     <Compile Include="Cells\BaseTableHeaderFooterView.cs" />
@@ -1109,7 +1120,7 @@
     <Compile Include="Cells\Calendar\EditingHourSupplementaryView.designer.cs">
       <DependentUpon>EditingHourSupplementaryView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\NotificationService.cs" />
+    <Compile Include="Services\NotificationServiceIos.cs" />
     <Compile Include="Extensions\NotificationExtensions.cs" />
     <Compile Include="ViewControllers\Settings\NotificationSettingsViewController.cs" />
     <Compile Include="ViewControllers\Settings\NotificationSettingsViewController.designer.cs">
@@ -1130,7 +1141,7 @@
     <Compile Include="Extensions\Reactive\UIControlExtensions.cs" />
     <Compile Include="Binding\LayoutConstraintActiveTargetBinding.cs" />
     <Compile Include="ViewControllers\IDismissableViewController.cs" />
-    <Compile Include="Services\PrivateSharedStorageService.cs" />
+    <Compile Include="Services\PrivateSharedStorageServiceIos.cs" />
     <Compile Include="Extensions\Reactive\FadeViewExtensions.cs" />
     <Compile Include="Extensions\Reactive\NSObjectExtensions.cs" />
     <Compile Include="Extensions\Reactive\UIStackViewExtensions.cs" />
@@ -1138,6 +1149,16 @@
     <Compile Include="Views\Reports\BarView.cs" />
     <Compile Include="Views\Reports\BarLegendLabel.cs" />
     <Compile Include="Views\Reports\EmptyBarView.cs" />
+    <Compile Include="Extensions\Reactive\UIBarButtonItemExtensions.cs" />
+    <Compile Include="Services\FirebaseStopwatchProviderIos.cs" />
+    <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.cs" />
+    <Compile Include="ViewControllers\SelectDefaultWorkspaceViewController.designer.cs">
+      <DependentUpon>SelectDefaultWorkspaceViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.cs" />
+    <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.designer.cs">
+      <DependentUpon>SelectDefaultWorkspaceTableViewCell.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation.MvvmCross\Toggl.Foundation.MvvmCross.csproj">

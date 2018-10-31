@@ -23,6 +23,7 @@ namespace Toggl.Giskard.Fragments
     using System.Reactive.Linq;
     using System.Threading;
     using Toggl.Giskard.Views;
+    using Toggl.Multivac;
     using static SelectTimeFragment.EditorMode;
     using static SelectTimeViewModel;
     using static SelectTimeViewModel.TemporalInconsistency;
@@ -51,6 +52,8 @@ namespace Toggl.Giskard.Fragments
         private FrameLayout stopTimePickerContainer;
         private TogglDroidTimePicker startTimePicker;
         private TogglDroidTimePicker stopTimePicker;
+        private TogglDroidDatePicker startDatePicker;
+        private TogglDroidDatePicker stopDatePicker;
 
         private LinearLayout controlButtons;
         private TabLayout tabLayout;
@@ -112,6 +115,12 @@ namespace Toggl.Giskard.Fragments
 
                 startTimePickerContainer = view.FindViewById<FrameLayout>(Resource.Id.SelectStartTimeClockViewContainer);
                 stopTimePickerContainer = view.FindViewById<FrameLayout>(Resource.Id.SelectStopTimeClockViewContainer);
+
+                startDatePicker = view.FindViewById<TogglDroidDatePicker>(Resource.Id.SelectStartTimeCalendarView);
+                stopDatePicker = view.FindViewById<TogglDroidDatePicker>(Resource.Id.SelectStopTimeCalendarView);
+
+                stopDatePicker.BeginningOfWeek = ViewModel.BeginningOfWeek;
+                startDatePicker.BeginningOfWeek = ViewModel.BeginningOfWeek;
 
                 on24HoursModeChangeDisposable = ViewModel.Is24HoursModeObservable
                     .ObserveOn(SynchronizationContext.Current)

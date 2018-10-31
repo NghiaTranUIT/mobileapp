@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:importantForAutofill="noExcludeDescendants">
     <toggl.giskard.views.StartTimeEntryRecyclerView
+        android:id="@+id/StartTimeEntryRecyclerView"
         local:MvxBind="ItemsSource Suggestions; ItemClick SelectSuggestionCommand; CreateCommand CreateCommand; Text CurrentQuery; UseGrouping UseGrouping; IsSuggestingCreation SuggestCreation; IsSuggestingProjects IsSuggestingProjects; ToggleTasksCommand ToggleTaskSuggestionsCommand"
         tools:visibility="gone"
         android:scrollbars="vertical"

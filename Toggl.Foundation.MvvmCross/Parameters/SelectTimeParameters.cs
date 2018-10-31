@@ -25,10 +25,12 @@ namespace Toggl.Foundation.MvvmCross.Parameters
         public DateFormat DateFormat { get; private set; }
         public TimeFormat TimeFormat { get; private set; }
 
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
+
         public int StartingTabIndex { get; private set; }
         public bool ShouldStartOnCalendar { get; private set; }
 
-        public static SelectTimeParameters CreateFromOrigin(Origin origin, DateTimeOffset start, DateTimeOffset? stop = null)
+        public static SelectTimeParameters CreateFromOrigin(Origin origin, BeginningOfWeek beginningOfWeek, DateTimeOffset start, DateTimeOffset? stop = null)
         {
             var allowedParameters = new Dictionary<Origin, (int, bool)>
             {
@@ -49,11 +51,12 @@ namespace Toggl.Foundation.MvvmCross.Parameters
                 Start = start,
                 Stop = stop,
                 StartingTabIndex = tabIndex,
+                BeginningOfWeek = beginningOfWeek,
                 ShouldStartOnCalendar = shouldStartOnCalendar
             };
         }
 
-        public SelectTimeParameters WithFormats(DateFormat dateFormat, TimeFormat timeFormat) 
+        public SelectTimeParameters WithFormats(DateFormat dateFormat, TimeFormat timeFormat)
         {
             DateFormat = dateFormat;
             TimeFormat = timeFormat;

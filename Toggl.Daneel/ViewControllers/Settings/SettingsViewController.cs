@@ -58,10 +58,10 @@ namespace Toggl.Daneel.ViewControllers
             this.Bind(DurationFormatView.Rx().Tap(), ViewModel.SelectDurationFormat);
             this.BindVoid(ManualModeSwitch.Rx().Changed(), ViewModel.ToggleManualMode);
             this.Bind(BeginningOfWeekView.Rx().Tap(), ViewModel.SelectBeginningOfWeek);
-            this.Bind(CalendarSettingsView.Rx().Tap(), ViewModel.OpenCalendarSettingsAction);
+            this.Bind(CalendarSettingsView.Rx().Tap(), ViewModel.OpenCalendarSettings);
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.CloseFeedbackSuccessView);
-            this.Bind(NotificationSettingsView.Rx().Tap(), ViewModel.OpenNotificationSettingsAction);
-            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleUseTwentyFourHourClock);
+            this.Bind(NotificationSettingsView.Rx().Tap(), ViewModel.OpenNotificationSettings);
+            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleTwentyFourHourSettings);
 
             UIApplication.Notifications
                 .ObserveWillEnterForeground((sender, e) => startAnimations())

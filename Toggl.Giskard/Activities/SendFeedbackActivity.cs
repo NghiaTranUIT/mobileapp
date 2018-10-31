@@ -40,7 +40,7 @@ namespace Toggl.Giskard.Activities
             SupportActionBar.SetDisplayShowHomeEnabled(true);
 
             this.Bind(feedbackEditText.Rx().Text(), ViewModel.FeedbackText);
-            this.Bind(errorCard.Rx().Tap(), ViewModel.ErrorViewTapped);
+            this.Bind(errorCard.Rx().Tap(), ViewModel.DismissError);
 
             var sendButtonEnabled = ViewModel.SendEnabled.CombineLatest(ViewModel.IsLoading,
                 (sendIsEnabled, isLoading) => sendIsEnabled && !isLoading);
@@ -54,8 +54,8 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
             this.Bind(errorTextSubject, errorInfoText.Rx().TextObserver());
 
-            this.Bind(sendFeedbackSubject, ViewModel.SendButtonTapped);
-            this.Bind(closeSubject, ViewModel.CloseButtonTapped);
+            this.Bind(sendFeedbackSubject, ViewModel.Send);
+            this.Bind(closeSubject, ViewModel.Close);
             this.Bind(ViewModel.Error.Select(error => error != null), errorCard.Rx().IsVisible());
             this.Bind(ViewModel.IsLoading, progressBar.Rx().IsVisible());
             this.Bind(ViewModel.IsLoading.Invert(), feedbackEditText.Rx().Enabled());

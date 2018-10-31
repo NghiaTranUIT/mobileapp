@@ -8,6 +8,7 @@ using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
 using NSubstitute;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.DTOs;
 using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
@@ -18,10 +19,12 @@ using Toggl.Foundation.Tests.Generators;
 using Toggl.PrimeRadiant.Models;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Interactors;
+using Toggl.Foundation.Tests.Mocks;
 using Xunit;
 using static Toggl.Foundation.Helper.Constants;
 using static Toggl.Multivac.Extensions.StringExtensions;
 using Task = System.Threading.Tasks.Task;
+using Toggl.Foundation.Tests.Mocks;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -37,19 +40,28 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
             protected void ConfigureEditedTimeEntry(DateTimeOffset now, bool isRunning = false)
             {
-                var te = TimeEntry.Builder.Create(Id)
-                    .SetDescription("Something")
-                    .SetStart(now.AddHours(-2))
-                    .SetAt(now.AddHours(-2))
-                    .SetWorkspaceId(11)
-                    .SetUserId(12)
-                    .SetProjectId(13)
-                    .SetTaskId(14);
+                var workspace = new MockWorkspace { Id = 11 };
+                var user = new MockUser { Id = 12 };
+                var project = new MockProject { Id = 13 };
+                var task = new MockTask { Id = 14 };
 
-                if (!isRunning)
-                    te = te.SetDuration((long)Duration.TotalSeconds);
+                TheTimeEntry = new MockTimeEntry
+                {
+                    Id = Id,
+                    Task = task,
+                    TaskId = task.Id,
+                    UserId = user.Id,
+                    Project = project,
+                    TagIds = new long[0],
+                    Workspace = workspace,
+                    ProjectId = project.Id,
+                    At = now.AddHours(-2),
+                    Start = now.AddHours(-2),
+                    Description = "Something",
+                    WorkspaceId = workspace.Id,
+                    Duration = isRunning ? (long?)null : (long)Duration.TotalSeconds
+                };
 
-                TheTimeEntry = te.Build();
                 var observable = Observable.Return(TheTimeEntry);
 
                 DataSource.TimeEntries.GetById(Arg.Is(Id)).Returns(observable);
@@ -58,7 +70,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             protected override EditTimeEntryViewModel CreateViewModel()
-            => new EditTimeEntryViewModel(TimeService, DataSource, InteractorFactory, NavigationService, OnboardingStorage, DialogService, AnalyticsService);
+            => new EditTimeEntryViewModel(TimeService, DataSource, InteractorFactory, NavigationService, OnboardingStorage, DialogService, AnalyticsService, StopwatchProvider);
         }
 
         public sealed class TheConstructor : EditTimeEntryViewModelTest
@@ -72,7 +84,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useInteractorFactory,
                 bool useOnboardingStorage,
                 bool useDialogService,
-                bool useAnalyticsService)
+                bool useAnalyticsService,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -81,9 +94,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var onboardingStorage = useOnboardingStorage ? OnboardingStorage : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var analyticsService = useAnalyticsService ? AnalyticsService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new EditTimeEntryViewModel(timeService, dataSource, interactorFactory, navigationService, onboardingStorage, dialogService, analyticsService);
+                    () => new EditTimeEntryViewModel(timeService, dataSource, interactorFactory, navigationService, onboardingStorage, dialogService, analyticsService, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters.Should().Throw<ArgumentNullException>();
             }
@@ -94,25 +108,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public TheCloseCommand()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.Now, true);
-
-                var te = Substitute.For<IThreadSafeTimeEntry>();
-                var project = Substitute.For<IThreadSafeProject>();
-                var task = Substitute.For<IThreadSafeTask>();
-
-                project.Id.Returns(TheTimeEntry.ProjectId.Value);
-                task.Id.Returns(TheTimeEntry.TaskId.Value);
-
-                te.Description.Returns(TheTimeEntry.Description);
-                te.Start.Returns(TheTimeEntry.Start);
-                te.WorkspaceId.Returns(TheTimeEntry.WorkspaceId);
-                te.UserId.Returns(TheTimeEntry.UserId);
-                te.Project.Returns(project);
-                te.ProjectId.Returns(TheTimeEntry.ProjectId.Value);
-                te.Task.Returns(task);
-                te.TaskId.Returns(TheTimeEntry.TaskId.Value);
-
-                var observable = Observable.Return(te);
-                DataSource.TimeEntries.GetById(Arg.Is(Id)).Returns(observable);
 
                 ViewModel.Prepare(Id);
                 ViewModel.Initialize().Wait();
@@ -870,6 +865,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Initialize().Wait();
 
                 ViewModel.SyncErrorMessage.Should().Be(errorMessage);
+            }
+
+            [Fact, LogIfTooSlow]
+            public void SetsTheSyncErrorMessageWhenTheTimeEntryIsInaccessible()
+            {
+                timeEntry.IsInaccessible.Returns(true);
+                timeEntry.LastSyncErrorMessage.Returns("Some less important error message");
+
+                ViewModel.Prepare(Id);
+
+                ViewModel.Initialize().Wait();
+
+                ViewModel.SyncErrorMessage.Should().Be(Resources.InaccessibleTimeEntryErrorMessage);
             }
 
             [Theory, LogIfTooSlow]

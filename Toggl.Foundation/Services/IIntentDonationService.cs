@@ -16,6 +16,7 @@ namespace Toggl.Foundation.Services
 
     public interface IIntentDonationService
     {
+        void SetDefaultShortcutSuggestions(IWorkspace workspace);
         void DonateStartTimeEntry(IWorkspace workspace, ITimeEntry timeEntry);
         void DonateStopCurrentTimeEntry();
         void DonateShowReport(ReportPeriod period);

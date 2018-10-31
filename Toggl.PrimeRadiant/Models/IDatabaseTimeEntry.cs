@@ -3,7 +3,7 @@ using Toggl.Multivac.Models;
 
 namespace Toggl.PrimeRadiant.Models
 {
-    public interface IDatabaseTimeEntry : ITimeEntry, IDatabaseSyncable, IGhostable
+    public interface IDatabaseTimeEntry : ITimeEntry, IDatabaseSyncable, IPotentiallyInaccessible
     {
         IDatabaseTask Task { get; }
 

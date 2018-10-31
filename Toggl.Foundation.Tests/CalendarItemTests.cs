@@ -1,9 +1,10 @@
 ﻿using System;
 using FluentAssertions;
 using FsCheck.Xunit;
-using NSubstitute;
+using MvvmCross.UI;
 using Toggl.Foundation.Calendar;
 using Toggl.Foundation.Helper;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.PrimeRadiant;
 using Xunit;
@@ -74,6 +75,35 @@ namespace Toggl.Foundation.Tests
                 var calendarItem = CalendarItem.From(timeEntry);
 
                 calendarItem.Color.Should().Be(Color.NoProject);
+            }
+
+            [Theory, LogIfTooSlow]
+            [InlineData(Color.NoProject, "#FFFFFF")]
+            [InlineData("#000000", "#FFFFFF")]
+            [InlineData("#222222", "#FFFFFF")]
+            [InlineData("#FFFFFF", "#000000")]
+            [InlineData("#06AAF5", "#FFFFFF")]
+            [InlineData("#C56BFF", "#FFFFFF")]
+            [InlineData("#EA468D", "#FFFFFF")]
+            [InlineData("#FB8B14", "#FFFFFF")]
+            [InlineData("#C7741C", "#FFFFFF")]
+            [InlineData("#F1C33F", "#000000")]
+            [InlineData("#E20505", "#FFFFFF")]
+            [InlineData("#4BC800", "#FFFFFF")]
+            [InlineData("#04BB9B", "#FFFFFF")]
+            [InlineData("#E19A86", "#FFFFFF")]
+            [InlineData("#3750B5", "#FFFFFF")]
+            [InlineData("#A01AA5", "#FFFFFF")]
+            [InlineData("#205500", "#FFFFFF")]
+            [InlineData("#FFEEDD", "#000000")]
+            public void ShouldReturnTheExpectedForegroundColor(string color, string expectedColor)
+            {
+                var timeEntry = new MockTimeEntry { Project = new MockProject { Color = color } };
+
+                var calendarItem = CalendarItem.From(timeEntry);
+                var foregroundColor = calendarItem.ForegroundColor();
+
+                foregroundColor.Should().BeEquivalentTo(MvxColor.ParseHexString(expectedColor));
             }
         }
 

@@ -13,6 +13,8 @@ namespace Toggl.Giskard.Activities
 
         private View selectProjectToolbarButton;
 
+        private StartTimeEntryRecyclerView recyclerView;
+
         private void initializeViews()
         {
             durationLabel = FindViewById<TextView>(StartTimeEntryDurationText);
@@ -20,6 +22,8 @@ namespace Toggl.Giskard.Activities
             editText = FindViewById<AutocompleteEditText>(StartTimeEntryDescriptionTextField);
 
             selectProjectToolbarButton = FindViewById<View>(StartTimeEntryToolbarProject);
+
+            recyclerView = FindViewById<StartTimeEntryRecyclerView>(Resource.Id.StartTimeEntryRecyclerView);
         }
     }
 }

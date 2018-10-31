@@ -34,6 +34,6 @@ namespace Toggl.PrimeRadiant.Realm
 
         public IDatabaseUser User => RealmUser;
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 }

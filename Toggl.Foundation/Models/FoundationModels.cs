@@ -60,7 +60,7 @@ namespace Toggl.Foundation.Models
 
         public DateTimeOffset? ServerDeletedAt { get; }
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 
     internal partial class Tag : IThreadSafeTag
@@ -85,7 +85,7 @@ namespace Toggl.Foundation.Models
 
         public DateTimeOffset? ServerDeletedAt { get; }
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 
     internal partial class Task : IThreadSafeTask
@@ -126,7 +126,7 @@ namespace Toggl.Foundation.Models
 
         public DateTimeOffset At { get; }
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 
     internal partial class TimeEntry : IThreadSafeTimeEntry
@@ -181,7 +181,7 @@ namespace Toggl.Foundation.Models
 
         public DateTimeOffset? ServerDeletedAt { get; }
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 
     internal partial class User : IThreadSafeUser
@@ -249,7 +249,7 @@ namespace Toggl.Foundation.Models
 
         public DateTimeOffset? ServerDeletedAt { get; }
 
-        public bool IsGhost { get; }
+        public bool IsInaccessible { get; }
     }
 
     internal partial class WorkspaceFeature : IThreadSafeWorkspaceFeature

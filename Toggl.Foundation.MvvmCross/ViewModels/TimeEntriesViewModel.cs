@@ -63,8 +63,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 descending: true
             );
 
-            DelayDeleteTimeEntry = new InputAction<TimeEntryViewModel>(delayDeleteTimeEntry);
-            CancelDeleteTimeEntry = new UIAction(cancelDeleteTimeEntry);
+            DelayDeleteTimeEntry = InputAction<TimeEntryViewModel>.FromAction(delayDeleteTimeEntry);
+            CancelDeleteTimeEntry = UIAction.FromAction(cancelDeleteTimeEntry);
 
             ShouldShowUndo = showUndoSubject.AsObservable().AsDriver(schedulerProvider);
         }
@@ -93,7 +93,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DisposedBy(disposeBag);
         }
 
-        private IObservable<Unit> delayDeleteTimeEntry(TimeEntryViewModel timeEntry)
+        public async Task ReloadData()
+        {
+            await fetchSectionedTimeEntries();
+        }
+
+        private void delayDeleteTimeEntry(TimeEntryViewModel timeEntry)
         {
             timeEntryToDelete = timeEntry;
 
@@ -112,11 +117,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         showUndoSubject.OnNext(false);
                 })
                 .Subscribe();
-
-            return Observable.Return(Unit.Default);
         }
 
-        private IObservable<Unit> cancelDeleteTimeEntry()
+        private void cancelDeleteTimeEntry()
         {
             if (!TimeEntries.IndexOf(timeEntryToDelete.Id).HasValue)
             {
@@ -126,7 +129,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             timeEntryToDelete = null;
             delayedDeletionDisposable.Dispose();
             showUndoSubject.OnNext(false);
-            return Observable.Return(Unit.Default);
         }
 
         private IObservable<TimeEntryViewModel> deleteTimeEntry(TimeEntryViewModel timeEntry)
@@ -144,7 +146,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task fetchSectionedTimeEntries()
         {
-            var groupedEntries = await interactorFactory.GetAllNonDeletedTimeEntries().Execute()
+            var groupedEntries = await interactorFactory.GetAllTimeEntriesVisibleToTheUser().Execute()
                 .Select(entries => entries
                     .Where(isNotRunning)
                     .Where(timeEntry => timeEntry.Id != timeEntryToDelete?.Id)

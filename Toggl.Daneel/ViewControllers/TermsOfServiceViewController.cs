@@ -4,6 +4,8 @@ using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Views;
 using MvvmCross.Plugin.Color.Platforms.Ios;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Helper;
@@ -15,7 +17,7 @@ namespace Toggl.Daneel.ViewControllers
 {
     [ModalDialogPresentation]
     public sealed partial class TermsOfServiceViewController
-        : MvxViewController<TermsOfServiceViewModel>
+        : ReactiveViewController<TermsOfServiceViewModel>
     {
         private const int fontSize = 15;
 
@@ -26,13 +28,14 @@ namespace Toggl.Daneel.ViewControllers
         {
             Font = UIFont.SystemFontOfSize(fontSize)
         };
+
         private readonly UIStringAttributes highlitedTextAttributes = new UIStringAttributes
         {
             Font = UIFont.SystemFontOfSize(fontSize),
             ForegroundColor = Color.Signup.HighlightedText.ToNativeColor()
         };
 
-        public TermsOfServiceViewController() : base(nameof(TermsOfServiceViewController), null)
+        public TermsOfServiceViewController() : base(nameof(TermsOfServiceViewController))
         {
         }
 
@@ -43,12 +46,8 @@ namespace Toggl.Daneel.ViewControllers
             PreferredContentSize = new CGSize(View.Frame.Width, View.Frame.Height);
             prepareTextView();
 
-            var bindingSet = this.CreateBindingSet<TermsOfServiceViewController, TermsOfServiceViewModel>();
-
-            bindingSet.Bind(CloseButton).To(vm => vm.CloseCommand);
-            bindingSet.Bind(AcceptButton).To(vm => vm.AcceptCommand);
-
-            bindingSet.Apply();
+            this.Bind(AcceptButton.Rx().Tap(), ViewModel.Accept);
+            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
         }
 
         private void prepareTextView()
@@ -75,10 +74,10 @@ namespace Toggl.Daneel.ViewControllers
             var characterIndex = layoutManager.CharacterIndexForPoint(location, TextView.TextContainer, ref _);
 
             if (termsOfServiceTextRange.ContainsNumber(characterIndex))
-                ViewModel.ViewTermsOfServiceCommand.Execute();
+                ViewModel.ViewTermsOfService.Execute();
 
             if (privacyPolicyRange.ContainsNumber(characterIndex))
-                ViewModel.ViewPrivacyPolicyCommand.Execute();
+                ViewModel.ViewPrivacyPolicy.Execute();
         }
     }
 }

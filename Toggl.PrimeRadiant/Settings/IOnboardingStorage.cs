@@ -25,7 +25,7 @@ namespace Toggl.PrimeRadiant.Settings
         void SetTimeEntryContinued();
         void SetCompletedCalendarOnboarding();
 
-        string GetLastOpened();
+        DateTimeOffset? GetLastOpened();
         DateTimeOffset? GetFirstOpened();
         bool CompletedOnboarding();
         bool CompletedCalendarOnboarding();

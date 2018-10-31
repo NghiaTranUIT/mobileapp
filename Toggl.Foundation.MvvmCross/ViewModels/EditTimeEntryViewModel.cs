@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
@@ -9,6 +11,7 @@ using MvvmCross.ViewModels;
 using PropertyChanged;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.DTOs;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
@@ -20,8 +23,6 @@ using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Settings;
 using static Toggl.Foundation.Helper.Constants;
 using SelectTimeOrigin = Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
-using System.Reactive.Subjects;
-using System.Reactive;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -37,11 +38,15 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
         private readonly IOnboardingStorage onboardingStorage;
         private readonly IAnalyticsService analyticsService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private readonly HashSet<long> tagIds = new HashSet<long>();
         private IDisposable tickingDisposable;
         private IDisposable confirmDisposable;
         private IDisposable preferencesDisposable;
+        private IDisposable userDisposable;
+        private IStopwatch stopwatchFromCalendar;
+        private IStopwatch stopwatchFromMainLog;
 
         private IThreadSafeTimeEntry originalTimeEntry;
 
@@ -123,6 +128,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public TimeFormat TimeFormat { get; private set; }
 
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
+
         public DateTimeOffset StartTime { get; set; }
 
         [DependsOn(nameof(StopTime))]
@@ -165,6 +172,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public bool SyncErrorMessageVisible { get; private set; }
 
+        public bool IsInaccessible { get; set; }
+
         public IMvxCommand ConfirmCommand { get; }
 
         public IMvxCommand SaveCommand { get; }
@@ -204,7 +213,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IMvxNavigationService navigationService,
             IOnboardingStorage onboardingStorage,
             IDialogService dialogService,
-            IAnalyticsService analyticsService)
+            IAnalyticsService analyticsService,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
@@ -213,6 +223,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(onboardingStorage, nameof(onboardingStorage));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             Ensure.Argument.IsNotNull(analyticsService, nameof(analyticsService));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.timeService = timeService;
@@ -221,6 +232,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.onboardingStorage = onboardingStorage;
             this.analyticsService = analyticsService;
+            this.stopwatchProvider = stopwatchProvider;
 
             DeleteCommand = new MvxAsyncCommand(delete);
             ConfirmCommand = new MvxCommand(confirm);
@@ -230,19 +242,22 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             StopCommand = new MvxCommand(stopTimeEntry, () => IsTimeEntryRunning);
             StopTimeEntryCommand = new MvxAsyncCommand<SelectTimeOrigin>(onStopTimeEntryCommand);
 
-            SelectStartTimeCommand = new MvxAsyncCommand(selectStartTime);
-            SelectStopTimeCommand = new MvxAsyncCommand(selectStopTime);
-            SelectStartDateCommand = new MvxAsyncCommand(selectStartDate);
-            SelectDurationCommand = new MvxAsyncCommand(selectDuration);
-            SelectTimeCommand = new MvxAsyncCommand<SelectTimeOrigin>(selectTime);
+            SelectStartTimeCommand = new MvxAsyncCommand(selectStartTime, canExecute);
+            SelectStopTimeCommand = new MvxAsyncCommand(selectStopTime, canExecute);
+            SelectStartDateCommand = new MvxAsyncCommand(selectStartDate, canExecute);
+            SelectDurationCommand = new MvxAsyncCommand(selectDuration, canExecute);
+            SelectTimeCommand = new MvxAsyncCommand<SelectTimeOrigin>(selectTime, _ => canExecute());
 
             SelectProjectCommand = new MvxAsyncCommand(selectProject);
-            SelectTagsCommand = new MvxAsyncCommand(selectTags);
+            SelectTagsCommand = new MvxAsyncCommand(selectTags, canExecute);
             DismissSyncErrorMessageCommand = new MvxCommand(dismissSyncErrorMessageCommand);
-            ToggleBillableCommand = new MvxCommand(toggleBillable);
-            StartEditingDescriptionCommand = new MvxCommand(startEditingDescriptionCommand);
+            ToggleBillableCommand = new MvxCommand(toggleBillable, canExecute);
+            StartEditingDescriptionCommand = new MvxCommand(startEditingDescriptionCommand, canExecute);
 
             HasProject = hasProjectSubject.AsObservable();
+
+            bool canExecute()
+                => !IsInaccessible;
         }
 
         public override void Prepare(long parameter)
@@ -252,6 +267,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public override async Task Initialize()
         {
+            stopwatchFromCalendar = stopwatchProvider.Get(MeasuredOperation.EditTimeEntryFromCalendar);
+            stopwatchProvider.Remove(MeasuredOperation.EditTimeEntryFromCalendar);
+            stopwatchFromMainLog = stopwatchProvider.Get(MeasuredOperation.EditTimeEntryFromMainLog);
+            stopwatchProvider.Remove(MeasuredOperation.EditTimeEntryFromMainLog);
+
             var timeEntry = await dataSource.TimeEntries.GetById(Id);
             originalTimeEntry = timeEntry;
 
@@ -265,9 +285,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Client = timeEntry.Project?.Client?.Name;
             projectId = timeEntry.Project?.Id;
             taskId = timeEntry.Task?.Id;
-            SyncErrorMessage = timeEntry.LastSyncErrorMessage;
             workspaceId = timeEntry.WorkspaceId;
-            SyncErrorMessageVisible = !string.IsNullOrEmpty(SyncErrorMessage);
+            setErrorMessage(timeEntry);
+            IsInaccessible = timeEntry.IsInaccessible;
 
             onTags(timeEntry.Tags);
             foreach (var tagId in timeEntry.TagIds)
@@ -279,7 +299,19 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             preferencesDisposable = dataSource.Preferences.Current
                 .Subscribe(onPreferencesChanged);
 
+            userDisposable = dataSource.User.Current
+                .Subscribe(onUserChanged);
+
             await updateFeaturesAvailability();
+        }
+
+        public override void ViewAppeared()
+        {
+            base.ViewAppeared();
+            stopwatchFromCalendar?.Stop();
+            stopwatchFromCalendar = null;
+            stopwatchFromMainLog?.Stop();
+            stopwatchFromMainLog = null;
         }
 
         private void subscribeToTimeServiceTicks()
@@ -404,7 +436,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.EditViewTapped.Track(tapSource);
 
             var parameters = SelectTimeParameters
-                .CreateFromOrigin(origin, StartTime, StopTime)
+                .CreateFromOrigin(origin, BeginningOfWeek, StartTime, StopTime)
                 .WithFormats(DateFormat, TimeFormat);
 
             var data = await navigationService
@@ -457,6 +489,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.EditViewTapped.Track(EditViewTapSource.Project);
 
             onboardingStorage.SelectsProject();
+
+            var selectProjectStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenSelectProjectFromEditView, true);
+            selectProjectStopwatch.Start();
 
             var returnParameter = await navigationService
                 .Navigate<SelectProjectViewModel, SelectProjectParameter, SelectProjectParameter>(
@@ -511,6 +546,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             analyticsService.EditEntrySelectTag.Track();
             analyticsService.EditViewTapped.Track(EditViewTapSource.Tags);
+
+            var selectTagsStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenSelectTagsView);
+            selectTagsStopwatch.Start();
 
             var tagsToPass = tagIds.ToArray();
             var returnedTags = await navigationService
@@ -577,6 +615,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return $"{tag.UnicodeSafeSubstring(0, maxTagLength)}...";
         }
 
+        private void onUserChanged(IThreadSafeUser user)
+        {
+            BeginningOfWeek = user.BeginningOfWeek;
+        }
+
         private void onPreferencesChanged(IThreadSafePreferences preferences)
         {
             durationFormat = preferences.DurationFormat;
@@ -597,11 +640,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             confirmDisposable?.Dispose();
             tickingDisposable?.Dispose();
             preferencesDisposable?.Dispose();
+            userDisposable?.Dispose();
         }
 
         private void OnProjectChanged()
         {
             hasProjectSubject.OnNext(!string.IsNullOrWhiteSpace(Project));
+        }
+
+        private void setErrorMessage(IThreadSafeTimeEntry timeEntry)
+        {
+            SyncErrorMessage = timeEntry.IsInaccessible ? Resources.InaccessibleTimeEntryErrorMessage : timeEntry.LastSyncErrorMessage;
+            SyncErrorMessageVisible = timeEntry.IsInaccessible || !string.IsNullOrEmpty(SyncErrorMessage);
         }
     }
 }

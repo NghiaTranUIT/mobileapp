@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Toggl.Multivac;
 
 namespace Toggl.Foundation.Extensions
@@ -22,7 +23,7 @@ namespace Toggl.Foundation.Extensions
         }
 
         private static string convertToDecimalFormat(TimeSpan value)
-            => $"{value.TotalHours:00.00} {Resources.UnitHour}";
+            => string.Format(CultureInfo.InvariantCulture, "{0:00.00} {1}", value.TotalHours, Resources.UnitHour);
 
         private static string convertToImprovedFormat(TimeSpan value)
             => $@"{(int)value.TotalHours}:{value:mm\:ss}";

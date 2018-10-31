@@ -1,28 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using CoreGraphics;
 using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Commands;
 using MvvmCross.Platforms.Ios.Binding;
 using MvvmCross.Platforms.Ios.Views;
-using MvvmCross.WeakSubscription;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using MvvmCross.Plugin.Visibility;
+using MvvmCross.UI;
+using MvvmCross.WeakSubscription;
 using Toggl.Daneel.Combiners;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Presentation.Attributes;
-using Toggl.Daneel.Presentation.Transition;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Combiners;
 using Toggl.Foundation.MvvmCross.Converters;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Onboarding.EditView;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
-using System.Threading.Tasks;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -81,6 +83,13 @@ namespace Toggl.Daneel.ViewControllers
             );
             var stopRunningTimeEntryAndSelectStopTimeForStoppedConverter = new BoolToConstantValueConverter<IMvxCommand>(
                 ViewModel.StopCommand, ViewModel.SelectStopTimeCommand);
+
+            var isInaccessibleTextColorConverter = new BoolToConstantValueConverter<UIColor>(
+                Color.Common.Disabled.ToNativeColor(),
+                Color.Common.TextColor.ToNativeColor()
+            );
+
+            var showTagsCombiner = new ShowTagsValueCombiner();
 
             var bindingSet = this.CreateBindingSet<EditTimeEntryViewController, EditTimeEntryViewModel>();
 
@@ -236,7 +245,47 @@ namespace Toggl.Daneel.ViewControllers
                       .To(vm => vm.IsBillableAvailable)
                       .WithConversion(visibilityConverter);
 
+            //Regarding inaccessible entries
+            getLabelsToChangeColorWhenEditingInaccessibleEntry().ForEach(createTextColorBindingForInaccessibleEntries);
+
+            bindingSet.Bind(DescriptionTextView)
+                      .For(v => v.TextColor)
+                      .To(vm => vm.IsInaccessible)
+                      .WithConversion(isInaccessibleTextColorConverter);
+
+            bindingSet.Bind(DescriptionTextView)
+                      .For(v => v.UserInteractionEnabled)
+                      .To(vm => vm.IsInaccessible)
+                      .WithConversion(invertedBoolConverter);
+
+            bindingSet.Bind(BillableSwitch)
+                      .For(v => v.Enabled)
+                      .To(vm => vm.IsInaccessible)
+                      .WithConversion(invertedBoolConverter);
+
+            bindingSet.Bind(TagsContainerView)
+                      .For(v => v.Hidden)
+                      .ByCombining(showTagsCombiner,
+                                   vm => vm.IsInaccessible,
+                                   vm => vm.HasTags)
+                      .WithConversion(invertedBoolConverter);
+
+            bindingSet.Bind(TagsSeparator)
+                      .For(v => v.Hidden)
+                      .ByCombining(showTagsCombiner,
+                                   vm => vm.IsInaccessible,
+                                   vm => vm.HasTags)
+                      .WithConversion(invertedBoolConverter);
+
             bindingSet.Apply();
+
+            void createTextColorBindingForInaccessibleEntries(UILabel label)
+            {
+                bindingSet.Bind(label)
+                          .For(v => v.TextColor)
+                          .To(vm => vm.IsInaccessible)
+                          .WithConversion(isInaccessibleTextColorConverter);
+            }
         }
 
         public override void ViewDidLayoutSubviews()
@@ -260,6 +309,14 @@ namespace Toggl.Daneel.ViewControllers
         public async Task<bool> Dismiss()
         {
             return await ViewModel.CloseWithConfirmation();
+        }
+
+        IEnumerable<UILabel> getLabelsToChangeColorWhenEditingInaccessibleEntry()
+        {
+            yield return StartTimeLabel;
+            yield return StartDateLabel;
+            yield return EndTimeLabel;
+            yield return DurationLabel;
         }
 
         private void prepareViews()

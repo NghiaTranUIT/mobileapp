@@ -5,6 +5,7 @@ using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
 using Xunit;
+using System.Reactive.Linq;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -41,9 +42,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             private const string termsOfServiceUrl = "https://toggl.com/legal/terms/";
 
             [Fact, LogIfTooSlow]
-            public void OpensTermsOfService()
+            public async void OpensTermsOfService()
             {
-                ViewModel.ViewTermsOfServiceCommand.Execute();
+                await ViewModel.ViewTermsOfService.Execute();
 
                 BrowserService.Received().OpenUrl(termsOfServiceUrl);
             }
@@ -54,9 +55,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             private const string privacyPolicyUrl = "https://toggl.com/legal/privacy/";
 
             [Fact, LogIfTooSlow]
-            public void OpensPrivacyPolicy()
+            public async void OpensPrivacyPolicy()
             {
-                ViewModel.ViewPrivacyPolicyCommand.Execute();
+                await ViewModel.ViewPrivacyPolicy.Execute();
 
                 BrowserService.Received().OpenUrl(privacyPolicyUrl);
             }
@@ -67,7 +68,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModelAndReturnsFalse()
             {
-                await ViewModel.CloseCommand.ExecuteAsync();
+                await ViewModel.Close.Execute();
 
                 await NavigationService.Received().Close(ViewModel, false);
             }
@@ -78,7 +79,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModelAndReturnsTrue()
             {
-                await ViewModel.AcceptCommand.ExecuteAsync();
+                await ViewModel.Accept.Execute();
 
                 await NavigationService.Received().Close(ViewModel, true);
             }

@@ -12,6 +12,7 @@ namespace Toggl.Giskard.Activities
         private View logoutView;
         private View feedbackView;
         private View manualModeView;
+        private View is24hoursModeView;
         private View runningTimerNotificationsView;
         private View stoppedTimerNotificationsView;
         private View avatarContainer;
@@ -24,6 +25,7 @@ namespace Toggl.Giskard.Activities
 
         private ImageView avatarView;
 
+        private Switch is24hoursModeSwitch;
         private Switch manualModeSwitch;
         private Switch runningTimerNotificationsSwitch;
         private Switch stoppedTimerNotificationsSwitch;
@@ -37,6 +39,7 @@ namespace Toggl.Giskard.Activities
             logoutView = FindViewById(Resource.Id.SettingsLogoutButton);
             feedbackView = FindViewById(Resource.Id.SettingsSubmitFeedbackButton);
             manualModeView = FindViewById(Resource.Id.SettingsToggleManualModeView);
+            is24hoursModeView = FindViewById(Resource.Id.SettingsIs24HourModeView);
             avatarContainer = FindViewById(Resource.Id.SettingsViewAvatarImageContainer);
             beginningOfWeekView = FindViewById(Resource.Id.SettingsSelectBeginningOfWeekView);
             runningTimerNotificationsView = FindViewById(Resource.Id.SettingsRunningTimerNotificationsView);
@@ -49,6 +52,7 @@ namespace Toggl.Giskard.Activities
 
             avatarView = FindViewById<ImageView>(Resource.Id.SettingsViewAvatarImage);
             manualModeSwitch = FindViewById<Switch>(Resource.Id.SettingsIsManualModeEnabledSwitch);
+            is24hoursModeSwitch = FindViewById<Switch>(Resource.Id.SettingsIs24HourModeSwitch);
             runningTimerNotificationsSwitch = FindViewById<Switch>(Resource.Id.SettingsAreRunningTimerNotificationsEnabledSwitch);
             stoppedTimerNotificationsSwitch = FindViewById<Switch>(Resource.Id.SettingsAreStoppedTimerNotificationsEnabledSwitch);
 

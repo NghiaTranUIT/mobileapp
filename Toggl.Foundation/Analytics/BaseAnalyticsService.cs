@@ -67,13 +67,13 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent("Source")]
         public IAnalyticsEvent<ProjectTagSuggestionSource> StartEntrySelectTag { get; protected set; }
-      
+
         [AnalyticsEvent]
         public IAnalyticsEvent RatingViewWasShown { get; protected set; }
-      
+
         [AnalyticsEvent("isPositive")]
         public IAnalyticsEvent<bool> UserFinishedRatingViewFirstStep { get; protected set; }
-      
+
         [AnalyticsEvent("outcome")]
         public IAnalyticsEvent<RatingViewSecondStepOutcome> UserFinishedRatingViewSecondStep { get; protected set; }
 
@@ -85,7 +85,7 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent]
         public IAnalyticsEvent RatingViewSecondStepRate { get; protected set; }
-        
+
         [AnalyticsEvent]
         public IAnalyticsEvent RatingViewSecondStepDontRate { get; protected set; }
 
@@ -107,8 +107,8 @@ namespace Toggl.Foundation.Analytics
         [AnalyticsEvent("TapSource")]
         public IAnalyticsEvent<EditViewTapSource> EditViewTapped { get; set; }
 
-        [AnalyticsEvent("NumberOfCreatedGhosts")]
-        public IAnalyticsEvent<int> ProjectGhostsCreated { get; protected set; }
+        [AnalyticsEvent("NumberOfCreatedPlaceholders")]
+        public IAnalyticsEvent<int> ProjectPlaceholdersCreated { get; protected set; }
 
         [AnalyticsEvent("ExceptionType", "ExceptionMessage")]
         public IAnalyticsEvent<string, string> HandledException { get; protected set; }
@@ -127,6 +127,12 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent("Origin")]
         public IAnalyticsEvent<TimeEntryStopOrigin> TimeEntryStopped { get; protected set; }
+
+        [AnalyticsEvent]
+        public IAnalyticsEvent LostWorkspaceAccess { get; protected set; }
+
+        [AnalyticsEvent]
+        public IAnalyticsEvent GainWorkspaceAccess { get; protected set; }
 
         [AnalyticsEvent("Reason")]
         public IAnalyticsEvent<string> WorkspaceSyncError { get; protected set; }
@@ -169,6 +175,24 @@ namespace Toggl.Foundation.Analytics
 
         [AnalyticsEvent("ChangeEvent")]
         public IAnalyticsEvent<CalendarChangeEvent> TimeEntryChangedFromCalendar { get; protected set; }
+
+        [AnalyticsEvent("NumberOfProjectsInaccesibleAfterCleanUp")]
+        public IAnalyticsEvent<int> ProjectsInaccesibleAfterCleanUp { get; protected set; }
+
+        [AnalyticsEvent("NumberOfTagsInaccesibleAfterCleanUp")]
+        public IAnalyticsEvent<int> TagsInaccesibleAfterCleanUp { get; protected set; }
+
+        [AnalyticsEvent("NumberOfTasksInaccesibleAfterCleanUp")]
+        public IAnalyticsEvent<int> TasksInaccesibleAfterCleanUp { get; protected set; }
+
+        [AnalyticsEvent("NumberOfClientsInaccesibleAfterCleanUp")]
+        public IAnalyticsEvent<int> ClientsInaccesibleAfterCleanUp { get; protected set; }
+
+        [AnalyticsEvent("NumberOfTimeEntriesInaccesibleAfterCleanUp")]
+        public IAnalyticsEvent<int> TimeEntriesInaccesibleAfterCleanUp { get; protected set; }
+
+        [AnalyticsEvent("NumberOfWorkspacesInaccesibleAfterCleanUp")]
+        public IAnalyticsEvent<int> WorkspacesInaccesibleAfterCleanUp { get; protected set; }
 
         public void Track(Exception exception)
         {

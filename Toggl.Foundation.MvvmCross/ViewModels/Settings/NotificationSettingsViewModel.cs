@@ -33,7 +33,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
 
         public IObservable<string> UpcomingEvents => upcomingEventSubject.AsObservable().DistinctUntilChanged();
 
-        public UIAction RequestAccessAction { get; }
+        public UIAction RequestAccess { get; }
 
         public UIAction OpenUpcomingEvents { get; }
 
@@ -59,8 +59,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
                 .Subscribe(refreshPermissionGranted)
                 .DisposedBy(disposeBag);
 
-            RequestAccessAction = new UIAction(requestAccess);
-            OpenUpcomingEvents = new UIAction(openUpcomingEvents);
+            RequestAccess = UIAction.FromAction(requestAccess);
+            OpenUpcomingEvents = UIAction.FromAsync(openUpcomingEvents);
         }
 
         public override async Task Initialize()
@@ -70,18 +70,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             await refreshUpcomingEventsValue();
         }
 
-        private IObservable<Unit> requestAccess()
+        private void requestAccess()
         {
             permissionsService.OpenAppSettings();
-            return Observable.Return(Unit.Default);
         }
 
-        private IObservable<Unit> openUpcomingEvents()
-            => Observable.FromAsync(async () =>
-            {
-                await navigationService.Navigate<UpcomingEventsNotificationSettingsViewModel, Unit>();
-                await refreshUpcomingEventsValue();
-            });
+        private async Task openUpcomingEvents()
+        {
+            await navigationService.Navigate<UpcomingEventsNotificationSettingsViewModel, Unit>();
+            await refreshUpcomingEventsValue();
+        }
 
         private async Task refreshPermissionGranted()
         {

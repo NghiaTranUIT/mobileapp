@@ -23,7 +23,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             var start = DateTimeOffset.UtcNow.AddDays(-8);
             var end = start.AddDays(5);
 
-            var totals = await api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end);
+            var totals = await api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end);
 
             totals.Resolution.Should().Be(Resolution.Day);
             totals.Groups.Should().HaveCount(6);
@@ -46,7 +46,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             await createTimeEntry(api.TimeEntries, user, start.AddDays(1), 3, false);
             await createTimeEntry(api.TimeEntries, user, start.AddDays(1), 4, false);
 
-            var totals = await api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end);
+            var totals = await api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end);
 
             totals.Resolution.Should().Be(Resolution.Day);
             totals.Groups.Should().HaveCount(6);
@@ -69,7 +69,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             await createTimeEntry(api.TimeEntries, user, start.AddDays(1), 3, false);
             await createTimeEntry(api.TimeEntries, user, start.AddDays(1), 4, true);
 
-            var totals = await api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end);
+            var totals = await api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end);
 
             totals.Resolution.Should().Be(Resolution.Day);
             totals.Groups.Should().HaveCount(6);
@@ -90,7 +90,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             var start = DateTimeOffset.UtcNow.AddDays(-days);
             var end = DateTimeOffset.UtcNow;
 
-            var totals = await api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end);
+            var totals = await api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end);
 
             totals.Resolution.Should().Be(Resolution.Day);
         }
@@ -104,7 +104,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             var start = DateTimeOffset.UtcNow.AddDays(-days);
             var end = DateTimeOffset.UtcNow;
 
-            var totals = await api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end);
+            var totals = await api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end);
 
             totals.Resolution.Should().Be(Resolution.Week);
         }
@@ -119,7 +119,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             var start = DateTimeOffset.UtcNow.AddDays(-days);
             var end = DateTimeOffset.UtcNow;
 
-            var totals = await api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end);
+            var totals = await api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end);
 
             totals.Resolution.Should().Be(Resolution.Month);
         }
@@ -131,7 +131,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             var start = DateTimeOffset.UtcNow.AddDays(-366);
             var end = DateTimeOffset.UtcNow;
 
-            Action callingTheApi = () => api.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end).Wait();
+            Action callingTheApi = () => api.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end).Wait();
 
             callingTheApi.Should().Throw<ArgumentOutOfRangeException>();
         }
@@ -155,7 +155,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             var end = start.AddMonths(5);
             return togglApi.User.Get()
                 .SelectMany(user =>
-                    togglApi.TimeEntriesReports.GetTotals(user.DefaultWorkspaceId.Value, start, end));
+                    togglApi.TimeEntriesReports.GetTotals(user.Id, user.DefaultWorkspaceId.Value, start, end));
         }
     }
 }

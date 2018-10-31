@@ -15,6 +15,7 @@ using MvvmCross.Plugin.Visibility;
 using Newtonsoft.Json.Converters;
 using UIKit;
 using MvvmCross.ViewModels;
+using Toggl.Daneel.Views;
 
 namespace Toggl.Daneel
 {
@@ -218,6 +219,11 @@ namespace Toggl.Daneel
             Console.ForegroundColor = ConsoleColor.White;
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.ForegroundColor = ConsoleColor.DarkGray;
+        }
+
+        public void Include(TextViewWithPlaceholder textView)
+        {
+            textView.TextColor = textView.TextColor;
         }
     }
 }

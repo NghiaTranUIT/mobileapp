@@ -31,7 +31,7 @@ We use several conflict resolvers:
 This is the most used and most complex conflict resolver and it deserves some more information about what it does.
 
 - This resolver also checks if the entity on server was deleted or not (for deletable entities).
-- Local entities which are in sync or are marked as "refetching needed" - ghosts - are always overwritten.
+- Local entities which are in sync or are marked as "refetching needed" - placeholders - are always overwritten.
 - An extra parameter `TimeSpan MarginOfError` can be used to acount for network delays ("5-second rule").
 
 Rivals resolution

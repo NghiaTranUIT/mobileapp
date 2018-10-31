@@ -20,7 +20,7 @@ namespace Toggl.Foundation.Models
         public IThreadSafeWorkspace Workspace { get; }
         IDatabaseWorkspace IDatabaseClient.Workspace => Workspace;
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
 
         private Client(IClient entity, SyncStatus syncStatus, string lastSyncErrorMessage, bool isDeleted = false, IThreadSafeWorkspace workspace = null)
             : this(entity.Id, entity.WorkspaceId, entity.Name, entity.At, syncStatus, lastSyncErrorMessage, isDeleted, entity.ServerDeletedAt, workspace)

@@ -30,6 +30,7 @@ namespace Toggl.Daneel.ViewSources
 
         public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
         {
+            tableView.DeselectRow(indexPath, true);
             OnItemTapped?.Invoke(items[indexPath.Row]);
         }
 

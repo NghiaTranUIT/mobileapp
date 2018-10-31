@@ -109,19 +109,19 @@ namespace Toggl.Daneel
         [Export("userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:")]
         public void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response, Action completionHandler)
         {
-            var eventId = response.Notification.Request.Content.UserInfo[NotificationService.CalendarEventIdKey] as NSString;
+            var eventId = response.Notification.Request.Content.UserInfo[NotificationServiceIos.CalendarEventIdKey] as NSString;
 
             if (response.IsCustomAction)
             {
                 switch (response.ActionIdentifier.ToString())
                 {
-                    case NotificationService.OpenAndCreateFromCalendarEvent:
+                    case NotificationServiceIos.OpenAndCreateFromCalendarEvent:
                         openAndStartTimeEntryFromCalendarEvent(eventId.ToString(), completionHandler);
                         break;
-                    case NotificationService.OpenAndNavigateToCalendar:
+                    case NotificationServiceIos.OpenAndNavigateToCalendar:
                         openAndNavigateToCalendar(completionHandler);
                         break;
-                    case NotificationService.StartTimeEntryInBackground:
+                    case NotificationServiceIos.StartTimeEntryInBackground:
                         startTimeEntryInBackground(eventId.ToString(), completionHandler);
                         break;
                 }
@@ -199,7 +199,6 @@ namespace Toggl.Daneel
                     navigationService.Navigate(reportViewModel, periodIntent.Period.ToReportPeriod());
                     return true;
                 case StartTimerIntent startTimerIntent:
-                    var workspaceId = (long)Convert.ToDouble(startTimerIntent.Workspace.Identifier);
                     var timeEntryParams = createStartTimeEntryParameters(startTimerIntent);
                     navigationService.Navigate<MainViewModel>();
                     navigationService.Navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(timeEntryParams);
@@ -219,9 +218,9 @@ namespace Toggl.Daneel
                 DateTimeOffset.Now,
                 "",
                 null,
-                string.IsNullOrEmpty(intent.Workspace.Identifier) ? null : (long?)Convert.ToDouble(intent.Workspace.Identifier),
+                string.IsNullOrEmpty(intent.Workspace?.Identifier) ? null : (long?)Convert.ToDouble(intent.Workspace?.Identifier),
                 intent.EntryDescription ?? "",
-                string.IsNullOrEmpty(intent.ProjectId.Identifier) ? null : (long?)Convert.ToDouble(intent.ProjectId.Identifier),
+                string.IsNullOrEmpty(intent.ProjectId?.Identifier) ? null : (long?)Convert.ToDouble(intent.ProjectId?.Identifier),
                 tags
             );
         }

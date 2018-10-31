@@ -30,11 +30,11 @@ namespace Toggl.Daneel.ViewControllers.Settings
             prepareViews();
             prepareIndicatorView();
 
-            this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseButtonTapped);
+            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
             this.Bind(FeedbackTextView.Rx().Text(), ViewModel.FeedbackText);
-            this.Bind(ErrorView.Rx().Tap(), ViewModel.ErrorViewTapped);
+            this.Bind(ErrorView.Rx().Tap(), ViewModel.DismissError);
 
-            this.Bind(SendButton.Rx().Tap(), ViewModel.SendButtonTapped);
+            this.Bind(SendButton.Rx().Tap(), ViewModel.Send);
             SendButton.TouchUpInside += (sender, args) => { FeedbackTextView.ResignFirstResponder(); };
 
             this.Bind(ViewModel.IsFeedbackEmpty, FeedbackPlaceholderTextView.Rx().IsVisible());
@@ -68,7 +68,7 @@ namespace Toggl.Daneel.ViewControllers.Settings
 
         public async Task<bool> Dismiss()
         {
-            await ViewModel.CloseButtonTapped.Execute();
+            await ViewModel.Close.Execute();
             return true;
         }
 

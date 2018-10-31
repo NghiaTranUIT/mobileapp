@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CoreGraphics;
@@ -25,6 +25,7 @@ namespace Toggl.Daneel.ViewSources
         private const int spaceBetweenSections = 20;
 
         private readonly ITimeService timeService;
+        private readonly ISchedulerProvider schedulerProvider;
 
         public event EventHandler SwipeToContinueWasUsed;
         public event EventHandler SwipeToDeleteWasUsed;
@@ -40,8 +41,7 @@ namespace Toggl.Daneel.ViewSources
         public IObservable<TimeEntryViewModel> SwipeToDelete
             => swipeToDeleteSubject.AsObservable();
 
-        public IObservable<TimeEntriesLogViewCell> FirstCell
-            => firstCellSubject .AsObservable();
+        public IObservable<TimeEntriesLogViewCell> FirstCell { get; }
 
         private Subject<TimeEntryViewModel> continueTapSubject = new Subject<TimeEntryViewModel>();
         private Subject<TimeEntryViewModel> swipeToContinueSubject = new Subject<TimeEntryViewModel>();
@@ -54,12 +54,15 @@ namespace Toggl.Daneel.ViewSources
         public TimeEntriesLogViewSource(
             ObservableGroupedOrderedCollection<TimeEntryViewModel> collection,
             string cellIdentifier,
-            ITimeService timeService)
+            ITimeService timeService,
+            ISchedulerProvider schedulerProvider)
             : base(collection, cellIdentifier)
         {
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
 
             this.timeService = timeService;
+            this.schedulerProvider = schedulerProvider;
 
             if (!UIDevice.CurrentDevice.CheckSystemVersion(11, 0))
             {
@@ -69,6 +72,8 @@ namespace Toggl.Daneel.ViewSources
                     handleDeleteTableViewRowAction);
                 deleteTableViewRowAction.BackgroundColor = Color.TimeEntriesLog.DeleteSwipeActionBackground.ToNativeColor();
             }
+
+            FirstCell = firstCellSubject.AsDriver(schedulerProvider);
         }
 
         public override UIView GetViewForFooter(UITableView tableView, nint section)

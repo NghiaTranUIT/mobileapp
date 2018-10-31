@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using Android.Content;
-using Android.OS;
 using MvvmCross;
 using MvvmCross.Binding;
 using MvvmCross.Droid.Support.V7.AppCompat;
@@ -11,7 +10,6 @@ using MvvmCross.Platforms.Android.Presenters;
 using MvvmCross.Platforms.Android.Views;
 using MvvmCross.Plugin;
 using MvvmCross.ViewModels;
-using MvvmCross.Views;
 using Toggl.Foundation;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Login;
@@ -23,11 +21,12 @@ using Toggl.Foundation.Suggestions;
 using Toggl.Giskard.BroadcastReceivers;
 using Toggl.Giskard.Presenters;
 using Toggl.Giskard.Services;
-using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Realm;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
+using ColorPlugin = MvvmCross.Plugin.Color.Platforms.Android.Plugin;
+using VisibilityPlugin = MvvmCross.Plugin.Visibility.Platforms.Android.Plugin;
 
 namespace Toggl.Giskard
 {
@@ -114,6 +113,7 @@ namespace Toggl.Giskard
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator(ApplicationContext))
                     .WithPlatformInfo(platformInfo)
+                    .WithStopwatchProvider<AndroidFirebaseStopwatchProvider>()
                     .WithIntentDonationService(new NoopIntentDonationService())
                     .WithPrivateSharedStorageService(new NoopPrivateSharedStorageService())
 
@@ -147,7 +147,21 @@ namespace Toggl.Giskard
             return activityLifecycleCallbacksManager;
         }
 
-        private void ensureDataSourceInitializationIfLoggedIn()
+        // Skip the sluggish and reflection-based manager and load our plugins by hand
+        public override void LoadPlugins(IMvxPluginManager pluginManager)
+        {
+            new ColorPlugin().Load();
+            new VisibilityPlugin().Load();
+        }
+
+        protected override void PerformBootstrapActions()
+        {
+            // This method uses reflection to find classes that inherit from
+            // IMvxBootstrapAction, creates instances of these classes and then
+            // calls their Run method. We can skip it since we don't have such classes.
+        }
+
+        void ensureDataSourceInitializationIfLoggedIn()
         {
             /* Why? The ITogglDataSource is lazily initialized by the login manager
              * during some of it's methods calls.

@@ -16,12 +16,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
     {
         private readonly IMvxNavigationService navigationService;
 
-        public UIAction DoneAction { get; private set; }
+        public UIAction Done { get; private set; }
 
         public SelectUserCalendarsViewModel(
             IUserPreferences userPreferences,
             IInteractorFactory interactorFactory,
-            IMvxNavigationService navigationService) 
+            IMvxNavigationService navigationService)
             : base(userPreferences, interactorFactory)
         {
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
@@ -32,19 +32,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
         public override Task Initialize()
         {
             var enabledObservable = ForceItemSelection
-                ? SelectCalendarAction.Elements
+                ? SelectCalendar.Elements
                     .Select(_ => SelectedCalendarIds.Any())
                     .DistinctUntilChanged()
                 : Observable.Return(true);
 
-            DoneAction = new UIAction(done, enabledObservable);
+            Done = UIAction.FromAsync(done, enabledObservable);
 
             return base.Initialize();
         }
 
-        private IObservable<Unit> done()
-            => Observable
-                .FromAsync(async () => await navigationService.Close(this, SelectedCalendarIds.ToArray()))
-                .SelectUnit();
+        private Task done()
+            => navigationService.Close(this, SelectedCalendarIds.ToArray());
     }
 }

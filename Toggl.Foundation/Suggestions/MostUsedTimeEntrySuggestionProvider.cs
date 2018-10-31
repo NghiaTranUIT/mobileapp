@@ -44,6 +44,7 @@ namespace Toggl.Foundation.Suggestions
 
         private bool isActive(IDatabaseTimeEntry timeEntry)
             => timeEntry.IsDeleted == false
+               && !timeEntry.IsInaccessible
                && (timeEntry.Project?.Active ?? true);
 
         private IEnumerable<Suggestion> mostUsedTimeEntry(IEnumerable<IDatabaseTimeEntry> timeEntries)

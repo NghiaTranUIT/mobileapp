@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reactive;
 using Toggl.Foundation.Models.Interfaces;
-using Toggl.PrimeRadiant.Models;
 
 namespace Toggl.Foundation.Interactors
 {
@@ -10,6 +9,9 @@ namespace Toggl.Foundation.Interactors
     {
         public IInteractor<IObservable<IThreadSafeWorkspace>> GetDefaultWorkspace()
             => new GetDefaultWorkspaceInteractor(dataSource);
+
+        public IInteractor<IObservable<Unit>> SetDefaultWorkspace(long workspaceId)
+            => new SetDefaultWorkspaceInteractor(timeService, dataSource.User, workspaceId);
 
         public IInteractor<IObservable<bool>> AreCustomColorsEnabledForWorkspace(long workspaceId)
             => new AreCustomColorsEnabledForWorkspaceInteractor(dataSource, workspaceId);

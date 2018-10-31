@@ -27,6 +27,20 @@ namespace Toggl.Foundation.Tests.Mocks
 
         public IThreadSafeWorkspace Workspace { get; set; }
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
+
+        public MockClient() { }
+
+        public MockClient(
+            long id,
+            IThreadSafeWorkspace workspace,
+            SyncStatus syncStatus = SyncStatus.InSync
+        ) : this()
+        {
+            Id = id;
+            Workspace = workspace;
+            WorkspaceId = workspace.Id;
+            SyncStatus = syncStatus;
+        }
     }
 }

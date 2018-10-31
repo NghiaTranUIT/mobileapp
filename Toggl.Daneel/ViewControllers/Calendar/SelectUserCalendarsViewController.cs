@@ -33,10 +33,10 @@ namespace Toggl.Daneel.ViewControllers.Calendar
             var source = new SelectUserCalendarsTableViewSource(TableView, ViewModel.Calendars);
             TableView.Source = source;
 
-            this.Bind(DoneButton.Rx().Tap(), ViewModel.DoneAction);
-            this.Bind(source.ItemSelected, ViewModel.SelectCalendarAction);
-            this.Bind(ViewModel.DoneAction.Enabled, DoneButton.Rx().Enabled());
-            this.Bind(ViewModel.DoneAction.Enabled.Select(alphaForEnabled), DoneButton.Rx().AnimatedAlpha());
+            this.Bind(DoneButton.Rx().Tap(), ViewModel.Done);
+            this.Bind(source.ItemSelected, ViewModel.SelectCalendar);
+            this.Bind(ViewModel.Done.Enabled, DoneButton.Rx().Enabled());
+            this.Bind(ViewModel.Done.Enabled.Select(alphaForEnabled), DoneButton.Rx().AnimatedAlpha());
         }
 
         public override void ViewDidLayoutSubviews()

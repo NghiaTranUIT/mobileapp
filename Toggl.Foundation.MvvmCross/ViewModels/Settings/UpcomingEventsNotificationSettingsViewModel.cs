@@ -46,8 +46,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
                 CalendarNotificationsOption.OneHour
             };
 
-            SelectOption = new InputAction<CalendarNotificationsOption>(onSelectOption);
-            Close = new UIAction(onClose);
+            SelectOption = InputAction<CalendarNotificationsOption>.FromAction(onSelectOption);
+            Close = UIAction.FromAction(close);
         }
 
         public override async Task Initialize()
@@ -57,7 +57,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             SelectedOptionIndex = AvailableOptions.IndexOf(selectedOption);
         }
 
-        private IObservable<Unit> onSelectOption(CalendarNotificationsOption option)
+        private void onSelectOption(CalendarNotificationsOption option)
         {
             var enabled = option != CalendarNotificationsOption.Disabled;
 
@@ -67,13 +67,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
                 userPreferences.SetTimeSpanBeforeCalendarNotifications(option.Duration());
 
             navigationService.Close(this, Unit.Default);
-            return Observable.Return(Unit.Default);
         }
 
-        private IObservable<Unit> onClose()
+        private void close()
         {
             navigationService.Close(this, Unit.Default);
-            return Observable.Return(Unit.Default);
         }
     }
 }

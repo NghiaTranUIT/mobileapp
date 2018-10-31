@@ -23,7 +23,7 @@ namespace Toggl.Daneel.ViewSources
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
         {
             var cell = tableView.DequeueReusableCell(CellIdentifier, indexPath) as BaseTableViewCell<License>;
-            cell.Item = items[indexPath.Row];
+            cell.Item = items[indexPath.Section];
             return cell;
         }
 

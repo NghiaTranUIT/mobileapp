@@ -982,5 +982,11 @@ namespace Toggl.Foundation {
                 return ResourceManager.GetString("DiscardMessage", resourceCulture);
             }
         }
+        
+        public static string InaccessibleTimeEntryErrorMessage {
+            get {
+                return ResourceManager.GetString("InaccessibleTimeEntryErrorMessage", resourceCulture);
+            }
+        }
     }
 }

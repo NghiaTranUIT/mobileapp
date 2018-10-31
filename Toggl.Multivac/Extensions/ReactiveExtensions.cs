@@ -54,26 +54,6 @@ namespace Toggl.Multivac.Extensions
                 ? Observable.Return(value).Delay(delay)
                 : Observable.Return(value));
 
-        public static IObservable<T> RetryWhen<T, U>(this IObservable<T> source, Func<IObservable<Exception>, IObservable<U>> handler)
-        {
-            return Observable.Defer(() =>
-            {
-                var errorSignal = new Subject<Exception>();
-                var retrySignal = handler(errorSignal);
-                var sources = new BehaviorSubject<IObservable<T>>(source);
-
-                return Observable.Using(
-                        () => retrySignal.Select(s => source).Subscribe(sources),
-                        r => sources
-                            .Select(src =>
-                                src.Do(v => { }, e => errorSignal.OnNext(e), () => errorSignal.OnCompleted())
-                                   .OnErrorResumeNext(Observable.Empty<T>())
-                            )
-                            .Concat()
-                    );
-            });
-        }
-
         public static IObservable<T> Share<T>(this IObservable<T> observable)
             => observable.Publish().RefCount();
 
@@ -150,15 +130,21 @@ namespace Toggl.Multivac.Extensions
         public static IObservable<T> Do<T>(this IObservable<T> observable, Action action)
             => observable.Do(_ => action());
 
-        public static void CompleteWith<T>(this IObserver<T> observer, T item) 
+        public static void CompleteWith<T>(this IObserver<T> observer, T item)
         {
             observer.OnNext(item);
             observer.OnCompleted();
         }
 
+        public static void CompleteWithUnit(this IObserver<Unit> observer)
+            => observer.CompleteWith(Unit.Default);
+
         public static IObservable<Unit> ToUnitObservable<T>(this Task<T> task)
             => Observable
             .FromAsync(async () => await task)
             .SelectUnit();
+
+        public static IObservable<string> SelectToString<T>(this IObservable<T> observable)
+            => observable.Select(item => item.ToString());
     }
 }

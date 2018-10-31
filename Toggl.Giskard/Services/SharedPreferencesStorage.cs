@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
 using Android.Content;
+using Toggl.Foundation.Services;
 using Toggl.PrimeRadiant.Settings;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class SharedPreferencesStorage : IKeyValueStorage
+    public sealed class SharedPreferencesStorage : KeyValueStorage
     {
         private readonly ISharedPreferences sharedPreferences;
 
@@ -14,67 +15,54 @@ namespace Toggl.Giskard.Services
             this.sharedPreferences = sharedPreferences;
         }
 
-        public bool GetBool(string key)
+        public override bool GetBool(string key)
             => sharedPreferences.GetBoolean(key, false);
 
-        public string GetString(string key)
+        public override string GetString(string key)
             => sharedPreferences.GetString(key, null);
 
-        public DateTimeOffset? GetDateTimeOffset(string key)
-        {
-            var serialized = GetString(key);
-            return DateTimeOffset.TryParse(serialized, out var parsed) ? parsed : (DateTimeOffset?)null;
-        }
-
-        public void SetBool(string key, bool value)
+        public override void SetBool(string key, bool value)
         {
             var editor = sharedPreferences.Edit();
             editor.PutBoolean(key, value);
             editor.Commit();
         }
 
-        public void SetString(string key, string value)
+        public override void SetString(string key, string value)
         {
             var editor = sharedPreferences.Edit();
             editor.PutString(key, value);
             editor.Commit();
         }
 
-        public void SetInt(string key, int value)
+        public override void SetInt(string key, int value)
         {
             var editor = sharedPreferences.Edit();
             editor.PutInt(key, value);
             editor.Commit();
         }
 
-        public int GetInt(string key, int defaultValue)
-        => sharedPreferences.GetInt(key, defaultValue);
-
-        public void SetDateTimeOffset(string key, DateTimeOffset value)
-        {
-            SetString(key, value.ToString());
-        }
-
-        public TimeSpan? GetTimeSpan(string key)
-            => sharedPreferences.Contains(key)
-                ? (TimeSpan?)TimeSpan.FromTicks(sharedPreferences.GetLong(key, 0))
-                : null;
-
-        public void SetTimeSpan(string key, TimeSpan timeSpan)
+        public override void SetLong(string key, long value)
         {
             var editor = sharedPreferences.Edit();
-            editor.PutLong(key, timeSpan.Ticks);
+            editor.PutLong(key, value);
             editor.Commit();
         }
 
-        public void Remove(string key)
+        public override int GetInt(string key, int defaultValue)
+            => sharedPreferences.GetInt(key, defaultValue);
+
+        public override long GetLong(string key, long defaultValue)
+            => sharedPreferences.GetLong(key, defaultValue);
+
+        public override void Remove(string key)
         {
             var editor = sharedPreferences.Edit();
             editor.Remove(key);
             editor.Commit();
         }
 
-        public void RemoveAllWithPrefix(string prefix)
+        public override void RemoveAllWithPrefix(string prefix)
         {
             var keys = sharedPreferences.All.Keys
                 .Where(key => key.StartsWith(prefix, StringComparison.Ordinal));

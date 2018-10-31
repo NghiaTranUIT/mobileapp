@@ -21,12 +21,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
 
         public bool PermissionGranted { get; private set; }
 
-        public UIAction RequestAccessAction { get; }
+        public UIAction RequestAccess { get; }
 
         public CalendarSettingsViewModel(
             IUserPreferences userPreferences,
             IInteractorFactory interactorFactory,
-            IPermissionsService permissionsService) 
+            IPermissionsService permissionsService)
             : base(userPreferences, interactorFactory)
         {
             Ensure.Argument.IsNotNull(userPreferences, nameof(userPreferences));
@@ -35,9 +35,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             this.userPreferences = userPreferences;
             this.permissionsService = permissionsService;
 
-            RequestAccessAction = new UIAction(requestAccess);
+            RequestAccess = UIAction.FromAction(requestAccess);
 
-            SelectCalendarAction
+            SelectCalendar
                 .Elements
                 .VoidSubscribe(onCalendarSelected);
         }
@@ -49,10 +49,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             await base.Initialize();
         }
 
-        private IObservable<Unit> requestAccess()
+        private void requestAccess()
         {
             permissionsService.OpenAppSettings();
-            return Observable.Return(Unit.Default);
         }
 
         private void onCalendarSelected()

@@ -258,6 +258,8 @@ namespace Toggl.Foundation.MvvmCross.Helper
             public static readonly MvxColor PlaceholderText = pinkishGrey;
             public static readonly MvxColor Transparent = new MvxColor(rgb: 0, alpha: 0);
             public static readonly MvxColor LightGray = pinkishGrey;
+            public static readonly MvxColor Disabled = pinkishGrey;
+            public static readonly MvxColor TextColor = black;
         }
 
         public sealed class ReportsCalendar

@@ -35,11 +35,23 @@ namespace Toggl.Foundation.DataSources
         public virtual IObservable<TThreadsafe> ChangeId(long currentId, long newId)
             => repository.ChangeId(currentId, newId).Select(Convert);
 
-        public virtual IObservable<IEnumerable<TThreadsafe>> GetAll()
-            => repository.GetAll().Select(entities => entities.Select(Convert));
+        public virtual IObservable<IEnumerable<TThreadsafe>> GetAll(bool includeInaccessibleEntities = false)
+        {
+            var repositoryEntities = includeInaccessibleEntities
+                ? repository.GetAll()
+                : repository.GetAll(isAccessible);
 
-        public virtual IObservable<IEnumerable<TThreadsafe>> GetAll(Func<TDatabase, bool> predicate)
-            => repository.GetAll(predicate).Select(entities => entities.Select(Convert));
+            return repositoryEntities.Select(entities => entities.Select(Convert));
+        }
+
+        public virtual IObservable<IEnumerable<TThreadsafe>> GetAll(Func<TDatabase, bool> predicate, bool includeInaccessibleEntities = false)
+        {
+            var repositoryEntities = includeInaccessibleEntities
+                ? repository.GetAll(predicate)
+                : repository.GetAll(entity => predicate(entity) && isAccessible(entity));
+
+            return repositoryEntities.Select(entities => entities.Select(Convert));
+        }
 
         public virtual IObservable<IEnumerable<IConflictResolutionResult<TThreadsafe>>> DeleteAll(IEnumerable<TThreadsafe> entities)
             => repository.BatchUpdate(convertEntitiesForBatchUpdate(entities), safeAlwaysDelete)
@@ -61,5 +73,13 @@ namespace Toggl.Foundation.DataSources
 
         private static ConflictResolutionMode safeAlwaysDelete(TDatabase old, TDatabase now)
             => old == null ? ConflictResolutionMode.Ignore : ConflictResolutionMode.Delete;
+
+        private bool isAccessible(TDatabase entity)
+        {
+            if (entity is IPotentiallyInaccessible potentiallyInaccessible)
+                return !potentiallyInaccessible.IsInaccessible;
+
+            return true;
+        }
     }
 }

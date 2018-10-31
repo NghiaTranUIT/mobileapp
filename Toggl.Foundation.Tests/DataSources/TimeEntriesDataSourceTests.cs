@@ -226,13 +226,13 @@ namespace Toggl.Foundation.Tests.DataSources
                     });
                 DataSource
                     .TimeEntries
-                    .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>())
+                    .GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>(), true)
                     .Returns(callInfo =>
                         Observable
                              .Return(result)
                              .Select(x => x.Where(callInfo.Arg<Func<IThreadSafeTimeEntry, bool>>())));
 
-                var timeEntries = await InteractorFactory.GetAllNonDeletedTimeEntries().Execute()
+                var timeEntries = await InteractorFactory.GetAllTimeEntriesVisibleToTheUser().Execute()
                     .Select(tes => tes.Where(x => x.Id > 10));
 
                 timeEntries.Should().HaveCount(5);

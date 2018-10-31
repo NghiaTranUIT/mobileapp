@@ -1,9 +1,11 @@
-﻿using System.Threading.Tasks;
-using MvvmCross.Commands;
+﻿using System;
+using System.Reactive;
+using System.Threading.Tasks;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
-using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
+using Toggl.Foundation.MvvmCross.Parameters;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -16,7 +18,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public string Title { get; private set; }
 
-        public IMvxAsyncCommand BackCommand { get; private set; }
+        public UIAction Close { get; }
 
         public BrowserViewModel(IMvxNavigationService navigationService)
         {
@@ -24,7 +26,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             this.navigationService = navigationService;
 
-            BackCommand = new MvxAsyncCommand(back);
+            Close = UIAction.FromAsync(back);
         }
 
         public override void Prepare(BrowserParameters parameter)
@@ -33,6 +35,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Title = parameter.Title;
         }
 
-        private Task back() => navigationService.Close(this);
+        private Task back()
+            => navigationService.Close(this);
     }
 }

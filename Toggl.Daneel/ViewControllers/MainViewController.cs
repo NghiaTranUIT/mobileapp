@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -29,6 +29,9 @@ using Toggl.PrimeRadiant.Settings;
 using UIKit;
 using static Toggl.Foundation.MvvmCross.Helper.Animation;
 using Toggl.Daneel.ExtensionKit;
+using Toggl.Daneel.ExtensionKit.Analytics;
+using Toggl.Multivac;
+using MvvmCross;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -108,7 +111,8 @@ namespace Toggl.Daneel.ViewControllers
             tableViewSource = new TimeEntriesLogViewSource(
                 ViewModel.TimeEntries,
                 TimeEntriesLogViewCell.Identifier,
-                ViewModel.TimeService);
+                ViewModel.TimeService,
+                ViewModel.SchedulerProvider);
             TimeEntriesLogTableView
                 .Rx()
                 .Bind(tableViewSource)
@@ -147,7 +151,7 @@ namespace Toggl.Daneel.ViewControllers
 
             // Refresh Control
             var refreshControl = new RefreshControl(ViewModel.SyncProgressState, tableViewSource);
-            this.Bind(refreshControl.Refresh, ViewModel.RefreshAction);
+            this.Bind(refreshControl.Refresh, ViewModel.Refresh);
             TimeEntriesLogTableView.CustomRefreshControl = refreshControl;
 
             //Commands
@@ -160,10 +164,6 @@ namespace Toggl.Daneel.ViewControllers
             bindingSet.Bind(CurrentTimeEntryCard)
                       .For(v => v.BindTap())
                       .To(vm => vm.EditTimeEntryCommand);
-
-            bindingSet.Bind(suggestionsView)
-                      .For(v => v.SuggestionTappedCommad)
-                      .To(vm => vm.SuggestionsViewModel.StartTimeEntryCommand);
 
             bindingSet.Bind(StartTimeEntryButton)
                       .For(v => v.BindLongPress())
@@ -216,6 +216,11 @@ namespace Toggl.Daneel.ViewControllers
                 SendFeedbackSuccessView.Rx().AnimatedIsVisible());
             this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.RatingViewModel.CloseFeedbackSuccessView);
 
+            // Suggestion View
+            this.Bind(suggestionsView.SuggestionTapped, ViewModel.SuggestionsViewModel.StartTimeEntry);
+            this.Bind(ViewModel.SuggestionsViewModel.IsEmpty.Invert(), suggestionsView.Rx().IsVisible());
+            this.Bind(ViewModel.SuggestionsViewModel.Suggestions, suggestionsView.OnSuggestions);
+
             ViewModel.ShouldReloadTimeEntryLog
                 .VoidSubscribe(reload)
                 .DisposedBy(disposeBag);
@@ -245,7 +250,6 @@ namespace Toggl.Daneel.ViewControllers
 
             suggestionsContaier.AddSubview(suggestionsView);
             suggestionsView.ConstrainInView(suggestionsContaier);
-            suggestionsView.DataContext = ViewModel.SuggestionsViewModel;
         }
 
         public override void ViewWillAppear(bool animated)
@@ -266,13 +270,24 @@ namespace Toggl.Daneel.ViewControllers
 #endif
         }
 
+        private void trackSiriEvents()
+        {
+            var events = SharedStorage.instance.PopTrackableEvents();
+
+            foreach (var e in events)
+            {
+                ViewModel.Track(new SiriTrackableEvent(e));
+            }
+        }
+
         private void onApplicationDidBecomeActive(NSNotification notification)
         {
             if (SharedStorage.instance.GetNeedsSync())
             {
                 SharedStorage.instance.SetNeedsSync(false);
-                ViewModel.RefreshAction.Execute();
+                ViewModel.Refresh.Execute();
             }
+            trackSiriEvents();
         }
 
         private void toggleUndoDeletion(bool show)

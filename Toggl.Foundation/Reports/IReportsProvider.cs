@@ -9,6 +9,6 @@ namespace Toggl.Foundation.Reports
             long workspaceId, DateTimeOffset startDate, DateTimeOffset? endDate);
 
         IObservable<ITimeEntriesTotals> GetTotals(
-            long workspaceId, DateTimeOffset startDate, DateTimeOffset endDate);
+            long userId, long workspaceId, DateTimeOffset startDate, DateTimeOffset endDate);
     }
 }

@@ -168,7 +168,8 @@ namespace Toggl.Foundation.DataSources
         {
             if (errorHandlingService.TryHandleDeprecationError(exception)
                 || errorHandlingService.TryHandleUnauthorizedError(exception)
-                || errorHandlingService.TryHandleNoWorkspaceError(exception))
+                || errorHandlingService.TryHandleNoWorkspaceError(exception)
+                || errorHandlingService.TryHandleNoDefaultWorkspaceError(exception))
             {
                 stopSyncingOnSignal();
                 return;

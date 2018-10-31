@@ -80,7 +80,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     AnalyticsService,
                     AutocompleteProvider,
                     SchedulerProvider,
-                    IntentDonationService
+                    IntentDonationService,
+                    StopwatchProvider
             );
         }
 
@@ -99,7 +100,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useAnalyticsService,
                 bool useAutocompleteProvider,
                 bool useSchedulerProvider,
-                bool useIntentDonationService)
+                bool useIntentDonationService,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -112,6 +114,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var autocompleteProvider = useAutocompleteProvider ? AutocompleteProvider : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new StartTimeEntryViewModel(
@@ -125,7 +128,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         analyticsService,
                         autocompleteProvider,
                         schedulerProvider,
-                        intentDonationService);
+                        intentDonationService,
+                        stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -389,6 +393,22 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
 
                     ViewModel.SuggestCreation.Should().BeTrue();
+                }
+
+                [Fact, LogIfTooSlow]
+                public async Task ReturnsFalseIfAnOtherTagIsAvailableWithSameNameButDifferentCase()
+                {
+                    var projectSpan = new ProjectSpan(ProjectId, ProjectName, ProjectColor, null, null);
+                    var querySpan = new QueryTextSpan("#mobile", 7);
+
+                    ViewModel.Prepare();
+                    await ViewModel.Initialize();
+                    await ViewModel.OnTextFieldInfoFromView(projectSpan);
+                    ViewModel.ToggleTagSuggestionsCommand.Execute();
+
+                    await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+
+                    ViewModel.SuggestCreation.Should().BeFalse();
                 }
 
                 [Fact, LogIfTooSlow]

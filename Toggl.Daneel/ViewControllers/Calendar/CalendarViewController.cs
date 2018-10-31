@@ -28,7 +28,7 @@ namespace Toggl.Daneel.ViewControllers
 
         private readonly UIButton settingsButton = new UIButton(new CGRect(0, 0, 40, 50));
 
-        public CalendarViewController() 
+        public CalendarViewController()
             : base(nameof(CalendarViewController))
         {
         }
@@ -47,7 +47,7 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             this.Bind(ViewModel.ShouldShowOnboarding, OnboardingView.Rx().IsVisibleWithFade());
-            this.Bind(GetStartedButton.Rx().Tap(), ViewModel.GetStartedAction);
+            this.Bind(GetStartedButton.Rx().Tap(), ViewModel.GetStarted);
 
             var timeService = Mvx.Resolve<ITimeService>();
 
@@ -89,6 +89,8 @@ namespace Toggl.Daneel.ViewControllers
             {
                 new UIBarButtonItem(settingsButton)
             };
+
+            layout.InvalidateCurrentTimeLayout();
         }
     }
 }

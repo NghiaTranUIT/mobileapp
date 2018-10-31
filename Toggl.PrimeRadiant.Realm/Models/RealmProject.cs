@@ -51,6 +51,6 @@ namespace Toggl.PrimeRadiant.Realm
 
         public IEnumerable<IDatabaseTask> Tasks => RealmTasks;
 
-        public bool IsGhost => Workspace.IsGhost;
+        public bool IsInaccessible => Workspace.IsInaccessible;
     }
 }

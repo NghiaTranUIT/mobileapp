@@ -25,7 +25,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectProjectViewModelTest : BaseViewModelTests<SelectProjectViewModel>
         {
             protected override SelectProjectViewModel CreateViewModel()
-            => new SelectProjectViewModel(DataSource, InteractorFactory, NavigationService, DialogService, SchedulerProvider);
+            => new SelectProjectViewModel(DataSource, InteractorFactory, NavigationService, DialogService, SchedulerProvider, StopwatchProvider);
         }
 
         public sealed class TheConstructor : SelectProjectViewModelTest
@@ -37,16 +37,18 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useInteractorFactory,
                 bool useNavigationService,
                 bool useDialogService,
-                bool useSchedulerProvider)
+                bool useSchedulerProvider,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var dialogService = useDialogService ? DialogService : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var navigationService = useNavigationService ? NavigationService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService, schedulerProvider);
+                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
