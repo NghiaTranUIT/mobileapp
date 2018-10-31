@@ -31,6 +31,10 @@ namespace Toggl.Daneel.ViewControllers
             this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseAction);
             this.Bind(SearchTextField.Rx().Text(), ViewModel.ClientFilterText);
             this.Bind(tableViewSource.ItemSelected, ViewModel.SelectClientAction);
+            this.Bind(tableViewSource.SuggestCreationTapped, ViewModel.CreateClientAction);
+
+            this.Bind(ViewModel.CreationSuggestion.Debug("CREATION SUGGESTION"), tableViewSource.SuggestCreation);
+            this.Bind(ViewModel.ClientFilterText, tableViewSource.SuggestCreationName);
 
             SuggestionsTableView
                 .Rx()
