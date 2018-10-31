@@ -306,9 +306,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var text = "Some text";
                 await ViewModel.Initialize();
-                TestScheduler.Start();
 
+                TestScheduler.Start();
                 ViewModel.Text = text;
+                TestScheduler.AdvanceBy(TimeSpan.FromSeconds(60).Ticks);
 
                 InteractorFactory
                     .Received()
@@ -452,9 +453,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(suggestions));
                 await ViewModel.Initialize();
-                TestScheduler.Start();
-
                 ViewModel.Text = queryText;
+
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(1);
                 ViewModel.Suggestions.First().Should().HaveCount(1);
