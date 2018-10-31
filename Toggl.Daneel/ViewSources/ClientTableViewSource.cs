@@ -22,7 +22,6 @@ namespace Toggl.Daneel.ViewSources
         private const string cellIdentifier = nameof(ClientViewCell);
         private const string createEntityCellIdentifier = nameof(CreateEntityViewCell);
 
-
         public ClientTableViewSource(UITableView tableView,
             ObservableGroupedOrderedCollection<SelectableClientViewModel> collection)
             : base(collection, cellIdentifier)
@@ -49,8 +48,18 @@ namespace Toggl.Daneel.ViewSources
             return cell;
         }
 
-        public override nint RowsInSection(UITableView tableview, nint section) =>
-            base.RowsInSection(tableview, section) + (SuggestCreation.Value ? 1 : 0);
+        public override nint RowsInSection(UITableView tableview, nint section)
+        {
+            var numberOfCreationSuggestionRow = SuggestCreation.Value ? 1 : 0;
+            if (DisplayedItems.Count == 0)
+            {
+                return numberOfCreationSuggestionRow;
+            }
+
+            return base.RowsInSection(tableview, section) + numberOfCreationSuggestionRow;
+        }
+
+        public override nint NumberOfSections(UITableView tableView) => 1;
 
         public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath) => rowHeight;
 
