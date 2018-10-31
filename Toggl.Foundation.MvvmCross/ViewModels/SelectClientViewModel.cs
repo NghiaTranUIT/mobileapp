@@ -52,6 +52,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
 
@@ -112,7 +113,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task createClient(string clientName)
         {
-            var client = await interactorFactory.CreateClient(clientName, workspaceId).Execute();
+            var client = await interactorFactory.CreateClient(clientName.Trim(), workspaceId).Execute();
             await navigationService.Close(this, client.Id);
         }
     }

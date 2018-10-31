@@ -777,25 +777,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact, LogIfTooSlow]
-            public async Task PassesTheCurrentCliendIdToTheViewModel()
-            {
-                InteractorFactory
-                    .GetDefaultWorkspace()
-                    .Execute()
-                    .Returns(Observable.Return(Workspace));
-                Workspace.Id.Returns(DefaultWorkspaceId);
-                ViewModel.Prepare("Some name");
-                await ViewModel.Initialize();
-
-                await ViewModel.PickClientCommand.ExecuteAsync();
-
-                await NavigationService.Received()
-                    .Navigate<SelectClientViewModel, SelectClientParameters, long?>(
-                        Arg.Is<SelectClientParameters>(parameter => parameter.SelectedClientId == 0)
-                    );
-            }
-
-            [Fact, LogIfTooSlow]
             public async Task SetsTheReturnedClientAsTheClientNameProperty()
             {
                 const string expectedName = "Some client";
