@@ -9,13 +9,13 @@ using AppCenterAnalytics = Microsoft.AppCenter.Analytics.Analytics;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class AnalyticsService : BaseAnalyticsService
+    public sealed class AnalyticsServiceAndroid : BaseAnalyticsService
     {
         private const int maxAppCenterStringLength = 64;
 
         private FirebaseAnalytics firebaseAnalytics { get; }
 
-        public AnalyticsService()
+        public AnalyticsServiceAndroid()
         {
             #if USE_ANALYTICS
             firebaseAnalytics = FirebaseAnalytics.GetInstance(Application.Context);

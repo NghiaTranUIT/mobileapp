@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using FluentAssertions;
 using Toggl.Foundation.Exceptions;
@@ -46,8 +47,8 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
                 },
                 timeEntries: new[]
                 {
-                    new MockTimeEntry { Id = 1, WorkspaceId = 1, ProjectId = 1, TagIds = new long[] { 1 }, SyncStatus = SyncStatus.InSync },
-                    new MockTimeEntry { Id = 2, WorkspaceId = 2, ProjectId = 2, TagIds = new long[] { 2 }, SyncStatus = SyncStatus.InSync }
+                    new MockTimeEntry { Id = 1, Start = DateTimeOffset.Now - TimeSpan.FromDays(2), Duration = 10 * 60, WorkspaceId = 1, ProjectId = 1, TagIds = new long[] { 1 }, SyncStatus = SyncStatus.InSync },
+                    new MockTimeEntry { Id = 2, Start = DateTimeOffset.Now - TimeSpan.FromDays(1), Duration = 10 * 60, WorkspaceId = 2, ProjectId = 2, TagIds = new long[] { 2 }, SyncStatus = SyncStatus.InSync }
                 });
 
         protected override void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState)

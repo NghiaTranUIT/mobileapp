@@ -44,7 +44,7 @@ namespace Toggl.Giskard.Activities
         private NotificationManager notificationManager;
         private MainRecyclerAdapter mainRecyclerAdapter;
         private LinearLayoutManager layoutManager;
-        private AndroidFirebaseStopwatchProvider localStopwatchProvider = new AndroidFirebaseStopwatchProvider();
+        private FirebaseStopwatchProviderAndroid localStopwatchProvider = new FirebaseStopwatchProviderAndroid();
 
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 

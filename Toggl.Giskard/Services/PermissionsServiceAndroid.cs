@@ -6,7 +6,7 @@ using Toggl.Foundation.MvvmCross.Services;
 namespace Toggl.Giskard.Services
 {
     [Preserve(AllMembers = true)]
-    public sealed class PermissionsService : IPermissionsService
+    public sealed class PermissionsServiceAndroid : IPermissionsService
     {
         public IObservable<bool> CalendarPermissionGranted
             => Observable.Return(false);

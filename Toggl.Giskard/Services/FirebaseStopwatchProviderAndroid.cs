@@ -4,7 +4,7 @@ using Toggl.Foundation.Diagnostics;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class AndroidFirebaseStopwatchProvider : BaseStopwatchProvider
+    public sealed class FirebaseStopwatchProviderAndroid : BaseStopwatchProvider
     {
         protected override IStopwatch NativeCreate(MeasuredOperation operation)
             => new AndroidFirebaseStopwatch(operation);

@@ -5,7 +5,7 @@ using Toggl.Multivac;
 
 namespace Toggl.Giskard.Services
 {
-    public class RemoteConfigService : IRemoteConfigService
+    public class RemoteConfigServiceAndroid : IRemoteConfigService
     {
         public IObservable<RatingViewConfiguration> RatingViewConfiguration { get; }
             = Observable.Return(new RatingViewConfiguration(int.MaxValue, RatingViewCriterion.None));
