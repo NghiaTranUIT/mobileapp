@@ -1,8 +1,5 @@
-﻿using System;
-using System.Reactive;
-using System.Reactive.Linq;
+﻿using System.Reactive;
 using System.Threading.Tasks;
-using MvvmCross.Binding.BindingContext;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
@@ -28,10 +25,10 @@ namespace Toggl.Daneel.ViewControllers
 
             var tableViewSource = new ClientTableViewSource(SuggestionsTableView, ViewModel.Clients);
 
-            this.Bind(CloseButton.Rx().Tap(), ViewModel.CloseAction);
+            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
             this.Bind(SearchTextField.Rx().Text(), ViewModel.ClientFilterText);
-            this.Bind(tableViewSource.ItemSelected, ViewModel.SelectClientAction);
-            this.Bind(tableViewSource.SuggestCreationTapped, ViewModel.CreateClientAction);
+            this.Bind(tableViewSource.ItemSelected, ViewModel.SelectClient);
+            this.Bind(tableViewSource.SuggestCreationTapped, ViewModel.CreateClient);
 
             this.Bind(ViewModel.CreationSuggestion, tableViewSource.SuggestCreation);
             this.Bind(ViewModel.ClientFilterText, tableViewSource.SuggestCreationName);
@@ -52,7 +49,7 @@ namespace Toggl.Daneel.ViewControllers
 
         public async Task<bool> Dismiss()
         {
-            ViewModel.CloseAction.Execute(Unit.Default);
+            ViewModel.Close.Execute(Unit.Default);
             return true;
         }
 

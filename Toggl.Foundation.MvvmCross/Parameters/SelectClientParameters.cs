@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Toggl.Foundation.MvvmCross.Parameters
+﻿namespace Toggl.Foundation.MvvmCross.Parameters
 {
     public sealed class SelectClientParameters
     {

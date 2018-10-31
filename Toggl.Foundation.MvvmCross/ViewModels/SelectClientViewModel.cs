@@ -5,10 +5,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
-using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -16,8 +14,6 @@ using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.Helper.Constants;
-using static Toggl.Multivac.Extensions.StringExtensions;
-using Math = Toggl.Multivac.Math;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -33,9 +29,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 groupingKey: _ => string.Empty
             );
 
-        public UIAction CloseAction { get; }
-        public InputAction<string> CreateClientAction { get; }
-        public InputAction<SelectableClientViewModel> SelectClientAction { get; }
+        public UIAction Close { get; }
+        public InputAction<string> CreateClient { get; }
+        public InputAction<SelectableClientViewModel> SelectClient { get; }
 
         public IObservable<bool> CreationSuggestion { get; }
 
@@ -59,9 +55,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
 
-            CloseAction = UIAction.FromAsync(close);
-            CreateClientAction = InputAction<string>.FromAsync(createClient);
-            SelectClientAction = InputAction<SelectableClientViewModel>.FromAsync(selectClient);
+            Close = UIAction.FromAsync(close);
+            CreateClient = InputAction<string>.FromAsync(createClient);
+            SelectClient = InputAction<SelectableClientViewModel>.FromAsync(selectClient);
             CreationSuggestion = showCreationSuggestion.AsDriver(false, schedulerProvider);
         }
 

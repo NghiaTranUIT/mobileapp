@@ -129,7 +129,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                await ViewModel.CloseAction.Execute();
+                await ViewModel.Close.Execute();
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<long?>());
@@ -140,7 +140,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                await ViewModel.CloseAction.Execute();
+                await ViewModel.Close.Execute();
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), null);
