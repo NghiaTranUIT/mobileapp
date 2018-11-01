@@ -84,6 +84,15 @@ namespace Toggl.Foundation
 
             var fetchAllSince = new FetchAllSinceState(database, api, timeService);
 
+            var detectGainingAccessToWorkspaces =
+                new DetectGainingAccessToWorkspacesState(
+                    dataSource.Workspaces,
+                    analyticsService,
+                    () => new HasFinsihedSyncBeforeInteractor(dataSource));
+
+            var persistNewWorkspaces =
+                new PersistNewWorkspacesState(dataSource.Workspaces, database.SinceParameters);
+
             var detectLosingAccessToWorkspaces =
                 new DetectLosingAccessToWorkspacesState(dataSource.Workspaces, analyticsService);
 
@@ -150,14 +159,16 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(entryPoint, fetchAllSince);
 
             // start all the API requests first
-            transitions.ConfigureTransition(fetchAllSince.FetchStarted, detectLosingAccessToWorkspaces);
+            transitions.ConfigureTransition(fetchAllSince.FetchStarted, detectGainingAccessToWorkspaces);
+
+            // detect gaining access to workspaces
+            transitions.ConfigureTransition(detectGainingAccessToWorkspaces.Continue, detectLosingAccessToWorkspaces);
+            transitions.ConfigureTransition(detectGainingAccessToWorkspaces.NewWorkspacesDetected, persistNewWorkspaces);
+            transitions.ConfigureTransition(persistNewWorkspaces.FinishedPersisting, fetchAllSince);
 
             // detect losing access to workspaces
             transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, deleteRunningInaccessibleTimeEntry);
             transitions.ConfigureTransition(deleteRunningInaccessibleTimeEntry.Continue, persistWorkspaces);
-
-            // detect gaining access to new workspaces
-            // (not implemented yet)
 
             // persist all the data pulled from the server
             transitions.ConfigureTransition(persistWorkspaces.FinishedPersisting, updateWorkspacesSinceDate);

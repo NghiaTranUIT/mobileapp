@@ -19,7 +19,7 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         private readonly IAnalyticsService analyticsService;
 
-        private readonly IInteractor<IObservable<bool>> hasFinishedSyncBefore;
+        private readonly Func<IInteractor<IObservable<bool>>> hasFinishedSyncBefore;
 
         public StateResult<IFetchObservables> Continue { get; } = new StateResult<IFetchObservables>();
         public StateResult<IEnumerable<IWorkspace>> NewWorkspacesDetected { get; } = new StateResult<IEnumerable<IWorkspace>>();
@@ -27,7 +27,7 @@ namespace Toggl.Foundation.Sync.States.Pull
         public DetectGainingAccessToWorkspacesState(
             IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource,
             IAnalyticsService analyticsService,
-            IInteractor<IObservable<bool>> hasFinishedSyncBefore)
+            Func<IInteractor<IObservable<bool>>> hasFinishedSyncBefore)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(analyticsService, nameof(analyticsService));
@@ -40,8 +40,8 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         public IObservable<ITransition> Start(IFetchObservables fetch)
             => fetch.GetList<IWorkspace>()
-                .CombineLatest(dataSource.GetAll(), workspacesWhichAreNotInDatabase)
-                .CombineLatest(hasFinishedSyncBefore.Execute(), (newWorkspaces, hasSynced) =>
+                .CombineLatest(persistedWorkspaces(), workspacesWhichAreNotInDatabase)
+                .CombineLatest(hasFinishedSyncBefore().Execute(), (newWorkspaces, hasSynced) =>
                     newWorkspaces.Any() && hasSynced
                         ? newWorkspacesDetected(newWorkspaces)
                         : continueTransition(fetch));
@@ -57,5 +57,8 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         private ITransition continueTransition(IFetchObservables fetch)
             => Continue.Transition(fetch);
+
+        private IObservable<IEnumerable<IWorkspace>> persistedWorkspaces()
+            => dataSource.GetAll().SelectMany(CommonFunctions.Identity).ToList();
     }
 }
