@@ -48,7 +48,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService, stopwatchProvider);
+                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService, schedulerProvider, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
