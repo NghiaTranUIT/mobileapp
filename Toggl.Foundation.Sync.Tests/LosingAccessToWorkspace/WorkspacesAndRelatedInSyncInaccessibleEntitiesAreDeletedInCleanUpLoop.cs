@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Toggl.Foundation.Exceptions;
 using Toggl.Foundation.Sync.Tests.Extensions;
@@ -10,7 +12,7 @@ using Toggl.PrimeRadiant;
 
 namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
 {
-    public sealed class WorkspacesAndRelatedEntitiesAreMarkedAsInaccessible : BaseComplexSyncTest
+    public class WorkspacesAndRelatedInSyncInaccessibleEntitiesAreDeletedInCleanUpLoop : BaseComplexSyncTest
     {
         protected override ServerState ArrangeServerState(ServerState initialServerState)
             => initialServerState;
@@ -22,8 +24,8 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
                 workspaces: new[]
                 {
                     serverState.Workspaces.Single().ToSyncable(),
-                    new MockWorkspace { Id = 1, Name = "Workspace 1", SyncStatus = SyncStatus.InSync },
-                    new MockWorkspace { Id = 2, Name = "Workspace 2", SyncStatus = SyncStatus.InSync }
+                    new MockWorkspace { Id = 1, Name = "Workspace 1", IsInaccessible = true, SyncStatus = SyncStatus.InSync },
+                    new MockWorkspace { Id = 2, Name = "Workspace 2", IsInaccessible = true, SyncStatus = SyncStatus.InSync }
                 },
                 clients: new[]
                 {
@@ -51,6 +53,11 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
                     new MockTimeEntry { Id = 2, Start = DateTimeOffset.Now - TimeSpan.FromDays(1), Duration = 10 * 60, WorkspaceId = 2, ProjectId = 2, TagIds = new long[] { 2 }, SyncStatus = SyncStatus.InSync }
                 });
 
+        protected override async Task Act(ISyncManager syncManager)
+        {
+            await syncManager.CleanUp();
+        }
+
         protected override void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState)
         {
             if (!finalServerState.User.DefaultWorkspaceId.HasValue)
@@ -62,19 +69,15 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
                 .And
                 .Contain(ws => ws.Id == defaultWorkspaceId);
 
-            finalDatabaseState.Workspaces.Should().HaveCount(3)
+            finalDatabaseState.Workspaces.Should().HaveCount(1)
                 .And
-                .Contain(ws => ws.Id == defaultWorkspaceId && ws.SyncStatus == SyncStatus.InSync && !ws.IsInaccessible)
-                .And
-                .Contain(ws => ws.Id == 1 && ws.SyncStatus == SyncStatus.InSync && ws.IsInaccessible)
-                .And
-                .Contain(ws => ws.Id == 2 && ws.SyncStatus == SyncStatus.InSync && ws.IsInaccessible);
+                .Contain(ws => ws.Id == defaultWorkspaceId);
 
-            finalDatabaseState.Clients.Should().HaveCount(2).And.OnlyContain(client => client.IsInaccessible);
-            finalDatabaseState.Tags.Should().HaveCount(2).And.OnlyContain(tag => tag.IsInaccessible);
-            finalDatabaseState.Projects.Should().HaveCount(2).And.OnlyContain(project => project.IsInaccessible);
-            finalDatabaseState.Tasks.Should().HaveCount(2).And.OnlyContain(task => task.IsInaccessible);
-            finalDatabaseState.TimeEntries.Should().HaveCount(2).And.OnlyContain(timeEntry => timeEntry.IsInaccessible);
+            finalDatabaseState.Clients.Should().HaveCount(0);
+            finalDatabaseState.Tags.Should().HaveCount(0);
+            finalDatabaseState.Projects.Should().HaveCount(0);
+            finalDatabaseState.Tasks.Should().HaveCount(0);
+            finalDatabaseState.TimeEntries.Should().HaveCount(0);
         }
     }
 }

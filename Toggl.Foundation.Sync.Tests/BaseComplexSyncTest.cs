@@ -15,6 +15,7 @@ namespace Toggl.Foundation.Sync.Tests
         protected BaseComplexSyncTest()
         {
             storage = new Storage();
+            storage.Clear().Wait();
         }
 
         public void Dispose()
