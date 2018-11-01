@@ -19,7 +19,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         [Fact, LogTestInfo]
         public async Task SetsUserDataCorrectly()
         {
-            var server = await Server.Create();
+            var server = await Server.Factory.Create();
             var randomEmail = Email.From($"custom-random-email-{Guid.NewGuid().ToString()}@random.emails.com");
             var updatedServerState = server.InitialServerState.With(
                 user: New<IUser>.Value(server.InitialServerState.User.With(email: randomEmail)));
@@ -34,7 +34,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         [Fact, LogTestInfo]
         public async Task SetsPreferencesCorrectly()
         {
-            var server = await Server.Create();
+            var server = await Server.Factory.Create();
             var differentDurationFormat =
                 server.InitialServerState.Preferences.DurationFormat == DurationFormat.Classic
                     ? DurationFormat.Improved
@@ -53,7 +53,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         [Fact, LogTestInfo]
         public async Task CorrectlySetsIdsOfConnectedEntities()
         {
-            var server = await Server.Create();
+            var server = await Server.Factory.Create();
             var arrangedState = server.InitialServerState.With(
                 timeEntries: new[]
                 {
@@ -108,7 +108,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         [Fact, LogTestInfo]
         public async Task WorksWithPaidFeatures()
         {
-            var server = await Server.Create();
+            var server = await Server.Factory.Create();
             var workspace = server.InitialServerState.Workspaces.Single();
             var arrangedState = server.InitialServerState.With(
                 projects: new[] { new MockProject { Color = "#abcdef", WorkspaceId = workspace.Id } },

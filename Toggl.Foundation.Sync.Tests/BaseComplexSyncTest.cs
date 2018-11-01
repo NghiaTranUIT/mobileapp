@@ -26,7 +26,7 @@ namespace Toggl.Foundation.Sync.Tests
         public async Task Execute()
         {
             // Initialize
-            var server = await Server.Create();
+            var server = await Server.Factory.Create();
             var appServices = new AppServices(server.Api, storage.Database);
 
             // Arrange

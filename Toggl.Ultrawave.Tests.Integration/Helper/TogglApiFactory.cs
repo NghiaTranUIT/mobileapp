@@ -2,7 +2,7 @@ using Toggl.Ultrawave.Network;
 
 namespace Toggl.Ultrawave.Tests.Integration.Helper
 {
-    public static class TogglApiFactory
+    internal static class TogglApiFactory
     {
         public static ITogglApi TogglApiWith(Credentials credentials)
         {
