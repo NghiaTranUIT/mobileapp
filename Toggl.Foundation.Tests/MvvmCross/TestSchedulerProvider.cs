@@ -15,5 +15,6 @@ namespace Toggl.Foundation.Tests.MvvmCross
 
         public IScheduler MainScheduler => TestScheduler;
         public IScheduler DefaultScheduler => TestScheduler;
+        public IScheduler BackgroundScheduler => TestScheduler;
     }
 }

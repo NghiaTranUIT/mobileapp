@@ -4,6 +4,7 @@ using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Settings;
+using Toggl.Multivac.Extensions;
 using FoundationResources = Toggl.Foundation.Resources;
 
 namespace Toggl.Daneel.ViewControllers.Settings
@@ -34,8 +35,13 @@ namespace Toggl.Daneel.ViewControllers.Settings
             source.SectionHeaderBackgroundColor = Color.Settings.Background.ToNativeColor();
             UserCalendarsTableView.Source = source;
 
-            this.Bind(header.EnableCalendarAccessTapped, ViewModel.RequestAccessAction);
-            this.Bind(source.ItemSelected, ViewModel.SelectCalendarAction);
+            header.EnableCalendarAccessTapped
+                .Subscribe(ViewModel.RequestAccess.Inputs)
+                .DisposedBy(DisposeBag);
+
+            source.ItemSelected
+                .Subscribe(ViewModel.SelectCalendar.Inputs)
+                .DisposedBy(DisposeBag);
         }
     }
 }

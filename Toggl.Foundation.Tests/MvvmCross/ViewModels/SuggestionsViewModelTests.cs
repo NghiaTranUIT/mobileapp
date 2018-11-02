@@ -13,6 +13,8 @@ using Toggl.Foundation.Tests.Generators;
 using Xunit;
 using TimeEntry = Toggl.Foundation.Models.TimeEntry;
 using Toggl.Foundation.Models.Interfaces;
+using Toggl.Foundation.DataSources;
+using System.Reactive.Subjects;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -127,6 +129,65 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 suggestions.Should().HaveCount(0);
             }
 
+            [Fact, LogIfTooSlow]
+            public async Task ReloadsSuggestionsWhenWorkspacesUpdate()
+            {
+                var workspaceUpdatedSubject = new Subject<EntityUpdate<IThreadSafeWorkspace>>();
+                DataSource.Workspaces.Updated.Returns(workspaceUpdatedSubject.AsObservable());
+                DataSource.Workspaces.Created.Returns(Observable.Empty<IThreadSafeWorkspace>());
+                DataSource.Workspaces.Deleted.Returns(Observable.Empty<long>());
+
+                var provider = suggestionProvider();
+                SetProviders(SuggestionProviderContainer, provider);
+                var observer = TestScheduler.CreateObserver<Suggestion[]>();
+
+                await ViewModel.Initialize();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                workspaceUpdatedSubject.OnNext(new EntityUpdate<IThreadSafeWorkspace>());
+
+                TestScheduler.Start();
+
+                observer.Messages.Should().HaveCount(2);
+                observer.Messages.First().Value.Value.Should().HaveCount(0);
+                observer.Messages.Last().Value.Value.Should().HaveCount(0);
+                await provider.Received(2).GetSuggestions();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ReloadsSuggestionsWhenTimeEntriesUpdate()
+            {
+                var timeEntriesUpdatedSubject = new Subject<EntityUpdate<IThreadSafeTimeEntry>>();
+                DataSource.TimeEntries.Updated.Returns(timeEntriesUpdatedSubject.AsObservable());
+                DataSource.TimeEntries.Created.Returns(Observable.Empty<IThreadSafeTimeEntry>());
+                DataSource.TimeEntries.Deleted.Returns(Observable.Empty<long>());
+
+                var provider = suggestionProvider();
+                SetProviders(SuggestionProviderContainer, provider);
+                var observer = TestScheduler.CreateObserver<Suggestion[]>();
+
+                await ViewModel.Initialize();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                timeEntriesUpdatedSubject.OnNext(new EntityUpdate<IThreadSafeTimeEntry>());
+
+                TestScheduler.Start();
+
+                observer.Messages.Should().HaveCount(2);
+                observer.Messages.First().Value.Value.Should().HaveCount(0);
+                observer.Messages.Last().Value.Value.Should().HaveCount(0);
+                await provider.Received(2).GetSuggestions();
+            }
+
+            private ISuggestionProvider suggestionProvider()
+            {
+                var provider = Substitute.For<ISuggestionProvider>();
+                
+                provider.GetSuggestions().Returns(Observable.Empty<Suggestion>());
+
+                return provider;
+            }
+
             private Suggestion createSuggestion(int index) => createSuggestion($"te{index}", 0, 0);
 
             private Suggestion createSuggestion(string description, long taskId, long projectId) => new Suggestion(
@@ -162,7 +223,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var suggestion = createSuggestion();
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 InteractorFactory.Received().StartSuggestion(suggestion);
             }
@@ -175,7 +236,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.StartSuggestion(Arg.Any<Suggestion>()).Returns(mockedInteractor);
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 await mockedInteractor.Received().Execute();
             }
@@ -191,8 +252,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Return(timeEntry));
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 InteractorFactory.Received(2).StartSuggestion(suggestion);
             }
@@ -203,8 +264,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var suggestion = createSuggestion();
                 await ViewModel.Initialize();
 
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
-                await ViewModel.StartTimeEntryAction.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
+                await ViewModel.StartTimeEntry.Execute(suggestion);
 
                 OnboardingStorage.Received().SetTimeEntryContinued();
             }

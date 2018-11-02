@@ -351,3 +351,25 @@ Action<int> bar = (x) => { Bar(x * 2); };
 
 Func<int, int> baz = (x) => { return x * 2; };
 ```
+
+Append platform suffixes to platform specific implementations of services.
+```csharp
+//In Foundation
+public interface IFooService
+{
+    void Bar();
+}
+
+//In Daneel
+public class FooServiceIos : IFooService
+{
+    public void Bar() { }
+}
+
+//In Giskard
+public class FooServiceAndroid : IFooService
+{
+    public void Bar() { }
+}
+
+```

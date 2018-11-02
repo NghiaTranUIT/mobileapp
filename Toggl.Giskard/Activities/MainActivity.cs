@@ -38,13 +38,13 @@ namespace Toggl.Giskard.Activities
     [Activity(Theme = "@style/AppTheme",
               ScreenOrientation = ScreenOrientation.Portrait,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed partial class MainActivity : MvxAppCompatActivity<MainViewModel>, IReactiveBindingHolder
+    public sealed partial class MainActivity : MvxAppCompatActivity<MainViewModel>
     {
         private const int snackbarDuration = 5000;
         private NotificationManager notificationManager;
         private MainRecyclerAdapter mainRecyclerAdapter;
         private LinearLayoutManager layoutManager;
-        private AndroidFirebaseStopwatchProvider localStopwatchProvider = new AndroidFirebaseStopwatchProvider();
+        private FirebaseStopwatchProviderAndroid localStopwatchProvider = new FirebaseStopwatchProviderAndroid();
 
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -64,8 +64,13 @@ namespace Toggl.Giskard.Activities
 
             runningEntryCardFrame.Visibility = ViewStates.Invisible;
 
-            this.Bind(ViewModel.IsTimeEntryRunning, onTimeEntryCardVisibilityChanged);
-            this.Bind(ViewModel.SyncProgressState, onSyncChanged);
+            ViewModel.IsTimeEntryRunning
+                .Subscribe(onTimeEntryCardVisibilityChanged)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SyncProgressState
+                .Subscribe(onSyncChanged)
+                .DisposedBy(DisposeBag);
 
             mainRecyclerAdapter = new MainRecyclerAdapter(ViewModel.TimeEntries, ViewModel.TimeService)
             {
@@ -73,33 +78,52 @@ namespace Toggl.Giskard.Activities
                 StopwatchProvider = localStopwatchProvider
             };
 
-            this.Bind(mainRecyclerAdapter.TimeEntryTaps, ViewModel.SelectTimeEntry.Inputs);
-            this.Bind(mainRecyclerAdapter.ContinueTimeEntrySubject, ViewModel.ContinueTimeEntry.Inputs);
-            this.Bind(mainRecyclerAdapter.DeleteTimeEntrySubject, ViewModel.TimeEntriesViewModel.DelayDeleteTimeEntry.Inputs);
-            this.Bind(ViewModel.TimeEntriesViewModel.ShouldShowUndo, showUndoDeletion);
+            mainRecyclerAdapter.TimeEntryTaps
+                .Subscribe(ViewModel.SelectTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
 
-            this.Bind(ViewModel.SyncProgressState, updateSyncingIndicator);
-            this.Bind(refreshLayout.Rx().Refreshed(), ViewModel.RefreshAction);
+            mainRecyclerAdapter.ContinueTimeEntrySubject
+                .Subscribe(ViewModel.ContinueTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            mainRecyclerAdapter.DeleteTimeEntrySubject
+                .Subscribe(ViewModel.TimeEntriesViewModel.DelayDeleteTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.TimeEntriesViewModel.ShouldShowUndo
+                .Subscribe(showUndoDeletion)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SyncProgressState
+                .Subscribe(updateSyncingIndicator)
+                .DisposedBy(DisposeBag);
+
+           refreshLayout.Rx().Refreshed()
+                .Subscribe(ViewModel.Refresh.Inputs)
+                .DisposedBy(DisposeBag);
 
             setupLayoutManager(mainRecyclerAdapter);
 
-            var mainLogChange = ViewModel
-                .TimeEntries
-                .CollectionChange
-                .ObserveOn(SynchronizationContext.Current);
-            this.Bind(mainLogChange, mainRecyclerAdapter.UpdateCollection);
+            ViewModel.TimeEntries.CollectionChange
+                .ObserveOn(SynchronizationContext.Current)
+                .Subscribe(mainRecyclerAdapter.UpdateCollection)
+                .DisposedBy(DisposeBag);
 
-            var isTimeEntryRunning = ViewModel
-                .IsTimeEntryRunning
-                .ObserveOn(SynchronizationContext.Current);
-            this.Bind(isTimeEntryRunning, updateRecyclerViewPadding);
+            ViewModel.IsTimeEntryRunning
+                .ObserveOn(SynchronizationContext.Current)
+                .Subscribe(updateRecyclerViewPadding)
+                .DisposedBy(DisposeBag);
 
             notificationManager = GetSystemService(NotificationService) as NotificationManager;
-            this.BindRunningTimeEntry(notificationManager, ViewModel.CurrentRunningTimeEntry, ViewModel.ShouldShowRunningTimeEntryNotification);
-            this.BindIdleTimer(notificationManager, ViewModel.IsTimeEntryRunning, ViewModel.ShouldShowStoppedTimeEntryNotification);
+            this.BindRunningTimeEntry(notificationManager, ViewModel.CurrentRunningTimeEntry, ViewModel.ShouldShowRunningTimeEntryNotification)
+                .DisposedBy(DisposeBag);
+            this.BindIdleTimer(notificationManager, ViewModel.IsTimeEntryRunning, ViewModel.ShouldShowStoppedTimeEntryNotification)
+                .DisposedBy(DisposeBag);
             setupItemTouchHelper(mainRecyclerAdapter);
 
-            this.Bind(ViewModel.TimeEntriesCount, timeEntriesCountSubject);
+            ViewModel.TimeEntriesCount
+                .Subscribe(timeEntriesCountSubject)
+                .DisposedBy(DisposeBag);
 
             ViewModel.ShouldReloadTimeEntryLog
                     .VoidSubscribe(reload)
@@ -162,7 +186,7 @@ namespace Toggl.Giskard.Activities
 
             void onRetryTapped(View view)
             {
-                ViewModel.RefreshAction.Execute();
+                ViewModel.Refresh.Execute();
             }
         }
 

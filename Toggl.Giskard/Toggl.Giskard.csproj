@@ -293,22 +293,22 @@
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LinkerPleaseInclude.cs" />
-    <Compile Include="Services\PermissionsService.cs" />
-    <Compile Include="Services\CalendarService.cs" />
-    <Compile Include="Services\NoopIntentDonationService.cs" />
+    <Compile Include="Services\PermissionsServiceAndroid.cs" />
+    <Compile Include="Services\CalendarServiceAndroid.cs" />
+    <Compile Include="Services\NoopIntentDonationServiceAndroid.cs" />
     <Compile Include="Startup\AndroidSchedulerProvider.cs" />
     <Compile Include="Startup\QueryableMvxLifecycleMonitorCurrentTopActivity.cs" />
     <Compile Include="Startup\Setup.cs" />
     <Compile Include="Startup\SplashScreen.cs" />
-    <Compile Include="Services\GoogleService.cs" />
-    <Compile Include="Services\DialogService.cs" />
-    <Compile Include="Services\BrowserService.cs" />
+    <Compile Include="Services\GoogleServiceAndroid.cs" />
+    <Compile Include="Services\DialogServiceAndroid.cs" />
+    <Compile Include="Services\BrowserServiceAndroid.cs" />
     <Compile Include="Activities\OnboardingActivity.cs" />
     <Compile Include="Activities\LoginActivity.cs" />
     <Compile Include="Activities\LoginActivity.ViewBinds.cs">
       <DependentUpon>LoginActivity.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\SharedPreferencesStorage.cs" />
+    <Compile Include="Services\SharedPreferencesStorageAndroid.cs" />
     <Compile Include="Activities\MainActivity.cs" />
     <Compile Include="Startup\TogglApplication.cs" />
     <Compile Include="TemplateSelectors\SelectTagsTemplateSelector.cs" />
@@ -339,7 +339,7 @@
     <Compile Include="Activities\StartTimeEntryActivity.cs" />
     <Compile Include="Extensions\VisibilityExtensions.cs" />
     <Compile Include="Activities\BrowserActivity.cs" />
-    <Compile Include="Services\MailService.cs" />
+    <Compile Include="Services\MailServiceAndroid.cs" />
     <Compile Include="Extensions\CircularRevealAnimation.cs" />
     <Compile Include="Activities\EditTimeEntryActivity.cs" />
     <Compile Include="ApplicationShortcutCreator.cs" />
@@ -351,7 +351,7 @@
     <Compile Include="Autocomplete\TokenSpan.cs" />
     <Compile Include="Autocomplete\ProjectTokenSpan.cs" />
     <Compile Include="Autocomplete\TagsTokenSpan.cs" />
-    <Compile Include="Services\AnalyticsService.cs" />
+    <Compile Include="Services\AnalyticsServiceAndroid.cs" />
     <Compile Include="Fragments\SelectDateTimeFragment.cs" />
     <Compile Include="Bindings\FabVisibilityTargetBinding.cs" />
     <Compile Include="Extensions\ActivityExtensions.cs" />
@@ -373,7 +373,7 @@
     <Compile Include="Fragments\SelectWorkspaceFragment.cs" />
     <Compile Include="TemplateSelectors\SelectWorkspaceTemplateSelector.cs" />
     <Compile Include="Bindings\TextViewFontWeightTargetBinding.cs" />
-    <Compile Include="Services\LicenseProvider.cs" />
+    <Compile Include="Services\LicenseProviderAndroid.cs" />
     <Compile Include="Views\SelectProjectWithExpandableTasksRecyclerViewHolder.cs" />
     <Compile Include="Fragments\SelectDateFormatFragment.cs" />
     <Compile Include="TemplateSelectors\SelectDateFormatTemplateSelector.cs" />
@@ -432,8 +432,8 @@
     <Compile Include="ViewHolders\WorkspaceSelectionViewHolder.cs" />
     <Compile Include="Adapters\SimpleAdapter.cs" />
     <Compile Include="Activities\AboutActivity.cs" />
-    <Compile Include="Services\RatingService.cs" />
-    <Compile Include="Services\RemoteConfigService.cs" />
+    <Compile Include="Services\RatingServiceAndroid.cs" />
+    <Compile Include="Services\RemoteConfigServiceAndroid.cs" />
     <Compile Include="Activities\SettingsActivity.ViewBinds.cs">
       <DependentUpon>SettingsActivity.cs</DependentUpon>
     </Compile>
@@ -448,7 +448,7 @@
     </Compile>
     <Compile Include="Views\AutocompleteEditText.cs" />
     <Compile Include="Views\NonSwipingViewPager.cs" />
-    <Compile Include="Services\NotificationService.cs" />
+    <Compile Include="Services\NotificationServiceAndroid.cs" />
     <Compile Include="ViewHolders\MainLogSectionViewHolder.cs" />
     <Compile Include="Adapters\ReactiveSectionedRecyclerAdapter.cs" />
     <Compile Include="Adapters\MainSuggestionsRecyclerAdapter.cs" />
@@ -462,7 +462,7 @@
       <DependentUpon>MainActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Startup\HandlerScheduler.cs" />
-    <Compile Include="Services\NoopPrivateSharedStorageService.cs" />
+    <Compile Include="Services\NoopPrivateSharedStorageServiceAndroid.cs" />
     <Compile Include="Activities\ReportsActivity.ViewBinds.cs">
       <DependentUpon>ReportsActivity.cs</DependentUpon>
     </Compile>
@@ -477,7 +477,7 @@
     <Compile Include="Activities\TokenResetActivity.ViewBinds.cs">
       <DependentUpon>TokenResetActivity.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\AndroidFirebaseStopwatchProvider.cs" />
+    <Compile Include="Services\FirebaseStopwatchProviderAndroid.cs" />
     <Compile Include="ViewHolders\SelectDefaultWorkspaceViewHolder.cs" />
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.cs" />
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.ViewBinds.cs">

@@ -33,7 +33,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
 
         public IObservable<string> UpcomingEvents => upcomingEventSubject.AsObservable().DistinctUntilChanged();
 
-        public UIAction RequestAccessAction { get; }
+        public UIAction RequestAccess { get; }
 
         public UIAction OpenUpcomingEvents { get; }
 
@@ -59,7 +59,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
                 .Subscribe(refreshPermissionGranted)
                 .DisposedBy(disposeBag);
 
-            RequestAccessAction = UIAction.FromAction(requestAccess);
+            RequestAccess = UIAction.FromAction(requestAccess);
             OpenUpcomingEvents = UIAction.FromAsync(openUpcomingEvents);
         }
 

@@ -70,6 +70,8 @@ namespace Toggl.Foundation.Interactors
 
         IInteractor<IObservable<IEnumerable<SyncFailureItem>>> GetItemsThatFailedToSync();
 
+        IInteractor<IObservable<bool>> HasFinishedSyncBefore();
+
         #endregion
 
         #region Autocomplete Suggestions

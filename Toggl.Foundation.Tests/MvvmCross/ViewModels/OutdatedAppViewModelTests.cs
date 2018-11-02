@@ -35,7 +35,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task CallsTheOpenStoreMethodOfTheBrowserService()
             {
-                await ViewModel.UpdateAppAction.Execute();
+                await ViewModel.UpdateApp.Execute();
 
                 BrowserService.Received().OpenStore();
             }
@@ -48,7 +48,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 const string togglWebsiteUrl = "https://toggl.com";
 
-                await ViewModel.OpenWebsiteAction.Execute();
+                await ViewModel.OpenWebsite.Execute();
 
                 BrowserService.Received().OpenUrl(Arg.Is(togglWebsiteUrl));
             }

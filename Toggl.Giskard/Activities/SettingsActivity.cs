@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Reactive.Linq;
 using Android.App;
 using Android.Content.PM;
 using Android.Graphics;
@@ -7,11 +8,13 @@ using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Adapters;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.ViewHolders;
+using Toggl.Multivac.Extensions;
 using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace Toggl.Giskard.Activities
@@ -41,32 +44,90 @@ namespace Toggl.Giskard.Activities
 
             versionTextView.Text = ViewModel.Version;
 
-            this.Bind(ViewModel.Name, nameTextView.Rx().TextObserver());
-            this.Bind(ViewModel.Email, emailTextView.Rx().TextObserver());
-            this.Bind(ViewModel.Workspaces, adapter.Rx().Items());
-            this.Bind(ViewModel.IsManualModeEnabled, manualModeSwitch.Rx().Checked());
-            this.Bind(ViewModel.UseTwentyFourHourFormat, is24hoursModeSwitch.Rx().Checked());
-            this.Bind(ViewModel.AreRunningTimerNotificationsEnabled, runningTimerNotificationsSwitch.Rx().Checked());
-            this.Bind(ViewModel.AreStoppedTimerNotificationsEnabled, stoppedTimerNotificationsSwitch.Rx().Checked());
-            this.Bind(ViewModel.BeginningOfWeek, beginningOfWeekTextView.Rx().TextObserver());
-            this.Bind(ViewModel.UserAvatar.Select(userImageFromBytes), bitmap =>
-            {
-                avatarView.SetImageBitmap(bitmap);
-                avatarContainer.Visibility = ViewStates.Visible;
-            });
-            
-            this.BindVoid(ViewModel.LoggingOut, this.CancelAllNotifications);
-            this.Bind(ViewModel.IsFeedbackSuccessViewShowing, showFeedbackSuccessToast);
+            ViewModel.Name
+                .Subscribe(nameTextView.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(logoutView.Rx().Tap(), ViewModel.TryLogout);
-            this.Bind(helpView.Rx().Tap(), ViewModel.OpenHelpView);
-            this.Bind(aboutView.Rx().Tap(), ViewModel.OpenAboutView);
-            this.Bind(feedbackView.Rx().Tap(), ViewModel.SubmitFeedback);
-            this.BindVoid(manualModeView.Rx().Tap(), ViewModel.ToggleManualMode);
-            this.Bind(is24hoursModeView.Rx().Tap(), ViewModel.ToggleTwentyFourHourSettings);
-            this.BindVoid(runningTimerNotificationsView.Rx().Tap(), ViewModel.ToggleRunningTimerNotifications);
-            this.BindVoid(stoppedTimerNotificationsView.Rx().Tap(), ViewModel.ToggleStoppedTimerNotifications);
-            this.Bind(beginningOfWeekView.Rx().Tap(), ViewModel.SelectBeginningOfWeek);
+            ViewModel.Email
+                .Subscribe(emailTextView.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Workspaces
+                .Subscribe(adapter.Rx().Items())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsManualModeEnabled
+                .Subscribe(manualModeSwitch.Rx().Checked())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.UseTwentyFourHourFormat
+                .Subscribe(is24hoursModeSwitch.Rx().Checked())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.AreRunningTimerNotificationsEnabled
+                .Subscribe(runningTimerNotificationsSwitch.Rx().Checked())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.AreStoppedTimerNotificationsEnabled
+                .Subscribe(stoppedTimerNotificationsSwitch.Rx().Checked())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.BeginningOfWeek
+                .Subscribe(beginningOfWeekTextView.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.UserAvatar
+                .Select(userImageFromBytes)
+                .Subscribe(bitmap =>
+                {
+                    avatarView.SetImageBitmap(bitmap);
+                    avatarContainer.Visibility = ViewStates.Visible;
+                })
+                .DisposedBy(DisposeBag);
+
+            ViewModel.LoggingOut
+                .VoidSubscribe(this.CancelAllNotifications)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsFeedbackSuccessViewShowing
+                .Subscribe(showFeedbackSuccessToast)
+                .DisposedBy(DisposeBag);
+
+            logoutView.Rx().Tap()
+                .Subscribe(_ => ViewModel.TryLogout())
+                .DisposedBy(DisposeBag);
+
+            helpView.Rx().Tap()
+                .Subscribe(ViewModel.OpenHelpView)
+                .DisposedBy(DisposeBag);
+
+            aboutView.Rx().Tap()
+                .Subscribe(ViewModel.OpenAboutView)
+                .DisposedBy(DisposeBag);
+
+            feedbackView.Rx().Tap()
+                .Subscribe(ViewModel.SubmitFeedback)
+                .DisposedBy(DisposeBag);
+
+            manualModeView.Rx().Tap()
+                .VoidSubscribe(ViewModel.ToggleManualMode)
+                .DisposedBy(DisposeBag);
+
+            is24hoursModeView.Rx()
+                .BindAction(ViewModel.ToggleTwentyFourHourSettings)
+                .DisposedBy(DisposeBag);
+
+            runningTimerNotificationsView.Rx().Tap()
+                .VoidSubscribe(ViewModel.ToggleRunningTimerNotifications)
+                .DisposedBy(DisposeBag);
+
+            stoppedTimerNotificationsView.Rx().Tap()
+                .VoidSubscribe(ViewModel.ToggleStoppedTimerNotifications)
+                .DisposedBy(DisposeBag);
+
+            beginningOfWeekView.Rx().Tap()
+                .Subscribe(ViewModel.SelectBeginningOfWeek)
+                .DisposedBy(DisposeBag);
 
             setupToolbar();
         }
@@ -99,7 +160,7 @@ namespace Toggl.Giskard.Activities
 
         private void onNavigateBack(object sender, Toolbar.NavigationClickEventArgs e)
         {
-            ViewModel.GoBack();
+            ViewModel.Close().Execute();
         }
 
         public override void Finish()

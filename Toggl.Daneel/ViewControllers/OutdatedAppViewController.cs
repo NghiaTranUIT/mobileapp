@@ -6,6 +6,7 @@ using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewControllers
@@ -32,8 +33,13 @@ namespace Toggl.Daneel.ViewControllers
                 Height = cardHeight
             };
 
-            this.Bind(UpdateButton.Rx().Tap(), ViewModel.UpdateAppAction);
-            this.Bind(WebsiteButton.Rx().Tap(), ViewModel.OpenWebsiteAction);
+            UpdateButton.Rx()
+                .BindAction(ViewModel.UpdateApp)
+                .DisposedBy(DisposeBag);
+
+            WebsiteButton.Rx()
+                .BindAction(ViewModel.OpenWebsite)
+                .DisposedBy(DisposeBag);
         }
 
     }

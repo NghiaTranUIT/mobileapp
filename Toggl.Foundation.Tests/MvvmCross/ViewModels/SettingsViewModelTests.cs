@@ -454,17 +454,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheGoBackMethod : SettingsViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModel()
-            {
-                await ViewModel.GoBack();
-
-                await NavigationService.Received().Close(ViewModel);
-            }
-        }
-
         public sealed class TheToggleManualModeMethod : SettingsViewModelTest
         {
             public TheToggleManualModeMethod()
@@ -832,7 +821,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task NavigatesToCalendarSettingsViewModel()
             {
-                await ViewModel.OpenCalendarSettingsAction.Execute(Unit.Default);
+                await ViewModel.OpenCalendarSettings.Execute(Unit.Default);
 
                 await NavigationService.Received().Navigate<CalendarSettingsViewModel>();
             }

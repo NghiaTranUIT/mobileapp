@@ -15,7 +15,7 @@ using Toggl.Giskard.ViewHolders;
 namespace Toggl.Giskard.Fragments
 {
     [MvxDialogFragmentPresentation(AddToBackStack = true, Cancelable = false)]
-    public sealed partial class SelectDefaultWorkspaceFragment : MvxDialogFragment<SelectDefaultWorkspaceViewModel>, IReactiveBindingHolder
+    public sealed partial class SelectDefaultWorkspaceFragment : MvxDialogFragment<SelectDefaultWorkspaceViewModel>
     {
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -35,7 +35,7 @@ namespace Toggl.Giskard.Fragments
                 SelectDefaultWorkspaceViewHolder.Create
             );
             adapter.Items = ViewModel.Workspaces.ToList();
-            adapter.OnItemTapped = async workspace => await ViewModel.SelectWorkspaceAction.Execute(workspace);
+            adapter.OnItemTapped = async workspace => await ViewModel.SelectWorkspace.Execute(workspace);
 
             recyclerView.SetAdapter(adapter);
             recyclerView.SetLayoutManager(new LinearLayoutManager(Context));

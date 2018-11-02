@@ -1,10 +1,12 @@
 ﻿using Toggl.Daneel.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
-using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Daneel.Presentation.Attributes;
 using CoreGraphics;
 using UIKit;
 using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
+using Toggl.Foundation.MvvmCross.Extensions;
+using System.Reactive;
 
 namespace Toggl.Daneel.ViewControllers.Calendar
 {
@@ -30,8 +32,13 @@ namespace Toggl.Daneel.ViewControllers.Calendar
                 Height = cardHeight
             };
 
-            this.Bind(EnableAccessButton.Rx().Tap(), ViewModel.EnableAccessAction);
-            this.Bind(ContinueWithoutAccessButton.Rx().Tap(), ViewModel.ContinueWithoutAccessAction);
+            EnableAccessButton.Rx()
+                .BindAction(ViewModel.EnableAccess)
+                .DisposedBy(DisposeBag);
+
+            ContinueWithoutAccessButton.Rx()
+                .BindAction(ViewModel.Close(Unit.Default))
+                .DisposedBy(DisposeBag);
         }
     }
 }

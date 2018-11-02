@@ -118,7 +118,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.SendEnabled.Subscribe(observer);
 
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.SendButtonTapped.Execute();
+                viewModel.Send.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeFalse();
@@ -140,7 +140,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 viewModel.IsLoading.StartWith(false).Subscribe(observer);
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.SendButtonTapped.Execute();
+                viewModel.Send.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeTrue();
@@ -157,7 +157,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 viewModel.IsLoading.StartWith(true).Subscribe(observer);
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.SendButtonTapped.Execute();
+                viewModel.Send.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeFalse();
@@ -174,7 +174,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 viewModel.IsLoading.StartWith(true).Subscribe(observer);
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.SendButtonTapped.Execute();
+                viewModel.Send.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeTrue();
@@ -187,7 +187,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var viewModel = CreateViewModel();
 
                 viewModel.IsLoading.StartWith(true).Subscribe(observer);
-                viewModel.CloseButtonTapped.Execute();
+                viewModel.Close.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeFalse();
@@ -203,7 +203,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var viewModel = CreateViewModel();
 
                 viewModel.Error.StartWith(new Exception()).Subscribe(observer);
-                viewModel.ErrorViewTapped.Execute();
+                viewModel.DismissError.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeNull();
@@ -221,7 +221,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Error.Subscribe(observer);
                 mockedFeedbackInteractor.Execute().Returns(Observable.Throw<Unit>(exception));
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.SendButtonTapped.Execute();
+                viewModel.Send.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().Be(exception);
@@ -235,7 +235,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.FeedbackText.OnNext(string.Empty);
 
-                await ViewModel.CloseButtonTapped.Execute();
+                await ViewModel.Close.Execute();
 
                 TestScheduler.Start();
                 await NavigationService.Received().Close(ViewModel, false);
@@ -246,7 +246,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.FeedbackText.OnNext(feedbackText.Get);
 
-                ViewModel.CloseButtonTapped.Execute().Wait();
+                ViewModel.Close.Execute().Wait();
 
                 TestScheduler.Start();
                 DialogService.Received().ConfirmDestructiveAction(Arg.Any<ActionType>());
@@ -258,7 +258,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 DialogService.ConfirmDestructiveAction(Arg.Any<ActionType>()).Returns(Observable.Return(true));
                 ViewModel.FeedbackText.OnNext(feedbackText.Get);
 
-                ViewModel.CloseButtonTapped.Execute().Wait();
+                ViewModel.Close.Execute().Wait();
 
                 TestScheduler.Start();
                 NavigationService.Received().Close(ViewModel, false);
@@ -270,7 +270,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 DialogService.ConfirmDestructiveAction(Arg.Any<ActionType>()).Returns(Observable.Return(false));
                 ViewModel.FeedbackText.OnNext(feedbackText.Get);
 
-                ViewModel.CloseButtonTapped.Execute().Wait();
+                ViewModel.Close.Execute().Wait();
 
                 TestScheduler.Start();
                 NavigationService.DidNotReceive().Close(Arg.Any<IMvxViewModelResult<bool>>(), Arg.Any<bool>());
@@ -289,8 +289,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FeedbackText.OnNext("some feedback");
                 ViewModel.Error.Subscribe(observer);
 
-                await ViewModel.SendButtonTapped.Execute();
-                await ViewModel.ErrorViewTapped.Execute();
+                await ViewModel.Send.Execute();
+                await ViewModel.DismissError.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().BeNull();
@@ -307,7 +307,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(Unit.Default));
 
-                await ViewModel.SendButtonTapped.Execute();
+                await ViewModel.Send.Execute();
 
                 TestScheduler.Start();
                 await NavigationService.Received().Close(ViewModel, true);
@@ -324,7 +324,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Throw<Unit>(expectedException));
                 ViewModel.Error.Subscribe(observer);
 
-                await ViewModel.SendButtonTapped.Execute();
+                await ViewModel.Send.Execute();
 
                 TestScheduler.Start();
                 observer.Messages.Last().Value.Value.Should().Be(expectedException);

@@ -8,13 +8,15 @@ using MvvmCross.Platforms.Ios.Binding.Views;
 using ObjCRuntime;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Multivac.Extensions.CommonFunctions;
 
 namespace Toggl.Daneel
 {
-    public partial class RatingView : MvxView, IReactiveBindingHolder
+    public partial class RatingView : MvxView
     {
         private readonly UIStringAttributes descriptionStringAttributes = new UIStringAttributes
         {
@@ -56,38 +58,55 @@ namespace Toggl.Daneel
 
         private void updateBindings()
         {
-            this.Bind(DataContext.CtaTitle, CtaTitle.Rx().Text());
-            this.Bind(DataContext.CtaButtonTitle, CtaButton.Rx().Title());
-            this.Bind(
-                DataContext.Impression.Select(impression => impression.HasValue),
-                CtaView.Rx().IsVisibleWithFade());
-            this.Bind(
-                DataContext.CtaDescription.Select(attributedDescription),
-                CtaDescription.Rx().AttributedText());
-            this.Bind(
-                DataContext
-                    .Impression
-                    .Select(impression => impression.HasValue)
-                    .Select(Invert),
-                QuestionView.Rx().IsVisibleWithFade());
+            DataContext.CtaTitle
+                .Subscribe(CtaTitle.Rx().Text())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(
-                DataContext
-                    .Impression
-                    .Select(impression => impression.HasValue),
-                CtaViewBottomConstraint.Rx().Active());
+            DataContext.CtaButtonTitle
+                .Subscribe(CtaButton.Rx().Title())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(
-                DataContext
-                    .Impression
-                    .Select(impression => impression.HasValue)
-                    .Select(Invert),
-                QuestionViewBottomConstraint.Rx().Active());
+            DataContext.Impression
+                .Select(impression => impression.HasValue)
+                .Subscribe(CtaView.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
 
-            this.BindVoid(YesView.Rx().Tap(), () => DataContext.RegisterImpression(true));
-            this.BindVoid(NotReallyView.Rx().Tap(), () => DataContext.RegisterImpression(false));
-            this.Bind(CtaButton.Rx().Tap(), DataContext.PerformMainAction);
-            this.BindVoid(DismissButton.Rx().Tap(), DataContext.Dismiss);
+            DataContext.CtaDescription.Select(attributedDescription)
+                .Subscribe(CtaDescription.Rx().AttributedText())
+                .DisposedBy(DisposeBag);
+
+            DataContext.Impression
+                .Select(impression => impression.HasValue)
+                .Select(Invert)
+                .Subscribe(QuestionView.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
+
+            DataContext.Impression
+                .Select(impression => impression.HasValue)
+                .Subscribe(CtaViewBottomConstraint.Rx().Active())
+                .DisposedBy(DisposeBag);
+
+            DataContext.Impression
+                .Select(impression => impression.HasValue)
+                .Select(Invert)
+                .Subscribe(QuestionViewBottomConstraint.Rx().Active())
+                .DisposedBy(DisposeBag);
+
+            YesView.Rx().Tap()
+                .VoidSubscribe(() => DataContext.RegisterImpression(true))
+                .DisposedBy(DisposeBag);
+
+            NotReallyView.Rx().Tap()
+                .VoidSubscribe(() => DataContext.RegisterImpression(false))
+                .DisposedBy(DisposeBag);
+
+            CtaButton.Rx().Tap()
+                .Subscribe(DataContext.PerformMainAction)
+                .DisposedBy(DisposeBag);
+
+            DismissButton.Rx().Tap()
+                .VoidSubscribe(DataContext.Dismiss)
+                .DisposedBy(DisposeBag);
         }
 
         protected override void Dispose(bool disposing)

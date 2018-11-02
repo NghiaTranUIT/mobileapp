@@ -1,4 +1,5 @@
-﻿using Android.App;
+﻿using System;
+using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Support.V7.Widget;
@@ -34,13 +35,27 @@ namespace Toggl.Giskard.Activities
             SupportActionBar.SetDisplayShowHomeEnabled(false);
             this.CancelAllNotifications();
 
-            this.Bind(ViewModel.Email.SelectToString(), emailLabel.Rx().TextObserver());
-            this.Bind(ViewModel.Password.SelectToString(), passwordEditText.Rx().TextObserver());
+            ViewModel.Email
+                .SelectToString()
+                .Subscribe(emailLabel.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(ViewModel.IsLoading, progressBar.Rx().IsVisible());
+            ViewModel.Password
+                .SelectToString()
+                .Subscribe(passwordEditText.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(signoutLabel.Rx().Tap(), ViewModel.SignOut);
-            this.Bind(doneButton.Rx().Tap(), ViewModel.Done);
+            ViewModel.IsLoading
+                .Subscribe(progressBar.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            signoutLabel.Rx()
+                .BindAction(ViewModel.SignOut)
+                .DisposedBy(DisposeBag);
+
+            doneButton.Rx()
+                .BindAction(ViewModel.Done)
+                .DisposedBy(DisposeBag);
         }
     }
 }

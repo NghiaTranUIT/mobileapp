@@ -65,7 +65,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task OpensAppSettings()
             {
-                await ViewModel.RequestAccessAction.Execute(Unit.Default);
+                await ViewModel.RequestAccess.Execute(Unit.Default);
 
                 PermissionsService.Received().OpenAppSettings();
             }
@@ -115,8 +115,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var firstCalendar = new UserCalendar("1", "1", "1");
                 var secondCalendar = new UserCalendar("2", "2", "2");
 
-                await ViewModel.SelectCalendarAction.Execute(new SelectableUserCalendarViewModel(firstCalendar, false));
-                await ViewModel.SelectCalendarAction.Execute(new SelectableUserCalendarViewModel(secondCalendar, false));
+                await ViewModel.SelectCalendar.Execute(new SelectableUserCalendarViewModel(firstCalendar, false));
+                await ViewModel.SelectCalendar.Execute(new SelectableUserCalendarViewModel(secondCalendar, false));
 
                 Received.InOrder(() =>
                 {

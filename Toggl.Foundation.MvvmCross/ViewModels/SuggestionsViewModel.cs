@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Interactors;
@@ -13,6 +10,7 @@ using Toggl.Foundation.Suggestions;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Settings;
+using Toggl.Foundation.Extensions;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -23,12 +21,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool> IsEmpty { get; private set; }
 
-        public InputAction<Suggestion> StartTimeEntryAction { get; private set; }
+        public InputAction<Suggestion> StartTimeEntry { get; private set; }
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IOnboardingStorage onboardingStorage;
         private readonly ISuggestionProviderContainer suggestionProviders;
         private readonly ISchedulerProvider schedulerProvider;
+        private readonly ITogglDataSource dataSource;
 
         public SuggestionsViewModel(
             ITogglDataSource dataSource,
@@ -47,25 +46,37 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.onboardingStorage = onboardingStorage;
             this.suggestionProviders = suggestionProviders;
             this.schedulerProvider = schedulerProvider;
+            this.dataSource = dataSource;
         }
 
         public override async Task Initialize()
         {
             await base.Initialize();
 
-            StartTimeEntryAction = InputAction<Suggestion>.FromAsync(suggestion => startTimeEntry(suggestion));
+            StartTimeEntry = InputAction<Suggestion>.FromAsync(suggestion => startTimeEntry(suggestion));
 
-            Suggestions = suggestionProviders
-                .Providers
-                .Select(provider => provider.GetSuggestions())
-                .Aggregate(Observable.Merge)
-                .ToArray()
+            Suggestions = Observable
+                .CombineLatest(
+                    dataSource.Workspaces.ItemsChanged(), 
+                    dataSource.TimeEntries.ItemsChanged())
+                .SelectUnit()
+                .StartWith(Unit.Default)
+                .SelectMany(_ => getSuggestions())
                 .AsDriver(onErrorJustReturn: new Suggestion[0], schedulerProvider: schedulerProvider);
 
             IsEmpty = Suggestions
                 .Select(suggestions => suggestions.Length == 0)
                 .StartWith(true)
                 .AsDriver(onErrorJustReturn: true, schedulerProvider: schedulerProvider);
+        }
+
+        private IObservable<Suggestion[]> getSuggestions()
+        {
+            return suggestionProviders
+                .Providers
+                .Select(provider => provider.GetSuggestions())
+                .Aggregate(Observable.Merge)
+                .ToArray();
         }
 
         private async Task startTimeEntry(Suggestion suggestion)

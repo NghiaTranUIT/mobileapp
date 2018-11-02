@@ -5,7 +5,9 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
+using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources.Interfaces;
+using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Sync.States;
@@ -20,116 +22,236 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 {
     public sealed class DetectGainingAccessToWorkspacesStateTests
     {
-        private readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource =
-            Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>();
-
-        private readonly IFetchObservables fetchObservables = Substitute.For<IFetchObservables>();
-
-        [Theory, LogIfTooSlow]
-        [ConstructorData]
-        public void ThrowsIfAnyOfTheArgumentsIsNull(bool useDataSource)
+        public abstract class DetectGainingAccessToWorkspacesStateTestBase
         {
-            Action tryingToConstructAction = () => new DetectGainingAccessToWorkspacesState(
-                useDataSource ? Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>() : null
-            );
+            protected readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> DataSource =
+                Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>();
 
-            tryingToConstructAction.Should().Throw<ArgumentNullException>();
+            protected readonly IAnalyticsService AnalyticsService =
+                Substitute.For<IAnalyticsService>();
+
+            protected readonly IInteractor<IObservable<bool>> HasFinsihedSyncBeforeInteractor =
+                Substitute.For<IInteractor<IObservable<bool>>>();
+
+            protected readonly IFetchObservables FetchObservables = Substitute.For<IFetchObservables>();
+
+            protected void PrepareDatabase(IEnumerable<IThreadSafeWorkspace> workspaces)
+            {
+                var accessibleWorkspaces = workspaces.Where(ws => !ws.IsInaccessible);
+                DataSource.GetAll().Returns(Observable.Return(accessibleWorkspaces));
+            }
+
+            protected void PrepareFetch(List<IWorkspace> workspaces)
+            {
+                FetchObservables.GetList<IWorkspace>().Returns(Observable.Return(workspaces));
+            }
         }
 
-        [Fact, LogIfTooSlow]
-        public async Task ReturnsFetchObservablesIfNoNewWorkspaceIsDetected()
+        public sealed class TheConstructor : DetectGainingAccessToWorkspacesStateTestBase
         {
-            prepareDatabase(new[]
+            [Theory, LogIfTooSlow]
+            [ConstructorData]
+            public void ThrowsIfAnyOfTheArgumentsIsNull(
+                bool useDataSource,
+                bool useAnalyticsService,
+                bool useHasFinsihedSyncBeforeInteractor)
             {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2 }
-            });
-            prepareFetch(new List<IWorkspace>
-            {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2 }
-            });
-            var state = new DetectGainingAccessToWorkspacesState(dataSource);
+                var theDataSource = useDataSource ? DataSource : null;
+                var theAnalyticsService = useAnalyticsService ? AnalyticsService : null;
+                var theInteractor = useHasFinsihedSyncBeforeInteractor ? HasFinsihedSyncBeforeInteractor : null;
 
-            var transition = await state.Start(fetchObservables);
-            var parameter = ((Transition<IFetchObservables>)transition).Parameter;
+                Action tryingToConstructAction = () => new DetectGainingAccessToWorkspacesState(
+                    theDataSource,
+                    theAnalyticsService,
+                    theInteractor
+                );
 
-            parameter.Should().Be(fetchObservables);
+                tryingToConstructAction.Should().Throw<ArgumentNullException>();
+            }
         }
 
-        [Fact, LogIfTooSlow]
-        public async Task ReturnsNewWorkspacesDetectedIfNewWorkspaceAreDetected()
+        public sealed class WhenFirstSyncHasNotFinishedBefore : DetectGainingAccessToWorkspacesStateTestBase
         {
-            prepareDatabase(new[]
-            {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2 }
-            });
-            prepareFetch(new List<IWorkspace>
-            {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2 },
-                new MockWorkspace { Id = 3 },
-            });
-            var state = new DetectGainingAccessToWorkspacesState(dataSource);
+            private DetectGainingAccessToWorkspacesState state;
 
-            var transition = await state.Start(fetchObservables);
-            var parameter = ((Transition<IEnumerable<IWorkspace>>)transition).Parameter;
+            public WhenFirstSyncHasNotFinishedBefore()
+            {
+                HasFinsihedSyncBeforeInteractor.Execute().Returns(Observable.Return(false));
+                state = new DetectGainingAccessToWorkspacesState(DataSource, AnalyticsService, HasFinsihedSyncBeforeInteractor);
+            }
 
-            parameter.Should().Match(newWorkspaces => newWorkspaces.All(ws => ws.Id == 3));
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsFetchObservables()
+            {
+                PrepareDatabase(new IThreadSafeWorkspace[] { });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+
+                var transition = await state.Start(FetchObservables);
+                var parameter = ((Transition<IFetchObservables>)transition).Parameter;
+
+                parameter.Should().Be(FetchObservables);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotTrackAnEventAfterLoginOrSignUp()
+            {
+                PrepareDatabase(new IThreadSafeWorkspace[] { });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+
+                await state.Start(FetchObservables).SingleAsync();
+
+                AnalyticsService.GainWorkspaceAccess.DidNotReceive().Track();
+            }
         }
 
-        [Fact, LogIfTooSlow]
-        public async Task ReturnsNewWorkspacesDetectedIfStoredWorkspaceIsInaccessibleAndHasSameId()
+        public sealed class WhenNoNewWorkspacesAreDetected : DetectGainingAccessToWorkspacesStateTestBase
         {
-            prepareDatabase(new[]
-            {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2, IsInaccessible = true }
-            });
-            prepareFetch(new List<IWorkspace>
-            {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2 },
-            });
-            var state = new DetectGainingAccessToWorkspacesState(dataSource);
+            private DetectGainingAccessToWorkspacesState state;
 
-            var transition = await state.Start(fetchObservables);
-            var parameter = ((Transition<IEnumerable<IWorkspace>>)transition).Parameter;
+            public WhenNoNewWorkspacesAreDetected()
+            {
+                HasFinsihedSyncBeforeInteractor.Execute().Returns(Observable.Return(true));
+                state = new DetectGainingAccessToWorkspacesState(DataSource, AnalyticsService, HasFinsihedSyncBeforeInteractor);
+            }
 
-            parameter.Should().Match(newWorkspaces => newWorkspaces.All(ws => ws.Id == 2));
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsFetchObservables()
+            {
+                PrepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+
+                var transition = await state.Start(FetchObservables);
+                var parameter = ((Transition<IFetchObservables>)transition).Parameter;
+
+                parameter.Should().Be(FetchObservables);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotTrackNewWorkspaces()
+            {
+                PrepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+
+                await state.Start(FetchObservables).SingleAsync();
+
+                AnalyticsService.GainWorkspaceAccess.DidNotReceive().Track();
+            }
         }
 
-        [Fact, LogIfTooSlow]
-        public async Task ReturnsNewWorkspacesDetectedIfNewWorkspaceAreDetectedEvenIfSomeAccessWasLostInAnotherWorkspace()
+        public sealed class WhenNewWorkspacesAreDetected : DetectGainingAccessToWorkspacesStateTestBase
         {
-            prepareDatabase(new[]
+            private DetectGainingAccessToWorkspacesState state;
+
+            public WhenNewWorkspacesAreDetected()
             {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 2 }
-            });
-            prepareFetch(new List<IWorkspace>
+                HasFinsihedSyncBeforeInteractor.Execute().Returns(Observable.Return(true));
+                state = new DetectGainingAccessToWorkspacesState(DataSource, AnalyticsService, HasFinsihedSyncBeforeInteractor);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsNewWorkspacesDetected()
             {
-                new MockWorkspace { Id = 1 },
-                new MockWorkspace { Id = 3 },
-            });
-            var state = new DetectGainingAccessToWorkspacesState(dataSource);
+                PrepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 },
+                    new MockWorkspace { Id = 3 },
+                });
 
-            var transition = await state.Start(fetchObservables);
-            var parameter = ((Transition<IEnumerable<IWorkspace>>)transition).Parameter;
+                var transition = await state.Start(FetchObservables);
+                var parameter = ((Transition<IEnumerable<IWorkspace>>)transition).Parameter;
 
-            parameter.Should().Match(newWorkspaces => newWorkspaces.All(ws => ws.Id == 3));
-        }
+                parameter.Should().Match(newWorkspaces => newWorkspaces.All(ws => ws.Id == 3));
+            }
 
-        private void prepareDatabase(IEnumerable<IThreadSafeWorkspace> workspaces)
-        {
-            var accessibleWorkspaces = workspaces.Where(ws => !ws.IsInaccessible);
-            dataSource.GetAll().Returns(Observable.Return(accessibleWorkspaces));
-        }
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsNewWorkspacesDetectedIfStoredWorkspaceIsInaccessibleAndHasSameId()
+            {
+                PrepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2, IsInaccessible = true }
+                });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 },
+                });
 
-        private void prepareFetch(List<IWorkspace> workspaces)
-        {
-            fetchObservables.GetList<IWorkspace>().Returns(Observable.Return(workspaces));
+                var transition = await state.Start(FetchObservables);
+                var parameter = ((Transition<IEnumerable<IWorkspace>>)transition).Parameter;
+
+                parameter.Should().Match(newWorkspaces => newWorkspaces.All(ws => ws.Id == 2));
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsNewWorkspacesDetectedEvenIfSomeAccessWasLostInAnotherWorkspace()
+            {
+                PrepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 3 },
+                });
+
+                var transition = await state.Start(FetchObservables);
+                var parameter = ((Transition<IEnumerable<IWorkspace>>)transition).Parameter;
+
+                parameter.Should().Match(newWorkspaces => newWorkspaces.All(ws => ws.Id == 3));
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task TracksNewWorkspaces()
+            {
+                PrepareDatabase(new[]
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 2 }
+                });
+                PrepareFetch(new List<IWorkspace>
+                {
+                    new MockWorkspace { Id = 1 },
+                    new MockWorkspace { Id = 3 },
+                    new MockWorkspace { Id = 4 }
+                });
+
+                await state.Start(FetchObservables).SingleAsync();
+
+                AnalyticsService.GainWorkspaceAccess.Received().Track();
+            }
         }
     }
 }

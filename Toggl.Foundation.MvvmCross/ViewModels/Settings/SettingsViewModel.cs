@@ -98,9 +98,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public string Version => $"{userAgent.Version} ({platformConstants.BuildNumber})";
 
-        public UIAction OpenCalendarSettingsAction { get; }
+        public UIAction OpenCalendarSettings { get; }
 
-        public UIAction OpenNotificationSettingsAction { get; }
+        public UIAction OpenNotificationSettings { get; }
 
         public UIAction ToggleTwentyFourHourSettings { get; }
 
@@ -230,8 +230,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsObservable();
 
-            OpenCalendarSettingsAction = UIAction.FromAsync(openCalendarSettings);
-            OpenNotificationSettingsAction = UIAction.FromAsync(openNotificationSettings);
+            OpenCalendarSettings = UIAction.FromAsync(openCalendarSettings);
+            OpenNotificationSettings = UIAction.FromAsync(openNotificationSettings);
             ToggleTwentyFourHourSettings = UIAction.FromAsync(toggleUseTwentyFourHourClock);
         }
 
@@ -253,8 +253,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             isFeedbackSuccessViewShowing.OnNext(false);
         }
-
-        public Task GoBack() => navigationService.Close(this);
 
         public Task OpenAboutView()
             => navigationService.Navigate<AboutViewModel>();
@@ -289,7 +287,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public Task SelectDefaultWorkspace(SelectableWorkspaceViewModel workspace)
             => changeDefaultWorkspace(workspace.WorkspaceId);
 
-        private async Task toggleUseTwentyFourHourClock() 
+        private async Task toggleUseTwentyFourHourClock()
         {
             var timeFormat = currentPreferences.TimeOfDayFormat.IsTwentyFourHoursFormat
                 ? TimeFormat.TwelveHoursFormat

@@ -51,7 +51,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task SavesTheSelectedOption(CalendarNotificationsOption option, bool enabled, int minutes)
             {
                 await ViewModel.SelectOption.Execute(option);
-                await ViewModel.Close.Execute(Unit.Default);
 
                 UserPreferences.Received().SetCalendarNotificationsEnabled(enabled);
 
@@ -60,21 +59,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 else
                     UserPreferences.DidNotReceive().SetTimeSpanBeforeCalendarNotifications(Arg.Any<TimeSpan>());
 
-                NavigationService.Received().Close(Arg.Any<UpcomingEventsNotificationSettingsViewModel>(), Unit.Default);
-            }
-        }
-
-        public sealed class TheCloseAction : UpcomingEventsNotificationSettingsViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModel()
-            {
-                await ViewModel.Close.Execute(Unit.Default);
-
-                UserPreferences.DidNotReceive().SetCalendarNotificationsEnabled(Arg.Any<bool>());
-                UserPreferences.DidNotReceive().SetTimeSpanBeforeCalendarNotifications(Arg.Any<TimeSpan>());
-
-                NavigationService.Received().Close(Arg.Any<UpcomingEventsNotificationSettingsViewModel>(), Unit.Default);
+                await NavigationService.Received().Close(Arg.Any<UpcomingEventsNotificationSettingsViewModel>(), Unit.Default);
             }
         }
     }

@@ -25,7 +25,7 @@ namespace Toggl.Giskard.Activities
               ScreenOrientation = ScreenOrientation.Portrait,
               WindowSoftInputMode = SoftInput.StateVisible,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed partial class StartTimeEntryActivity : MvxAppCompatActivity<StartTimeEntryViewModel>, IReactiveBindingHolder
+    public sealed partial class StartTimeEntryActivity : MvxAppCompatActivity<StartTimeEntryViewModel>
     {
         private static readonly TimeSpan typingThrottleDuration = TimeSpan.FromMilliseconds(300);
 
@@ -43,8 +43,13 @@ namespace Toggl.Giskard.Activities
 
             initializeViews();
 
-            this.Bind(ViewModel.TextFieldInfoObservable, onTextFieldInfo);
-            this.Bind(durationLabel.Rx().Tap(), _ => ViewModel.SelectTimeCommand.Execute(Duration));
+            ViewModel.TextFieldInfoObservable
+                .Subscribe(onTextFieldInfo)
+                .DisposedBy(DisposeBag);
+
+            durationLabel.Rx().Tap()
+                .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(Duration))
+                .DisposedBy(DisposeBag);
 
             editText.TextObservable
                 .SubscribeOn(ThreadPoolScheduler.Instance)
@@ -52,6 +57,7 @@ namespace Toggl.Giskard.Activities
                 .Select(text => text.AsImmutableSpans(editText.SelectionStart))
                 .Subscribe(async spans => await ViewModel.OnTextFieldInfoFromView(spans))
                 .DisposedBy(DisposeBag);
+
             onLayoutFinished = (s, e) => ViewModel.StopSuggestionsRenderingStopwatch();
             recyclerView.ViewTreeObserver.GlobalLayout += onLayoutFinished;
         }

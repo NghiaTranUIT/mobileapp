@@ -6,7 +6,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 
 namespace Toggl.Daneel.ViewControllers
 {
-    public abstract class ReactiveViewController<TViewModel> : MvxViewController<TViewModel>, IReactiveBindingHolder
+    public abstract class ReactiveViewController<TViewModel> : MvxViewController<TViewModel>
         where TViewModel : class, IMvxViewModel
     {
         public CompositeDisposable DisposeBag { get; private set; } = new CompositeDisposable();

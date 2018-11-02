@@ -17,7 +17,7 @@ using TogglResources = Toggl.Foundation.Resources;
 
 namespace Toggl.Giskard.ViewHolders
 {
-    public class MainLogSuggestionsListViewHolder : RecyclerView.ViewHolder, IReactiveBindingHolder
+    public class MainLogSuggestionsListViewHolder : RecyclerView.ViewHolder
     {
         private SuggestionsViewModel suggestionsViewModel;
 
@@ -47,12 +47,21 @@ namespace Toggl.Giskard.ViewHolders
 
 
             mainSuggestionsRecyclerAdapter = new MainSuggestionsRecyclerAdapter();
-            this.Bind(mainSuggestionsRecyclerAdapter.SuggestionTaps, suggestionsViewModel.StartTimeEntryAction.Inputs);
+
+            mainSuggestionsRecyclerAdapter.SuggestionTaps
+                .Subscribe(suggestionsViewModel.StartTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
 
             suggestionsRecyclerView.SetAdapter(mainSuggestionsRecyclerAdapter);
 
-            this.Bind(suggestionsViewModel.Suggestions, onSuggestionsChanged);
-            this.Bind(suggestionsViewModel.IsEmpty.Invert(), updateViewVisibility);
+            suggestionsViewModel.Suggestions
+                .Subscribe(onSuggestionsChanged)
+                .DisposedBy(DisposeBag);
+
+            suggestionsViewModel.IsEmpty
+                .Invert()
+                .Subscribe(updateViewVisibility)
+                .DisposedBy(DisposeBag);
 
             var suggestionCount = suggestionsViewModel.Suggestions.Select(s => s.Length);
             var currentIndexAndSuggestionCount =

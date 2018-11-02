@@ -182,8 +182,7 @@ namespace Toggl.PrimeRadiant.Settings
 
         public void SetLastOpened(DateTimeOffset date)
         {
-            var dateString = date.ToString();
-            keyValueStorage.SetString(lastAccessDateKey, dateString);
+            keyValueStorage.SetDateTimeOffset(lastAccessDateKey, date);
         }
 
         public void SetFirstOpened(DateTimeOffset dateTime)
@@ -230,21 +229,9 @@ namespace Toggl.PrimeRadiant.Settings
 
         public bool CompletedCalendarOnboarding() => keyValueStorage.GetBool(completedCalendarOnboardingKey);
 
-        public string GetLastOpened() => keyValueStorage.GetString(lastAccessDateKey);
+        public DateTimeOffset? GetLastOpened() => keyValueStorage.GetDateTimeOffset(lastAccessDateKey);
 
-        public DateTimeOffset? GetFirstOpened()
-        {
-            var dateString = keyValueStorage.GetString(firstAccessDateKey);
-
-            if (string.IsNullOrEmpty(dateString))
-                return null;
-
-            if (DateTimeOffset.TryParse(dateString, out var parsedDate))
-            {
-                return parsedDate;
-            }
-            return null;
-        }
+        public DateTimeOffset? GetFirstOpened() => keyValueStorage.GetDateTimeOffset(firstAccessDateKey);
 
         public void StartButtonWasTapped()
         {

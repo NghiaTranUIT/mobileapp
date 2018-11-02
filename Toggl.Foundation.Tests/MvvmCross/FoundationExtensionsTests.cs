@@ -169,7 +169,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
             var now = DateTimeOffset.Now;
 
             timeService.CurrentDateTime.Returns(now);
-            onboardingStorage.GetLastOpened().Returns(now.AddDays(-60).ToString());
+            onboardingStorage.GetLastOpened().Returns(now.AddDays(-60));
 
             mvvmCrossFoundation.RevokeNewUserIfNeeded();
 

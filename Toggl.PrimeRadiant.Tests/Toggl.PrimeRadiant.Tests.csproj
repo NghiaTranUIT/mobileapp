@@ -16,6 +16,7 @@
     <OutputPath>..\bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj" />
     <ProjectReference Include="..\Toggl.PrimeRadiant\Toggl.PrimeRadiant.csproj" />
     <ProjectReference Include="..\Toggl.PrimeRadiant.Realm\Toggl.PrimeRadiant.Realm.csproj" />
     <ProjectReference Include="..\Toggl.Multivac\Toggl.Multivac.csproj" />

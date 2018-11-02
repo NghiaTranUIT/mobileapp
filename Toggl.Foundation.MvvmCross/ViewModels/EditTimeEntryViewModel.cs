@@ -373,7 +373,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .UpdateTimeEntry(dto)
                 .Execute()
                 .Do(dataSource.SyncManager.InitiatePushSync)
-                .Subscribe((Exception ex) => close(), () => close());
+                .SubscribeToErrorsAndCompletion((Exception ex) => close(), () => close());
         }
 
         public async Task<bool> CloseWithConfirmation()

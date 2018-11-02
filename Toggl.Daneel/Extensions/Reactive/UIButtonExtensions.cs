@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Remotion.Linq.Parsing;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Reactive;
 using Toggl.Multivac.Extensions;
@@ -8,6 +10,12 @@ using UIKit;
 
 namespace Toggl.Daneel.Extensions.Reactive
 {
+    public enum ButtonEventType
+    {
+        Tap,
+        LongPress
+    }
+
     public static class UIButtonExtensions
     {
         public static IObservable<Unit> Tap(this IReactive<UIButton> reactive)
@@ -33,31 +41,25 @@ namespace Toggl.Daneel.Extensions.Reactive
                 );
             };
 
-        public static void BindToAction<TInput, TOutput>(this IReactive<UIButton> reactive, RxAction<TInput, TOutput> action, Func<UIButton, TInput> transform)
+        public static IDisposable BindAction(this IReactive<UIButton> reactive, UIAction action, ButtonEventType eventType = ButtonEventType.Tap)
         {
-            reactive.Tap()
-                .Select(_ => transform(reactive.Base))
-                .Subscribe(action.Inputs)
-                .DisposedBy(action.DisposeBag);
+            IObservable<Unit> eventObservable = Observable.Empty<Unit>();
+            switch (eventType)
+            {
+                case ButtonEventType.Tap:
+                    eventObservable = reactive.Base.Rx().Tap();
+                    break;
+                case ButtonEventType.LongPress:
+                    throw new ArgumentException("Event type not implemented");
+                    //eventObservable = reactive.Base.Rx().LongPress();
+                    break;
+            }
 
-            action.Enabled
-                .Subscribe(e => { reactive.Base.Enabled = e; })
-                .DisposedBy(action.DisposeBag);
-        }
-
-        public static void BindToAction<TInput, TOutput>(this IReactive<UIButton> reactive, RxAction<TInput, TOutput> action, TInput input)
-        {
-            reactive.BindToAction(action, _ => input);
-        }
-
-        public static void BindToAction<TOutput>(this IReactive<UIButton> reactive, RxAction<Unit, TOutput> action)
-        {
-            reactive.BindToAction(action, Unit.Default);
-        }
-
-        public static void BindToAction(this IReactive<UIButton> reactive, UIAction action)
-        {
-            reactive.BindToAction(action, Unit.Default);
+            return Observable.Using(
+                    () => action.Enabled.Subscribe(e => { reactive.Base.Enabled = e; }),
+                    _ => eventObservable
+                )
+                .Subscribe(action.Inputs);
         }
     }
 }
