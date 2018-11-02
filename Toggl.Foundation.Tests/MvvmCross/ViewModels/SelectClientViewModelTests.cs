@@ -236,6 +236,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
             }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotSuggestCreationWhenTextMatchesAExistingClientName()
+            {
+                var clients = GenerateClientList();
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                await ViewModel.Initialize();
+
+                ViewModel.ClientFilterText.OnNext(clients.First().Name);
+
+                ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
+            }
         }
     }
 }
