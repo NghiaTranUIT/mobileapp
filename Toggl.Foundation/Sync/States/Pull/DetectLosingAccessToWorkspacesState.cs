@@ -19,6 +19,8 @@ namespace Toggl.Foundation.Sync.States.Pull
         private readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource;
         private readonly IAnalyticsService analyticsService;
 
+        public StateResult<IFetchObservables> WorkspaceAccessLost { get; } = new StateResult<IFetchObservables>();
+
         public StateResult<IFetchObservables> Continue { get; } = new StateResult<IFetchObservables>();
 
         public DetectLosingAccessToWorkspacesState(IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource, IAnalyticsService analyticsService)
@@ -34,7 +36,9 @@ namespace Toggl.Foundation.Sync.States.Pull
             => fetchObservables.GetList<IWorkspace>()
                 .SelectMany(workspacesWhichWereNotFetched)
                 .SelectMany(markAsInaccessible)
-                .Select(Continue.Transition(fetchObservables));
+                .Select(accessLostToSomeWorkspace => accessLostToSomeWorkspace
+                    ? WorkspaceAccessLost.Transition(fetchObservables)
+                    : Continue.Transition(fetchObservables));
 
         private IObservable<IList<IThreadSafeWorkspace>> workspacesWhichWereNotFetched(List<IWorkspace> fetchedWorkspaces)
             => allStoredWorkspaces()
@@ -46,12 +50,12 @@ namespace Toggl.Foundation.Sync.States.Pull
             => dataSource.GetAll(ws => ws.Id > 0 && ws.IsInaccessible == false)
                          .SelectMany(CommonFunctions.Identity);
 
-        private IObservable<Unit> markAsInaccessible(IList<IThreadSafeWorkspace> workspacesToMark)
+        private IObservable<bool> markAsInaccessible(IList<IThreadSafeWorkspace> workspacesToMark)
             => Observable.Return(workspacesToMark)
                 .SelectMany(CommonFunctions.Identity)
                 .SelectMany(markAsInaccessible)
                 .ToList()
-                .Select(Unit.Default);
+                .Select(workspaces => workspaces.Any());
 
         private IObservable<IThreadSafeWorkspace> markAsInaccessible(IThreadSafeWorkspace workspaceToMark)
             => dataSource.Update(workspaceToMark.AsInaccessible());

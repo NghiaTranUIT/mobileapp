@@ -43,7 +43,7 @@ namespace Toggl.Foundation
             var apiDelay = new RetryDelayService(random, retryLimit);
             var delayCancellation = new Subject<Unit>();
             var delayCancellationObservable = delayCancellation.AsObservable().Replay();
-            ConfigureTransitions(transitions, database, api, dataSource, apiDelay, scheduler, timeService, analyticsService, entryPoints, delayCancellationObservable);
+            ConfigureTransitions(transitions, database, api, dataSource, apiDelay, scheduler, timeService, analyticsService, entryPoints, delayCancellationObservable, queue);
             var stateMachine = new StateMachine(transitions, scheduler, delayCancellation);
             var orchestrator = new StateMachineOrchestrator(stateMachine, entryPoints);
 
@@ -60,9 +60,10 @@ namespace Toggl.Foundation
             ITimeService timeService,
             IAnalyticsService analyticsService,
             StateMachineEntryPoints entryPoints,
-            IObservable<Unit> delayCancellation)
+            IObservable<Unit> delayCancellation,
+            ISyncStateQueue queue)
         {
-            configurePullTransitions(transitions, database, api, dataSource, timeService, analyticsService, scheduler, entryPoints.StartPullSync, delayCancellation);
+            configurePullTransitions(transitions, database, api, dataSource, timeService, analyticsService, scheduler, entryPoints.StartPullSync, delayCancellation, queue);
             configurePushTransitions(transitions, api, dataSource, analyticsService, apiDelay, scheduler, entryPoints.StartPushSync, delayCancellation);
             configureCleanUpTransitions(transitions, timeService, dataSource, entryPoints.StartCleanUp);
         }
@@ -76,13 +77,16 @@ namespace Toggl.Foundation
             IAnalyticsService analyticsService,
             IScheduler scheduler,
             StateResult entryPoint,
-            IObservable<Unit> delayCancellation)
+            IObservable<Unit> delayCancellation,
+            ISyncStateQueue queue)
         {
             var rnd = new Random();
             var apiDelay = new RetryDelayService(rnd);
             var statusDelay = new RetryDelayService(rnd);
 
             var fetchAllSince = new FetchAllSinceState(database, api, timeService);
+
+            var scheduleCleanUp = new ScheduleCleanUpState(queue);
 
             var detectGainingAccessToWorkspaces =
                 new DetectGainingAccessToWorkspacesState(
@@ -168,8 +172,11 @@ namespace Toggl.Foundation
 
             // detect losing access to workspaces
             transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, deleteRunningInaccessibleTimeEntry);
+            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.WorkspaceAccessLost, scheduleCleanUp);
             transitions.ConfigureTransition(deleteRunningInaccessibleTimeEntry.Continue, persistWorkspaces);
 
+            transitions.ConfigureTransition(scheduleCleanUp.CleanUpScheduled, persistWorkspaces);
+            
             // persist all the data pulled from the server
             transitions.ConfigureTransition(persistWorkspaces.FinishedPersisting, updateWorkspacesSinceDate);
             transitions.ConfigureTransition(updateWorkspacesSinceDate.Finished, detectNoWorkspaceState);

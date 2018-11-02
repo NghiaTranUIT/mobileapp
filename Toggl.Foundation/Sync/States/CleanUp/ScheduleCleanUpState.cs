@@ -4,11 +4,11 @@ using Toggl.Multivac;
 
 namespace Toggl.Foundation.Sync.States.CleanUp
 {
-    internal sealed class ScheduleCleanUpState : ISyncState
+    internal sealed class ScheduleCleanUpState : ISyncState<IFetchObservables>
     {
         private readonly ISyncStateQueue queue;
 
-        public StateResult CleanUpScheduled { get; } = new StateResult();
+        public StateResult<IFetchObservables> CleanUpScheduled { get; } = new StateResult<IFetchObservables>();
 
         public ScheduleCleanUpState(ISyncStateQueue queue)
         {
@@ -16,10 +16,10 @@ namespace Toggl.Foundation.Sync.States.CleanUp
             this.queue = queue;
         }
 
-        public IObservable<ITransition> Start()
+        public IObservable<ITransition> Start(IFetchObservables fetch)
         {
             queue.QueueCleanUp();
-            return Observable.Return(CleanUpScheduled.Transition());
+            return Observable.Return(CleanUpScheduled.Transition(fetch));
         }
     }
 }

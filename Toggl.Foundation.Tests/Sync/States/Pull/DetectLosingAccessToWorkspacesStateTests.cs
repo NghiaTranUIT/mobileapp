@@ -85,7 +85,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
                 var transition = await state.Start(fetchObservables);
 
-                transition.Result.Should().Be(state.Continue);
+                transition.Result.Should().Be(state.WorkspaceAccessLost);
                 await dataSource.Received()
                     .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsInaccessible));
                 await dataSource.Received()
@@ -129,7 +129,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
                 var transition = await state.Start(fetchObservables);
 
-                transition.Result.Should().Be(state.Continue);
+                transition.Result.Should().Be(state.WorkspaceAccessLost);
                 await dataSource.Received()
                     .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsInaccessible));
             }
@@ -151,7 +151,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
                 var transition = await state.Start(fetchObservables);
 
-                transition.Result.Should().Be(state.Continue);
+                transition.Result.Should().Be(state.WorkspaceAccessLost);
                 await dataSource.Received()
                     .Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2 && workspace.IsInaccessible));
             }
