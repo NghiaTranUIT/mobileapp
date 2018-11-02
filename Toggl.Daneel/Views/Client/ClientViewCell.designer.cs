@@ -4,22 +4,22 @@
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using Foundation;
-using System.CodeDom.Compiler;
 
-namespace Toggl.Daneel.Views.EntityCreation
+using Foundation;
+
+namespace Toggl.Daneel.Views.Client
 {
-	[Register ("CreateEntityViewCell")]
-	partial class CreateEntityViewCell
+	[Register ("ClientViewCell")]
+	partial class ClientViewCell
 	{
 		[Outlet]
-		UIKit.UILabel TextLabel { get; set; }
+		UIKit.UILabel NameLabel { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (TextLabel != null) {
-				TextLabel.Dispose ();
-				TextLabel = null;
+			if (NameLabel != null) {
+				NameLabel.Dispose ();
+				NameLabel = null;
 			}
 		}
 	}

@@ -572,6 +572,8 @@
     <InterfaceDefinition Include="ViewControllers\SelectProjectViewController.xib" />
     <InterfaceDefinition Include="ViewControllers\SelectDateTimeViewController.xib" />
     <InterfaceDefinition Include="ViewControllers\SelectTagsViewController.xib" />
+    <InterfaceDefinition Include="Views\Client\ClientViewCell.xib" />
+    <InterfaceDefinition Include="Views\Client\CreateClientViewCell.xib" />
     <InterfaceDefinition Include="Views\Onboarding\TrackPage.xib" />
     <InterfaceDefinition Include="Views\Onboarding\MostUsedPage.xib" />
     <InterfaceDefinition Include="Views\Onboarding\ReportsPage.xib" />
@@ -592,7 +594,6 @@
     <InterfaceDefinition Include="Views\StartTimeEntry\TaskSuggestionViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\WorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\Suggestions\SuggestionsEmptyViewCell.xib" />
-    <InterfaceDefinition Include="Views\EntityCreation\ClientViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\MvxCreateEntityViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\SelectableTagViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\WorkspaceViewCell.xib" />
@@ -642,7 +643,6 @@
     <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
     <InterfaceDefinition Include="ViewControllers\SelectDefaultWorkspaceViewController.xib" />
     <InterfaceDefinition Include="Cells\SelectDefaultWorkspaceTableViewCell.xib" />
-    <InterfaceDefinition Include="Views\EntityCreation\CreateEntityViewCell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -755,6 +755,14 @@
     <Compile Include="ViewSources\GroupedCollectionTableViewSource.cs" />
     <Compile Include="Views\Calendar\CalendarCollectionViewItemLayoutAttributes.cs" />
     <Compile Include="Views\Calendar\CalendarCollectionViewLayout.cs" />
+    <Compile Include="Views\Client\ClientViewCell.cs" />
+    <Compile Include="Views\Client\ClientViewCell.designer.cs">
+      <DependentUpon>ClientViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Client\CreateClientViewCell.cs" />
+    <Compile Include="Views\Client\CreateEntityViewCell.designer.cs">
+      <DependentUpon>CreateClientViewCell.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\EditDuration\DurationFieldTextFormatter.cs" />
     <Compile Include="Views\Log\RefreshControl.cs" />
     <Compile Include="Views\Log\TimeEntriesLogTableView.cs" />
@@ -868,10 +876,6 @@
       <DependentUpon>SuggestionsEmptyViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\Color\ValueSliderView.cs" />
-    <Compile Include="Views\EntityCreation\ClientViewCell.cs" />
-    <Compile Include="Views\EntityCreation\ClientViewCell.designer.cs">
-      <DependentUpon>ClientViewCell.cs</DependentUpon>
-    </Compile>
     <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.cs" />
     <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.designer.cs">
       <DependentUpon>MvxCreateEntityViewCell.cs</DependentUpon>
@@ -1158,10 +1162,6 @@
     <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.cs" />
     <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.designer.cs">
       <DependentUpon>SelectDefaultWorkspaceTableViewCell.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Views\EntityCreation\CreateEntityViewCell.cs" />
-    <Compile Include="Views\EntityCreation\CreateEntityViewCell.designer.cs">
-      <DependentUpon>CreateEntityViewCell.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>

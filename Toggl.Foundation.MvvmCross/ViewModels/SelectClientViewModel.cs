@@ -42,8 +42,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISchedulerProvider schedulerProvider;
         private long workspaceId;
         private IEnumerable<IThreadSafeClient> allClients;
-        private ISubject<bool> showCreationSuggestion = new BehaviorSubject<bool>(false);
-        private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient);
+        private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient, false);
 
         public SelectClientViewModel(
             IInteractorFactory interactorFactory,
@@ -57,9 +56,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
 
             Close = UIAction.FromAsync(close);
-            CreateClient = InputAction<string>.FromAsync(createClient);
             SelectClient = InputAction<SelectableClientViewModel>.FromAsync(selectClient);
-            CreationSuggestion = showCreationSuggestion.AsDriver(false, schedulerProvider);
         }
 
         public override void Prepare(SelectClientParameters parameter)
@@ -76,45 +73,44 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ClientFilterText
                 .Select(text =>
                 {
+                    var trimmedText = text.Trim();
                     var selectableViewModels = allClients
-                        .Where(c => c.Name.ContainsIgnoringCase(text))
+                        .Where(c => c.Name.ContainsIgnoringCase(trimmedText))
                         .Select(toSelectableViewModel);
 
-                    if (string.IsNullOrEmpty(text))
+                    if (string.IsNullOrEmpty(trimmedText))
                     {
-                        selectableViewModels = selectableViewModels.Prepend(noClient);
+                        selectableViewModels = selectableViewModels.Append(noClient);
+                    }
+                    else if (allClients.None(c => c.Name == trimmedText) &&
+                             trimmedText.LengthInBytes() <= MaxClientNameLengthInBytes)
+                    {
+                        var creationSelectableViewModel = new SelectableClientViewModel(long.MinValue, trimmedText, true);
+                        selectableViewModels = selectableViewModels.Append(creationSelectableViewModel);
                     }
                     return selectableViewModels;
                 })
                 .Subscribe(clients => Clients.ReplaceWith(clients))
                 .DisposedBy(DisposeBag);
-
-            ClientFilterText.Select(text =>
-            {
-                var trimmedText = text.Trim();
-                return !string.IsNullOrEmpty(text)
-                       && allClients.None(c => c.Name == trimmedText)
-                       && trimmedText.LengthInBytes() <= MaxClientNameLengthInBytes;
-            })
-            .Subscribe(showCreationSuggestion)
-            .DisposedBy(DisposeBag);
         }
 
         private SelectableClientViewModel toSelectableViewModel(IThreadSafeClient client)
-            => new SelectableClientViewModel(client.Id, client.Name);
+            => new SelectableClientViewModel(client.Id, client.Name, false);
 
         private Task close()
             => navigationService.Close(this, null);
 
         private async Task selectClient(SelectableClientViewModel client)
         {
-            await navigationService.Close(this, client.Id);
-        }
-
-        private async Task createClient(string clientName)
-        {
-            var client = await interactorFactory.CreateClient(clientName.Trim(), workspaceId).Execute();
-            await navigationService.Close(this, client.Id);
+            if (client.IsCreation)
+            {
+                var newClient = await interactorFactory.CreateClient(client.Name.Trim(), workspaceId).Execute();
+                await navigationService.Close(this, newClient.Id);
+            }
+            else
+            {
+                await navigationService.Close(this, client.Id);
+            }
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System;
 using Foundation;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding.Views;
 using Toggl.Daneel.Cells;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
 
-namespace Toggl.Daneel.Views
+namespace Toggl.Daneel.Views.Client
 {
     public partial class ClientViewCell : BaseTableViewCell<SelectableClientViewModel>
     {
