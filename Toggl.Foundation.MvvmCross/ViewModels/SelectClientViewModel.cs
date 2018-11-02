@@ -30,10 +30,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             );
 
         public UIAction Close { get; }
-        public InputAction<string> CreateClient { get; }
-        public InputAction<SelectableClientViewModel> SelectClient { get; }
 
-        public IObservable<bool> CreationSuggestion { get; }
+        public InputAction<SelectableClientViewModel> SelectClient { get; }
 
         public CompositeDisposable DisposeBag = new CompositeDisposable();
 

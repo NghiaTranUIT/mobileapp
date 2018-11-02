@@ -113,11 +113,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheSelectClientCommand : SelectClientViewModelTest
+        public sealed class TheSelectClientAction : SelectClientViewModelTest
         {
-            private readonly SelectableClientViewModel client = new SelectableClientViewModel(9, "Client A");
+            private readonly SelectableClientViewModel client = new SelectableClientViewModel(9, "Client A", false);
 
-            public TheSelectClientCommand()
+            public TheSelectClientAction()
             {
                 var clients = GenerateClientList();
                 InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
@@ -149,9 +149,42 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     Arg.Is<long?>(client.Id)
                 );
             }
+
+            [Fact, LogIfTooSlow]
+            public async Task CreatesANewClientWithTheGivenNameInTheCurrentWorkspace()
+            {
+                long workspaceId = 10;
+                await ViewModel.Initialize();
+                var newClient = new SelectableClientViewModel(long.MinValue, "Some name of the client", true);
+
+                await ViewModel.SelectClient.Execute(newClient);
+
+                await InteractorFactory
+                    .Received()
+                    .CreateClient(Arg.Is(newClient.Name), Arg.Is(workspaceId))
+                    .Execute();
+            }
+
+            [Theory, LogIfTooSlow]
+            [InlineData("   abcde", "abcde")]
+            [InlineData("abcde     ", "abcde")]
+            [InlineData("  abcde ", "abcde")]
+            [InlineData("abcde  fgh", "abcde  fgh")]
+            [InlineData("      abcd\nefgh     ", "abcd\nefgh")]
+            public async Task TrimsNameFromTheStartAndTheEndBeforeSaving(string name, string trimmed)
+            {
+                await ViewModel.Initialize();
+                await ViewModel.SelectClient.Execute(new SelectableClientViewModel(long.MinValue, name, true));
+
+                await InteractorFactory
+                    .Received()
+                    .CreateClient(Arg.Is(trimmed), Arg.Any<long>())
+                    .Execute();
+            }
+
         }
 
-        public sealed class TheTextProperty : SelectClientViewModelTest
+        public sealed class TheFilterTextInput : SelectClientViewModelTest
         {
             [Fact, LogIfTooSlow]
             public async Task FiltersTheSuggestionsWhenItChanges()
@@ -165,128 +198,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ClientFilterText.OnNext("0");
                 ViewModel.Clients.TotalCount.Should().Equals(1);
-            }
-        }
-
-        public sealed class TheSuggestCreationProperty : SelectClientViewModelTest
-        {
-            private const string name = "My client";
-
-            public TheSuggestCreationProperty()
-            {
-                var client = Substitute.For<IThreadSafeClient>();
-                client.Name.Returns(name);
-                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
-                    .Execute()
-                    .Returns(Observable.Return(new List<IThreadSafeClient> { client }));
-                ViewModel.Prepare(Parameters);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextIsEmpty()
-            {
-                await ViewModel.Initialize();
-
-//                ViewModel.Text = "";
-//
-//                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextIsOnlyWhitespace()
-            {
-                await ViewModel.Initialize();
-
-//                ViewModel.Text = "       ";
-//
-//                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextMatchesTheNameOfAnExistingProject()
-            {
-                await ViewModel.Initialize();
-
-//                ViewModel.Text = name;
-//
-//                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextIsLongerThanTwoHundredAndFiftyCharacters()
-            {
-                await ViewModel.Initialize();
-
-//                ViewModel.Text = "Some absurdly long project name created solely for making sure that the SuggestCreation property returns false when the project name is longer than the previously specified threshold so that the mobile apps behave and avoid crashes in backend and even bigger problems.";
-//
-//                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-        }
-
-        public sealed class TheCreateClientCommand : SelectClientViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task CreatesANewClientWithTheGivenNameInTheCurrentWorkspace()
-            {
-                long workspaceId = 10;
-                await ViewModel.Initialize();
-                ViewModel.Prepare(Parameters);
-//                ViewModel.Text = "Some name of the client";
-//
-//                await ViewModel.CreateClientCommand.ExecuteAsync();
-//
-//                await InteractorFactory
-//                    .Received()
-//                    .CreateClient(Arg.Is(ViewModel.Text), Arg.Is(workspaceId))
-//                    .Execute();
-            }
-
-            [Theory, LogIfTooSlow]
-            [InlineData("   abcde", "abcde")]
-            [InlineData("abcde     ", "abcde")]
-            [InlineData("  abcde ", "abcde")]
-            [InlineData("abcde  fgh", "abcde  fgh")]
-            [InlineData("      abcd\nefgh     ", "abcd\nefgh")]
-            public async Task TrimsNameFromTheStartAndTheEndBeforeSaving(string name, string trimmed)
-            {
-                await ViewModel.Initialize();
-                await ViewModel.CreateClient.Execute(name);
-
-                await InteractorFactory
-                    .Received()
-                    .CreateClient(Arg.Is(trimmed), Arg.Any<long>())
-                    .Execute();
-            }
-
-            [Theory, LogIfTooSlow]
-            [InlineData(" ")]
-            [InlineData("\t")]
-            [InlineData("\n")]
-            [InlineData("               ")]
-            [InlineData("      \t  \n     ")]
-            public async Task DoesNotSuggestCreatingClientsWhenTheDescriptionConsistsOfOnlyWhiteCharacters(string name)
-            {
-                await ViewModel.Initialize();
-
-//                ViewModel.Text = name;
-//
-//                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-
-            [Theory, LogIfTooSlow]
-            [InlineData(" ")]
-            [InlineData("\t")]
-            [InlineData("\n")]
-            [InlineData("               ")]
-            [InlineData("      \t  \n     ")]
-            public async Task DoesNotAllowCreatingClientsWhenTheDescriptionConsistsOfOnlyWhiteCharacters(string name)
-            {
-                await ViewModel.Initialize();
-//                ViewModel.Text = name;
-//
-//                await ViewModel.CreateClientCommand.ExecuteAsync();
-
-                await InteractorFactory.DidNotReceiveWithAnyArgs().CreateClient(null, 0).Execute();
             }
         }
     }
