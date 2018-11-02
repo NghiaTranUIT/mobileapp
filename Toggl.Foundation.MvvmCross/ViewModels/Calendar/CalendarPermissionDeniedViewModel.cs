@@ -1,8 +1,4 @@
-﻿using System;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Threading.Tasks;
+﻿using System.Reactive;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.Services;
@@ -19,8 +15,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
 
         public UIAction EnableAccess { get; }
 
-        public UIAction ContinueWithoutAccess { get; }
-
         public CalendarPermissionDeniedViewModel(
             IPermissionsService permissionsService,
             IMvxNavigationService navigationService)
@@ -32,11 +26,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             this.permissionsService = permissionsService;
 
             EnableAccess = UIAction.FromAction(enableAccess);
-            ContinueWithoutAccess = UIAction.FromAsync(continueWithoutAccessAction);
         }
-
-        private Task continueWithoutAccessAction()
-            => navigationService.Close(this, Unit.Default);
 
         private void enableAccess()
         {

@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace Toggl.Multivac.Extensions
@@ -91,6 +92,12 @@ namespace Toggl.Multivac.Extensions
                 if (predicate(value))
                     action(value);
             });
+
+        public static IObservable<T> ThrowIf<T>(
+            this IObservable<T> observable,
+            Predicate<T> predicate,
+            Exception exception)
+            => observable.DoIf(predicate, _ => throw exception);
 
         public static IObservable<bool> Invert(this IObservable<bool> observable) => observable.Select(b => !b);
 

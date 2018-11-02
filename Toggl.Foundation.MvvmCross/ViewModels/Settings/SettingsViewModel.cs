@@ -254,8 +254,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             isFeedbackSuccessViewShowing.OnNext(false);
         }
 
-        public Task GoBack() => navigationService.Close(this);
-
         public Task OpenAboutView()
             => navigationService.Navigate<AboutViewModel>();
 

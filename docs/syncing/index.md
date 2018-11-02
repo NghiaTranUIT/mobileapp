@@ -11,3 +11,4 @@ The recommended reading order is this:
 6. [Sync manager](sync-manager.md)
 7. [Transitions configuration](transitions-configuration.md)
 8. [Sample sync state](example.md)
+9. [Syncing tests](tests.md)

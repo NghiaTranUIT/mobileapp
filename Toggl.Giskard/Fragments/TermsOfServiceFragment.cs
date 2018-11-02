@@ -4,11 +4,10 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
-using Android.Widget;
 using MvvmCross.Droid.Support.V4;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
-using Toggl.Foundation.MvvmCross.Reactive;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
@@ -40,7 +39,7 @@ namespace Toggl.Giskard.Fragments
         {
             this.Bind(privacyPolicyTextView.Rx().Tap(), ViewModel.ViewPrivacyPolicy);
             this.Bind(termsOfServiceTextView.Rx().Tap(), ViewModel.ViewTermsOfService);
-            this.Bind(acceptButton.Rx().Tap(), ViewModel.Accept);
+            this.Bind(acceptButton.Rx().Tap(), ViewModel.Close(true));
         }
 
         public override void OnResume()
@@ -52,7 +51,7 @@ namespace Toggl.Giskard.Fragments
 
         public override void OnCancel(IDialogInterface dialog)
         {
-            ViewModel.Close.Execute();
+            ViewModel.Close(false).Execute();
         }
     }
 }
