@@ -85,6 +85,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
 
                 ViewModel.Clients.First().First().Name.Should().Be(Resources.NoClient);
+                ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
             }
         }
 
@@ -123,7 +124,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
                     .Execute()
                     .Returns(Observable.Return(clients));
-                ViewModel.Prepare(Parameters);
             }
 
             [Fact, LogIfTooSlow]
@@ -156,6 +156,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 long workspaceId = 10;
                 await ViewModel.Initialize();
                 var newClient = new SelectableClientViewModel(long.MinValue, "Some name of the client", true);
+                ViewModel.Prepare(Parameters);
 
                 await ViewModel.SelectClient.Execute(newClient);
 
@@ -174,6 +175,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task TrimsNameFromTheStartAndTheEndBeforeSaving(string name, string trimmed)
             {
                 await ViewModel.Initialize();
+
                 await ViewModel.SelectClient.Execute(new SelectableClientViewModel(long.MinValue, name, true));
 
                 await InteractorFactory
@@ -184,20 +186,36 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
         }
 
-        public sealed class TheFilterTextInput : SelectClientViewModelTest
+        public sealed class TheClientsProperty : SelectClientViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public async Task FiltersTheSuggestionsWhenItChanges()
+            public async Task UpdateWhenFilterTextChanges()
             {
                 var clients = GenerateClientList();
                 InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
                     .Execute()
                     .Returns(Observable.Return(clients));
-                ViewModel.Prepare(Parameters);
                 await ViewModel.Initialize();
 
                 ViewModel.ClientFilterText.OnNext("0");
+
                 ViewModel.Clients.TotalCount.Should().Equals(1);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task AddCreationCellWhenNoMatchingSuggestion()
+            {
+                var clients = GenerateClientList();
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                await ViewModel.Initialize();
+
+                var nonExistingClientName = "Some none existing name";
+                ViewModel.ClientFilterText.OnNext(nonExistingClientName);
+
+                ViewModel.Clients.First().First().Name.Should().Equals(nonExistingClientName);
+                ViewModel.Clients.First().First().IsCreation.Should().BeTrue();
             }
         }
     }
