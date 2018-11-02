@@ -22,18 +22,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     {
         public ISubject<string> ClientFilterText { get; } = new BehaviorSubject<string>(string.Empty);
 
-        public ObservableGroupedOrderedCollection<SelectableClientViewModel> Clients { get; } =
-            new ObservableGroupedOrderedCollection<SelectableClientViewModel>(
-                indexKey: c => c.Id,
-                orderingKey: c => c.Id == 0 ? long.MinValue : c.Id,
-                groupingKey: _ => string.Empty
-            );
+        public IObservable<IEnumerable<SelectableClientViewModel>> Clients { get; private set; }
 
         public UIAction Close { get; }
 
         public InputAction<SelectableClientViewModel> SelectClient { get; }
-
-        public CompositeDisposable DisposeBag = new CompositeDisposable();
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
@@ -68,7 +61,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
 
-            ClientFilterText
+            Clients = ClientFilterText
                 .Select(text =>
                 {
                     var trimmedText = text.Trim();
@@ -78,18 +71,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
                     if (string.IsNullOrEmpty(trimmedText))
                     {
-                        selectableViewModels = selectableViewModels.Append(noClient);
+                        selectableViewModels = selectableViewModels.Prepend(noClient);
                     }
                     else if (allClients.None(c => c.Name == trimmedText) &&
                              trimmedText.LengthInBytes() <= MaxClientNameLengthInBytes)
                     {
-                        var creationSelectableViewModel = new SelectableClientViewModel(long.MinValue, trimmedText, true);
-                        selectableViewModels = selectableViewModels.Append(creationSelectableViewModel);
+                        var creationSelectableViewModel =
+                            new SelectableClientViewModel(long.MinValue, trimmedText, true);
+                        selectableViewModels = selectableViewModels.Prepend(creationSelectableViewModel);
                     }
+
                     return selectableViewModels;
-                })
-                .Subscribe(clients => Clients.ReplaceWith(clients))
-                .DisposedBy(DisposeBag);
+                });
         }
 
         private SelectableClientViewModel toSelectableViewModel(IThreadSafeClient client)

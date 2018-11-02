@@ -1,8 +1,12 @@
-﻿using System.Reactive;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive;
 using System.Threading.Tasks;
+using MvvmCross.Binding.BindingContext;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
+using Toggl.Daneel.Views.Client;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
@@ -14,6 +18,8 @@ namespace Toggl.Daneel.ViewControllers
     [ModalCardPresentation]
     public partial class SelectClientViewController : KeyboardAwareViewController<SelectClientViewModel>, IDismissableViewController
     {
+        private ClientTableViewSource tableViewSource = new ClientTableViewSource();
+
         public SelectClientViewController()
             : base(nameof(SelectClientViewController))
         {
@@ -23,30 +29,30 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            var tableViewSource = new ClientTableViewSource(SuggestionsTableView, ViewModel.Clients);
+            SuggestionsTableView.RegisterNibForCellReuse(ClientViewCell.Nib, ClientViewCell.Identifier);
+            SuggestionsTableView.RegisterNibForCellReuse(CreateClientViewCell.Nib, CreateClientViewCell.Identifier);
+            SuggestionsTableView.SeparatorStyle = UITableViewCellSeparatorStyle.None;
+            SuggestionsTableView.Source = tableViewSource;
+
+            ViewModel.Clients.Subscribe(replaceClients).DisposedBy(DisposeBag);
 
             CloseButton.Rx().BindAction(ViewModel.Close).DisposedBy(DisposeBag);
             SearchTextField.Rx().Text().Subscribe(ViewModel.ClientFilterText).DisposedBy(DisposeBag);
-            tableViewSource.ItemSelected.Subscribe(ViewModel.SelectClient.Inputs).DisposedBy(DisposeBag);
-
-            SuggestionsTableView
-                .Rx()
-                .Bind(tableViewSource)
-                .DisposedBy(DisposeBag);
+            tableViewSource.ClientSelected.Subscribe(ViewModel.SelectClient.Inputs).DisposedBy(DisposeBag);
 
             SearchTextField.BecomeFirstResponder();
-        }
-
-        public override void ViewDidDisappear(bool animated)
-        {
-            base.ViewDidDisappear(animated);
-            ViewModel.DisposeBag.Dispose();
         }
 
         public async Task<bool> Dismiss()
         {
             ViewModel.Close.Execute(Unit.Default);
             return true;
+        }
+
+        private void replaceClients(IEnumerable<SelectableClientViewModel> clients)
+        {
+            tableViewSource.SetNewClients(clients);
+            SuggestionsTableView.ReloadData();
         }
 
         protected override void KeyboardWillShow(object sender, UIKeyboardEventArgs e)

@@ -8,7 +8,7 @@ namespace Toggl.Daneel.Views.Client
 {
     public partial class CreateClientViewCell : BaseTableViewCell<SelectableClientViewModel>
     {
-        public static readonly NSString Key = new NSString("CreateClientViewCell");
+        public static readonly string Identifier = nameof(CreateClientViewCell);
         public static readonly UINib Nib;
 
         static CreateClientViewCell()

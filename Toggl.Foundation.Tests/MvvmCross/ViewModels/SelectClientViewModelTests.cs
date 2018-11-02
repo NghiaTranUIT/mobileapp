@@ -70,7 +70,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                ViewModel.Clients.TotalCount.Should().Equals(clients.Count);
+                ViewModel.Clients.Count().Should().Equals(clients.Count);
             }
 
             [Fact, LogIfTooSlow]
@@ -199,7 +199,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ClientFilterText.OnNext("0");
 
-                ViewModel.Clients.TotalCount.Should().Equals(1);
+                ViewModel.Clients.Count().Should().Equals(1);
             }
 
             [Fact, LogIfTooSlow]

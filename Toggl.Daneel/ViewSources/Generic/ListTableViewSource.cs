@@ -10,10 +10,10 @@ namespace Toggl.Daneel.ViewSources
     public class ListTableViewSource<TModel, TCell> : UITableViewSource
         where TCell : BaseTableViewCell<TModel>
     {
-        private readonly string cellIdentifier;
-        private readonly IImmutableList<TModel> items;
+        protected readonly string cellIdentifier;
+        protected IImmutableList<TModel> items;
 
-        public Func<TModel, Task> OnItemTapped { get; set; }
+        public EventHandler<TModel> OnItemTapped { get; set; }
 
         public ListTableViewSource(IImmutableList<TModel> items, string cellIdentifier)
         {
@@ -31,7 +31,7 @@ namespace Toggl.Daneel.ViewSources
         public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
         {
             tableView.DeselectRow(indexPath, true);
-            OnItemTapped?.Invoke(items[indexPath.Row]);
+            OnItemTapped?.Invoke(this, items[indexPath.Row]);
         }
 
         public override nint RowsInSection(UITableView tableview, nint section) 
