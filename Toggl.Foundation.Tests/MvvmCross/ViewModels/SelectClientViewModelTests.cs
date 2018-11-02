@@ -217,6 +217,25 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Clients.First().First().Name.Should().Equals(nonExistingClientName);
                 ViewModel.Clients.First().First().IsCreation.Should().BeTrue();
             }
+
+            [Theory, LogIfTooSlow]
+            [InlineData(" ")]
+            [InlineData("\t")]
+            [InlineData("\n")]
+            [InlineData("               ")]
+            [InlineData("      \t  \n     ")]
+            public async Task DoesNotSuggestCreatingClientsWhenTheDescriptionConsistsOfOnlyWhiteCharacters(string name)
+            {
+                var clients = GenerateClientList();
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                await ViewModel.Initialize();
+
+                ViewModel.ClientFilterText.OnNext(name);
+
+                ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
+            }
         }
     }
 }
