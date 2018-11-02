@@ -25,9 +25,9 @@ namespace Toggl.Daneel.ViewControllers
 
             var tableViewSource = new ClientTableViewSource(SuggestionsTableView, ViewModel.Clients);
 
-            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
-            this.Bind(SearchTextField.Rx().Text(), ViewModel.ClientFilterText);
-            this.Bind(tableViewSource.ItemSelected, ViewModel.SelectClient);
+            CloseButton.Rx().BindAction(ViewModel.Close).DisposedBy(DisposeBag);
+            SearchTextField.Rx().Text().Subscribe(ViewModel.ClientFilterText).DisposedBy(DisposeBag);
+            tableViewSource.ItemSelected.Subscribe(ViewModel.SelectClient.Inputs).DisposedBy(DisposeBag);
 
             SuggestionsTableView
                 .Rx()
