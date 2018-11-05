@@ -32,7 +32,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
         private readonly ISchedulerProvider schedulerProvider;
         private long workspaceId;
-        private IEnumerable<IThreadSafeClient> allClients;
         private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient, false);
 
         public SelectClientViewModel(
@@ -59,7 +58,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             await base.Initialize();
 
-            allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
+            var allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
 
             Clients = ClientFilterText
                 .Select(text =>
