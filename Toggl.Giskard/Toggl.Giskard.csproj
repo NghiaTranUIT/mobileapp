@@ -882,6 +882,8 @@
     <AndroidResource Include="Resources\values-v23\Strings.xml" />
     <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragment.axml" />
     <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragmentCell.axml" />
+    <AndroidResource Include="Resources\drawable\ic_thumbs_down.xml" />
+    <AndroidResource Include="Resources\drawable\ic_thumbs_up.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj">
