@@ -18,6 +18,7 @@ namespace Toggl.Giskard.Adapters
     public class MainRecyclerAdapter : ReactiveSectionedRecyclerAdapter<TimeEntryViewModel, MainLogCellViewHolder, MainLogSectionViewHolder>
     {
         public const int SuggestionViewType = 2;
+        public const int UserFeedbackViewType = 3;
 
         private readonly ITimeService timeService;
 
@@ -31,6 +32,7 @@ namespace Toggl.Giskard.Adapters
             => deleteTimeEntrySubject.AsObservable();
 
         public SuggestionsViewModel SuggestionsViewModel { get; set; }
+        public RatingViewModel RatingViewModel { get; set; }
 
         public IStopwatchProvider StopwatchProvider { get; set; }
 
@@ -59,7 +61,7 @@ namespace Toggl.Giskard.Adapters
             deleteTimeEntrySubject.OnNext(deletedTimeEntry);
         }
 
-        public override int HeaderOffset => 1;
+        public override int HeaderOffset => 2;
 
         protected override bool TryBindCustomViewType(RecyclerView.ViewHolder holder, int position)
         {
@@ -76,6 +78,13 @@ namespace Toggl.Giskard.Adapters
                 var mainLogSuggestionsListViewHolder = new MainLogSuggestionsListViewHolder(suggestionsView, SuggestionsViewModel);
                 mainLogSuggestionsStopwatch.Stop();
                 return mainLogSuggestionsListViewHolder;
+            }
+
+            if (viewType == UserFeedbackViewType) 
+            {
+                var suggestionsView = LayoutInflater.FromContext(parent.Context).Inflate(Resource.Layout.MainUserFeedbackCard, parent, false);
+                var userFeedbackViewHolder = new MainLogUserFeedbackViewHolder(suggestionsView, RatingViewModel);
+                return userFeedbackViewHolder;
             }
 
             return base.OnCreateViewHolder(parent, viewType);
@@ -110,9 +119,10 @@ namespace Toggl.Giskard.Adapters
         public override int GetItemViewType(int position)
         {
             if (position == 0)
-            {
                 return SuggestionViewType;
-            }
+
+            if (position == 1)
+                return UserFeedbackViewType;
 
             return base.GetItemViewType(position);
         }

@@ -483,6 +483,7 @@
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.ViewBinds.cs">
 		<DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
 	</Compile>
+    <Compile Include="ViewHolders\MainLogUserFeedbackViewHolder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
