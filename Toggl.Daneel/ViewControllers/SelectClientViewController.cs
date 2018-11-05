@@ -41,7 +41,9 @@ namespace Toggl.Daneel.ViewControllers
             CloseButton.Rx()
                 .BindAction(ViewModel.Close)
                 .DisposedBy(DisposeBag);
-            SearchTextField.Rx().Text().Subscribe(ViewModel.ClientFilterText).DisposedBy(DisposeBag);
+            SearchTextField.Rx().Text()
+                .Subscribe(ViewModel.ClientFilterText)
+                .DisposedBy(DisposeBag);
             tableViewSource.ClientSelected.Subscribe(ViewModel.SelectClient.Inputs).DisposedBy(DisposeBag);
 
             SearchTextField.BecomeFirstResponder();
