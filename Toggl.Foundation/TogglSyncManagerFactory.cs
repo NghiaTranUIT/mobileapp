@@ -171,12 +171,11 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(persistNewWorkspaces.FinishedPersisting, fetchAllSince);
 
             // detect losing access to workspaces
-            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, deleteRunningInaccessibleTimeEntry);
             transitions.ConfigureTransition(detectLosingAccessToWorkspaces.WorkspaceAccessLost, scheduleCleanUp);
+            transitions.ConfigureTransition(scheduleCleanUp.CleanUpScheduled, deleteRunningInaccessibleTimeEntry);
             transitions.ConfigureTransition(deleteRunningInaccessibleTimeEntry.Continue, persistWorkspaces);
+            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, persistWorkspaces);
 
-            transitions.ConfigureTransition(scheduleCleanUp.CleanUpScheduled, persistWorkspaces);
-            
             // persist all the data pulled from the server
             transitions.ConfigureTransition(persistWorkspaces.FinishedPersisting, updateWorkspacesSinceDate);
             transitions.ConfigureTransition(updateWorkspacesSinceDate.Finished, detectNoWorkspaceState);
