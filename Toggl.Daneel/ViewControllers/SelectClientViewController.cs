@@ -34,7 +34,9 @@ namespace Toggl.Daneel.ViewControllers
             SuggestionsTableView.SeparatorStyle = UITableViewCellSeparatorStyle.None;
             SuggestionsTableView.Source = tableViewSource;
 
-            ViewModel.Clients.Subscribe(replaceClients).DisposedBy(DisposeBag);
+            ViewModel.Clients
+                .Subscribe(replaceClients)
+                .DisposedBy(DisposeBag);
 
             CloseButton.Rx().BindAction(ViewModel.Close).DisposedBy(DisposeBag);
             SearchTextField.Rx().Text().Subscribe(ViewModel.ClientFilterText).DisposedBy(DisposeBag);
