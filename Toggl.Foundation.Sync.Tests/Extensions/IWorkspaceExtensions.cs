@@ -1,5 +1,6 @@
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Multivac;
 using Toggl.Multivac.Models;
 
 namespace Toggl.Foundation.Sync.Tests.Extensions
@@ -20,6 +21,20 @@ namespace Toggl.Foundation.Sync.Tests.Extensions
                 LastSyncErrorMessage = null,
                 LogoUrl = workspace.LogoUrl,
                 Name = workspace.Name,
+            };
+
+        public static IWorkspace With(
+            this IWorkspace workspace,
+            New<string> name = default(New<string>))
+            => new Ultrawave.Models.Workspace
+            {
+                Admin = workspace.Admin,
+                At = workspace.At,
+                DefaultCurrency = workspace.DefaultCurrency,
+                DefaultHourlyRate = workspace.DefaultHourlyRate,
+                Id = workspace.Id,
+                LogoUrl = workspace.LogoUrl,
+                Name = name.ValueOr(workspace.Name)
             };
     }
 }

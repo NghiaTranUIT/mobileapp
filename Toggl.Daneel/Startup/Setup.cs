@@ -119,7 +119,7 @@ namespace Toggl.Daneel
                     .WithNotificationService(notificationService)
                     .WithApiFactory(new ApiFactory(environment, userAgent))
                     .WithBackgroundService(new BackgroundService(timeService))
-                    .WithApplicationShortcutCreator<ApplicationShortcutCreator>()
+                    .WithApplicationShortcutCreator(new ApplicationShortcutCreator())
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithIntentDonationService(intentDonationService)
                     .WithStopwatchProvider<FirebaseStopwatchProviderIos>()

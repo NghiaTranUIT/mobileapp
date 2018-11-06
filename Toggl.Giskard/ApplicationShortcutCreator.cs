@@ -13,21 +13,23 @@ namespace Toggl.Giskard
 {
     public sealed class ApplicationShortcutCreator : BaseApplicationShortcutCreator
     {
+        private static readonly HashSet<ShortcutType> supportedShortcuts = new HashSet<ShortcutType>(new[] {
+            ShortcutType.Reports,
+            ShortcutType.StartTimeEntry,
+            ShortcutType.StopTimeEntry,
+            ShortcutType.ContinueLastTimeEntry
+        });
+
         private readonly Context context;
 
-        public ShortcutManager ShortcutManager
-        {
-            get
-            {
-                var shortcutManagerType = Class.FromType(typeof(ShortcutManager));
-                var shortcutManager = context.GetSystemService(shortcutManagerType).JavaCast<ShortcutManager>();
-                return shortcutManager;
-            }
-        }
+        private readonly ShortcutManager shortcutManager;
 
-        public ApplicationShortcutCreator(Context context)
+        public ApplicationShortcutCreator(Context context) : base(supportedShortcuts)
         {
             this.context = context;
+
+            var shortcutManagerType = Class.FromType(typeof(ShortcutManager));
+            shortcutManager = context.GetSystemService(shortcutManagerType).JavaCast<ShortcutManager>();
         }
 
         protected override void ClearAllShortCuts()
@@ -35,7 +37,7 @@ namespace Toggl.Giskard
             if (NougatApis.AreNotAvailable)
                 return;
 
-            ShortcutManager.RemoveAllDynamicShortcuts();
+            shortcutManager.RemoveAllDynamicShortcuts();
         }
 
         protected override void SetShortcuts(IEnumerable<ApplicationShortcut> shortcuts)
@@ -43,8 +45,10 @@ namespace Toggl.Giskard
             if (NougatApis.AreNotAvailable)
                 return;
 
-            var droidShortcuts = shortcuts.Select(androidShortcut).ToList();
-            ShortcutManager.SetDynamicShortcuts(droidShortcuts);
+            var droidShortcuts = shortcuts
+                .Select(androidShortcut)
+                .ToList();
+            shortcutManager.SetDynamicShortcuts(droidShortcuts);
         }
 
         private ShortcutInfo androidShortcut(ApplicationShortcut shortcut)

@@ -81,8 +81,16 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
                     }
                 },
                 clients: new[] { new MockClient { Id = -3, Name = "Client", WorkspaceId = -7 } },
-                tags: new[] { new MockTag { Id = -5, Name = "Tag 1", WorkspaceId = -7 }, new MockTag { Id = -6, Name = "Tag 2", WorkspaceId = -7 } },
-                workspaces: new[] { new MockWorkspace { Id = -7, Name = "Workspace" } });
+                tags: new[]
+                {
+                    new MockTag { Id = -5, Name = "Tag 1", WorkspaceId = -7 },
+                    new MockTag { Id = -6, Name = "Tag 2", WorkspaceId = -7 }
+                },
+                workspaces: new[]
+                {
+                    server.InitialServerState.Workspaces.Single().ToSyncable(), // keep the old workspace
+                    new MockWorkspace { Id = -7, Name = "Workspace" }
+                });
 
             await server.Push(arrangedState);
             var finalServerState = await server.PullCurrentState();
@@ -121,6 +129,53 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
             Func<Task> pushingProjectWithCustomColor = () => server.Push(arrangedState);
 
             pushingProjectWithCustomColor.Should().NotThrow();
+        }
+
+        [Fact, LogTestInfo]
+        public async Task ReplacesDefaultWorkspaceWithADifferentOne()
+        {
+            var server = await Server.Factory.Create();
+            var arrangedState = server.InitialServerState.With(
+                workspaces: new[] { new MockWorkspace { Name = "different workspace" } });
+
+            await server.Push(arrangedState);
+            var finalServerState = await server.PullCurrentState();
+
+            finalServerState.Workspaces.Should().HaveCount(1);
+            finalServerState.Workspaces.Single().Id.Should().NotBe(
+                server.InitialServerState.Workspaces.Single().Id);
+            finalServerState.Workspaces.Single().Name.Should().Be(
+                arrangedState.Workspaces.Single().Name);
+        }
+
+        [Fact, LogTestInfo]
+        public async Task UpdatesTheDefaultWorkspace()
+        {
+            var differentName = "different workspace name";
+            var server = await Server.Factory.Create();
+            var initialDefaultWorkspace = server.InitialServerState.Workspaces.Single();
+            var arrangedState = server.InitialServerState.With(
+                workspaces: new[] { initialDefaultWorkspace.With(name: differentName) });
+
+            await server.Push(arrangedState);
+            var finalServerState = await server.PullCurrentState();
+
+            finalServerState.Workspaces.Should().HaveCount(1);
+            finalServerState.Workspaces.Single().Id.Should().Be(initialDefaultWorkspace.Id);
+            finalServerState.Workspaces.Single().Name.Should().NotBe(initialDefaultWorkspace.Name);
+            finalServerState.Workspaces.Single().Name.Should().Be(differentName);
+        }
+
+        [Fact, LogTestInfo]
+        public async Task AllowsToRemoveAllWorkspaces()
+        {
+            var server = await Server.Factory.Create();
+            var arrangedState = server.InitialServerState.With(workspaces: new IWorkspace[0]);
+
+            await server.Push(arrangedState);
+            var finalServerState = await server.PullCurrentState();
+
+            finalServerState.Workspaces.Should().HaveCount(0);
         }
     }
 }

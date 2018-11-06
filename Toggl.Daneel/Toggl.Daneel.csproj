@@ -661,8 +661,11 @@
   <ItemGroup>
     <Compile Include="Analytics\SiriTrackableEvent.cs" />
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
+    <Compile Include="Cells\BaseCollectionViewCell.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
+    <Compile Include="Extensions\Reactive\HueSaturationPickerViewExtensions.cs" />
+    <Compile Include="Extensions\Reactive\UISliderExtensions.cs" />
     <Compile Include="Extensions\SectionedIndexExtensions.cs" />
     <Compile Include="Services\PermissionsServiceIos.cs" />
     <Compile Include="Services\CalendarServiceIos.cs" />
@@ -698,6 +701,7 @@
     <Compile Include="Binding\BarButtonCommandTargetBinding.cs" />
     <Compile Include="Binding\ViewAnimatedVisibilityTargetBinding.cs" />
     <Compile Include="ViewControllers\SyncFailuresViewController.cs" />
+    <Compile Include="ViewSources\Generic\ListCollectionViewSource.cs" />
     <Compile Include="ViewSources\Generic\ListTableViewSource.cs" />
     <Compile Include="ViewSources\Generic\ReactiveSectionedListTableViewSource.cs" />
     <Compile Include="ViewSources\Generic\SectionedListTableViewSource.cs" />

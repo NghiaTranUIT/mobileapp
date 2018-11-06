@@ -4,12 +4,14 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Exceptions;
+using Toggl.Foundation.Sync.Tests.Exceptions;
 using Toggl.Foundation.Sync.Tests.Extensions;
 using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
 using Toggl.Ultrawave;
+using Toggl.Ultrawave.Exceptions;
 using Toggl.Ultrawave.Helpers;
 using Toggl.Ultrawave.Network;
 using Toggl.Ultrawave.Tests.Integration.Helper;
@@ -56,7 +58,15 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             var timeEntries = (IEnumerable<ITimeEntry>)state.TimeEntries;
 
             // do not push the default workspace twice
+            var defaultWorkspace = state.Workspaces.SingleOrDefault(ws => ws.Id == InitialServerState.Workspaces.Single().Id);
             var workspaces = state.Workspaces.Where(ws => ws.Id != InitialServerState.Workspaces.Single().Id).ToList();
+
+            if (defaultWorkspace != null)
+            {
+                // update the default workspace with the data
+                // there is no need to update IDs - the default WS already has an ID
+                await WorkspaceHelper.Update(user, defaultWorkspace);
+            }
 
             if (workspaces.Any())
             {
@@ -87,6 +97,20 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
                                 }
                             }))
                     .Merge();
+            }
+
+            // the user does not want the default workspace on the server
+            if (defaultWorkspace == null)
+            {
+                try
+                {
+                    var initialDefaultWorkspace = InitialServerState.Workspaces.Single();
+                    await WorkspaceHelper.Delete(user, initialDefaultWorkspace.Id);
+                }
+                catch (ApiException exception)
+                {
+                    throw new CannotDeleteDefaultWorkspaceException(exception);
+                }
             }
 
             // activate pricing plans
@@ -187,7 +211,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
 
             await timeEntries.Select(Api.TimeEntries.Create).Merge().ToList();
         }
-    
+
         public static class Factory
         {
             private static readonly UserAgent userAgent = new UserAgent("TogglSyncingTests", "0.0.0");

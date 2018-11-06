@@ -282,8 +282,10 @@
     <Compile Include="Extensions\OnboardingExtensions.cs" />
     <Compile Include="Extensions\PopupOffsets.cs" />
     <Compile Include="Extensions\PopupWindowWithDefaultGravityExtenstions.cs" />
+    <Compile Include="Extensions\Reactive\HueSaturationPickerViewExtensions.cs" />
     <Compile Include="Extensions\TracingExtensions.cs" />
     <Compile Include="Extensions\Reactive\RecyclerViewExtensions.cs" />
+    <Compile Include="Extensions\Reactive\ValueSliderViewExtensions.cs" />
     <Compile Include="Helper\PersistentNotificationsHelper.cs" />
     <Compile Include="Fragments\NoWorkspaceFragment.cs" />
     <Compile Include="Fragments\NoWorkspaceFragment.ViewBinds.cs">
@@ -315,6 +317,7 @@
     <Compile Include="ViewHelpers\MainRecyclerViewTouchCallback.cs" />
     <Compile Include="ViewHelpers\SimpleRecyclerViewScrollChangeListener.cs" />
     <Compile Include="ViewHelpers\SuggestionsRecyclerViewSnapHelper.cs" />
+    <Compile Include="ViewHolders\ColorSelectionViewHolder.cs" />
     <Compile Include="ViewHolders\MainLogCellViewHolder.cs" />
     <Compile Include="ViewHolders\MainLogSuggestionItemViewHolder.cs" />
     <Compile Include="ViewHolders\MainLogSuggestionsListViewHolder.cs" />
@@ -363,7 +366,6 @@
     <Compile Include="Fragments\SelectColorFragment.cs" />
     <Compile Include="Views\TextInputLayoutWithHelperText.cs" />
     <Compile Include="Views\ValueSlider.cs" />
-    <Compile Include="TemplateSelectors\SelectColorTemplateSelector.cs" />
     <Compile Include="Converters\DecimalToPercentageValueConverter.cs" />
     <Compile Include="Views\DurationEditText.cs" />
     <Compile Include="Activities\SelectClientActivity.cs" />
@@ -474,6 +476,9 @@
     <Compile Include="Extensions\Reactive\RecyclerAdapterExtensions.cs" />
     <Compile Include="Extensions\Reactive\SwipeRefreshLayoutExtensions.cs" />
     <Compile Include="Extensions\Reactive\JavaObjectExtensions.cs" />
+    <Compile Include="Fragments\SelectColorFragment.ViewBinds.cs">
+      <DependentUpon>SelectColorFragment.cs</DependentUpon>
+    </Compile>
     <Compile Include="Activities\TokenResetActivity.ViewBinds.cs">
       <DependentUpon>TokenResetActivity.cs</DependentUpon>
     </Compile>

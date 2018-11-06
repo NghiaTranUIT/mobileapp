@@ -1,24 +1,11 @@
-using System;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
+using Toggl.Ultrawave.Models;
 
 namespace Toggl.Foundation.Sync.Tests.Extensions
 {
     public static class ITaskExtensions
     {
-        private sealed class Task : ITask
-        {
-            public long Id { get; set; }
-            public DateTimeOffset At { get; set; }
-            public string Name { get; set; }
-            public long ProjectId { get; set; }
-            public long WorkspaceId { get; set; }
-            public long? UserId { get; set; }
-            public long EstimatedSeconds { get; set; }
-            public bool Active { get; set; }
-            public long TrackedSeconds { get; set; }
-        }
-
         public static ITask With(
             this ITask task,
             New<long> workspaceId = default(New<long>),

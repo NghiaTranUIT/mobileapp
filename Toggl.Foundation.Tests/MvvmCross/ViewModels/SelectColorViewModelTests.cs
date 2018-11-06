@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -8,6 +9,7 @@ using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Xunit;
+using System.Reactive.Linq;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -31,44 +33,59 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheSelectColorCommandCommand : SelectColorViewModelTest
+        public sealed class TheSelectColorAction : SelectColorViewModelTest
         {
             [Fact, LogIfTooSlow]
             public void ChangesTheSelectedColor()
             {
                 var initiallySelectedColor = Color.DefaultProjectColors.First();
+                var colorToSelect = Color.DefaultProjectColors.Last();
                 var parameters = ColorParameters.Create(initiallySelectedColor, true);
+
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
                 ViewModel.Prepare(parameters);
-                var colorToSelect = ViewModel.SelectableColors.Last();
 
-                ViewModel.SelectColorCommand.Execute(colorToSelect);
+                ViewModel.SelectColor.Execute(colorToSelect);
 
-                ViewModel.SelectableColors.Single(c => c.Selected).Color.ARGB.Should().Be(colorToSelect.Color.ARGB);
+                observer.Messages
+                    .Select( m => m.Value.Value)
+                    .Last()
+                    .Single(c => c.Selected).Color.ARGB.Should().Be(colorToSelect.ARGB);
             }
 
             [Fact, LogIfTooSlow]
             public async Task ReturnsTheSelectedColorIfCustomColorsAreNotAllowed()
             {
                 var initiallySelectedColor = Color.DefaultProjectColors.First();
+                var colorToSelect = Color.DefaultProjectColors.Last();
                 var parameters = ColorParameters.Create(initiallySelectedColor, false);
-                ViewModel.Prepare(parameters);
-                var colorToSelect = ViewModel.SelectableColors.Last();
 
-                ViewModel.SelectColorCommand.Execute(colorToSelect);
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
+                ViewModel.Prepare(parameters);
+
+                ViewModel.SelectColor.Execute(colorToSelect);
 
                 await NavigationService.Received()
-                    .Close(Arg.Is(ViewModel), Arg.Is<MvxColor>(c => c.ARGB == colorToSelect.Color.ARGB));
+                    .Close(Arg.Is(ViewModel), Arg.Is<MvxColor>(c => c.ARGB == colorToSelect.ARGB));
             }
 
             [Fact, LogIfTooSlow]
             public async Task DoesNotReturnIfCustomColorsAreAllowed()
             {
                 var initiallySelectedColor = Color.DefaultProjectColors.First();
+                var colorToSelect = Color.DefaultProjectColors.Last();
                 var parameters = ColorParameters.Create(initiallySelectedColor, true);
-                ViewModel.Prepare(parameters);
-                var colorToSelect = ViewModel.SelectableColors.Last();
 
-                ViewModel.SelectColorCommand.Execute(colorToSelect);
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
+                ViewModel.Prepare(parameters);
+
+                ViewModel.SelectColor.Execute(colorToSelect);
 
                 await NavigationService.DidNotReceive()
                     .Close(Arg.Is(ViewModel), Arg.Any<MvxColor>());
@@ -77,22 +94,37 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
         public sealed class ThePrepareCommand : SelectColorViewModelTest
         {
+
             [Fact, LogIfTooSlow]
             public void AddsFourteenItemsToTheListOfSelectableColorsIfTheUserIsNotPro()
             {
                 var parameters = ColorParameters.Create(MvxColors.Azure, false);
+
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectableColors.Should().HaveCount(14);
+                observer.Messages
+                    .Select( m => m.Value.Value)
+                    .Last()
+                    .Should().HaveCount(14);
             }
 
             [Fact, LogIfTooSlow]
             public void AddsFifteenItemsToTheListOfSelectableColorsIfTheUserIsPro()
             {
                 var parameters = ColorParameters.Create(MvxColors.Azure, true);
+
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectableColors.Should().HaveCount(15);
+                observer.Messages
+                    .Select( m => m.Value.Value)
+                    .Last()
+                    .Should().HaveCount(15);
             }
 
             [Fact, LogIfTooSlow]
@@ -101,29 +133,47 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var passedColor = Color.DefaultProjectColors.Skip(3).First();
                 var parameters = ColorParameters.Create(passedColor, false);
 
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectableColors.Single(c => c.Selected).Color.ARGB.Should().Be(passedColor.ARGB);
+                observer.Messages
+                    .Select( m => m.Value.Value)
+                    .Last()
+                    .Single(c => c.Selected).Color.ARGB.Should().Be(passedColor.ARGB);
             }
 
             [Fact, LogIfTooSlow]
             public void SelectsTheFirstColorIfThePassedColorIsNotPartOfTheDefaultColorsAndWorkspaceIsNotPro()
             {
                 var expected = Color.DefaultProjectColors.First();
-
                 var parameters = ColorParameters.Create(MvxColors.Azure, false);
+
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectableColors.Single(c => c.Selected).Color.ARGB.Should().Be(expected.ARGB);
+                observer.Messages
+                    .Select( m => m.Value.Value)
+                    .Last()
+                    .Single(c => c.Selected).Color.ARGB.Should().Be(expected.ARGB);
             }
 
             [Fact, LogIfTooSlow]
             public void SelectsThePassedColorIfThePassedColorIsNotPartOfTheDefaultColorsAndWorkspaceIsPro()
             {
                 var parameters = ColorParameters.Create(MvxColors.Azure, true);
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableColorViewModel>>();
+                ViewModel.SelectableColors.Subscribe(observer);
+
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectableColors.Single(c => c.Selected).Color.ARGB.Should().Be(MvxColors.Azure.ARGB);
+                observer.Messages
+                    .Select( m => m.Value.Value)
+                    .Last()
+                    .Single(c => c.Selected).Color.ARGB.Should().Be(MvxColors.Azure.ARGB);
             }
         }
 
@@ -132,7 +182,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
-                await ViewModel.CloseCommand.ExecuteAsync();
+                await ViewModel.Close.Execute();
 
                 await NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Any<MvxColor>());
             }
@@ -144,7 +194,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var parameters = ColorParameters.Create(color, true);
                 ViewModel.Prepare(parameters);
 
-                await ViewModel.CloseCommand.ExecuteAsync();
+                await ViewModel.Close.Execute();
 
                 NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Is(color)).Wait();
             }
@@ -155,7 +205,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
-                await ViewModel.CloseCommand.ExecuteAsync();
+                await ViewModel.Close.Execute();
 
                 await NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Any<MvxColor>());
             }
@@ -165,13 +215,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var parameters = ColorParameters.Create(MvxColors.Azure, true);
                 ViewModel.Prepare(parameters);
-                var expected = ViewModel.SelectableColors.First();
-                ViewModel.SelectColorCommand.Execute(ViewModel.SelectableColors.First());
+                var expected = Color.DefaultProjectColors.First();
+                ViewModel.SelectColor.Execute(expected);
 
-                await ViewModel.SaveCommand.ExecuteAsync();
+                await ViewModel.Save.Execute();
 
                 await NavigationService.Received()
-                    .Close(Arg.Is(ViewModel), Arg.Is<MvxColor>(c => c.ARGB == expected.Color.ARGB));
+                    .Close(Arg.Is(ViewModel), Arg.Is<MvxColor>(c => c.ARGB == expected.ARGB));
             }
         }
     }
