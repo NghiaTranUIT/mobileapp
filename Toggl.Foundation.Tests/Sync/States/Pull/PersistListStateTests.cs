@@ -40,18 +40,6 @@ namespace Toggl.Foundation.Tests.Sync.States
             transition.Result.Should().Be(state.FinishedPersisting);
         }
 
-        [Theory]
-        [MemberData(nameof(ApiExceptions.ServerExceptions), MemberType = typeof(ApiExceptions))]
-        [MemberData(nameof(ApiExceptions.ClientExceptionsWhichAreNotReThrownInSyncStates), MemberType = typeof(ApiExceptions))]
-        public async Task ReturnsFailureResultWhenFetchingThrows(ApiException exception)
-        {
-            var fetchObservables = createFetchObservables(Observable.Throw<List<ITestModel>>(exception));
-
-            var transition = await state.Start(fetchObservables);
-
-            transition.Result.Should().Be(state.ErrorOccured);
-        }
-
         [Fact, LogIfTooSlow]
         public void ThrowsIfFetchObservablePublishesTwice()
         {
@@ -78,16 +66,6 @@ namespace Toggl.Foundation.Tests.Sync.States
             Action startingState = () => state.Start(observables).SingleAsync().Wait();
 
             startingState.Should().Throw<TestException>();
-        }
-
-        [Fact, LogIfTooSlow]
-        public void ThrowsWhenTheDeviceIsOffline()
-        {
-            var observables = createFetchObservables(Observable.Throw<List<ITestModel>>(new OfflineException(new Exception())));
-
-            Action startingState = () => state.Start(observables).Wait();
-
-            startingState.Should().Throw<OfflineException>();
         }
 
         [Fact, LogIfTooSlow]

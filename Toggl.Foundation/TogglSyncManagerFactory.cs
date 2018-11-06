@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -86,6 +87,16 @@ namespace Toggl.Foundation
 
             var fetchAllSince = new FetchAllSinceState(database, api, timeService);
 
+            var ensureFetchWorkspacesSucceeded = new EnsureFetchListSucceededState<IWorkspace>();
+            var ensureFetchWorkspaceFeaturesSucceeded = new EnsureFetchListSucceededState<IWorkspaceFeatureCollection>();
+            var ensureFetchTagsSucceeded = new EnsureFetchListSucceededState<ITag>();
+            var ensureFetchClientsSucceeded = new EnsureFetchListSucceededState<IClient>();
+            var ensureFetchProjectsSucceeded = new EnsureFetchListSucceededState<IProject>();
+            var ensureFetchTasksSucceeded = new EnsureFetchListSucceededState<ITask>();
+            var ensureFetchTimeEntriesSucceeded = new EnsureFetchListSucceededState<ITimeEntry>();
+            var ensureFetchUserSucceeded = new EnsureFetchSingletonSucceededState<IUser>();
+            var ensureFetchPreferencesSucceeded = new EnsureFetchSingletonSucceededState<IPreferences>();
+
             var scheduleCleanUp = new ScheduleCleanUpState(queue);
 
             var detectGainingAccessToWorkspaces =
@@ -163,7 +174,8 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(entryPoint, fetchAllSince);
 
             // start all the API requests first
-            transitions.ConfigureTransition(fetchAllSince.FetchStarted, detectGainingAccessToWorkspaces);
+            transitions.ConfigureTransition(fetchAllSince.FetchStarted, ensureFetchWorkspacesSucceeded);
+            transitions.ConfigureTransition(ensureFetchWorkspacesSucceeded.Continue, detectGainingAccessToWorkspaces);
 
             // detect gaining access to workspaces
             transitions.ConfigureTransition(detectGainingAccessToWorkspaces.Continue, detectLosingAccessToWorkspaces);
@@ -179,25 +191,33 @@ namespace Toggl.Foundation
             // persist all the data pulled from the server
             transitions.ConfigureTransition(persistWorkspaces.FinishedPersisting, updateWorkspacesSinceDate);
             transitions.ConfigureTransition(updateWorkspacesSinceDate.Finished, detectNoWorkspaceState);
-            transitions.ConfigureTransition(detectNoWorkspaceState.Continue, persistUser);
+            transitions.ConfigureTransition(detectNoWorkspaceState.Continue, ensureFetchUserSucceeded);
+            transitions.ConfigureTransition(ensureFetchUserSucceeded.Continue, persistUser);
 
-            transitions.ConfigureTransition(persistUser.FinishedPersisting, persistWorkspaceFeatures);
-            transitions.ConfigureTransition(persistWorkspaceFeatures.FinishedPersisting, persistPreferences);
+            transitions.ConfigureTransition(persistUser.FinishedPersisting, ensureFetchWorkspaceFeaturesSucceeded);
+            transitions.ConfigureTransition(ensureFetchWorkspaceFeaturesSucceeded.Continue, persistWorkspaceFeatures);
+            transitions.ConfigureTransition(persistWorkspaceFeatures.FinishedPersisting, ensureFetchPreferencesSucceeded);
 
-            transitions.ConfigureTransition(persistPreferences.FinishedPersisting, persistTags);
+            transitions.ConfigureTransition(ensureFetchPreferencesSucceeded.Continue, persistPreferences);
+            transitions.ConfigureTransition(persistPreferences.FinishedPersisting, ensureFetchTagsSucceeded);
 
+            transitions.ConfigureTransition(ensureFetchTagsSucceeded.Continue, persistTags);
             transitions.ConfigureTransition(persistTags.FinishedPersisting, updateTagsSinceDate);
-            transitions.ConfigureTransition(updateTagsSinceDate.Finished, persistClients);
+            transitions.ConfigureTransition(updateTagsSinceDate.Finished, ensureFetchClientsSucceeded);
 
+            transitions.ConfigureTransition(ensureFetchClientsSucceeded.Continue, persistClients);
             transitions.ConfigureTransition(persistClients.FinishedPersisting, updateClientsSinceDate);
-            transitions.ConfigureTransition(updateClientsSinceDate.Finished, persistProjects);
+            transitions.ConfigureTransition(updateClientsSinceDate.Finished, ensureFetchProjectsSucceeded);
 
+            transitions.ConfigureTransition(ensureFetchProjectsSucceeded.Continue, persistProjects);
             transitions.ConfigureTransition(persistProjects.FinishedPersisting, updateProjectsSinceDate);
-            transitions.ConfigureTransition(updateProjectsSinceDate.Finished, persistTasks);
+            transitions.ConfigureTransition(updateProjectsSinceDate.Finished, ensureFetchTasksSucceeded);
 
+            transitions.ConfigureTransition(ensureFetchTasksSucceeded.Continue, persistTasks);
             transitions.ConfigureTransition(persistTasks.FinishedPersisting, updateTasksSinceDate);
-            transitions.ConfigureTransition(updateTasksSinceDate.Finished, createProjectPlaceholders);
+            transitions.ConfigureTransition(updateTasksSinceDate.Finished, ensureFetchTimeEntriesSucceeded);
 
+            transitions.ConfigureTransition(ensureFetchTimeEntriesSucceeded.Continue, createProjectPlaceholders);
             transitions.ConfigureTransition(createProjectPlaceholders.FinishedPersisting, persistTimeEntries);
             transitions.ConfigureTransition(persistTimeEntries.FinishedPersisting, updateTimeEntriesSinceDate);
             transitions.ConfigureTransition(updateTimeEntriesSinceDate.Finished, refetchInaccessibleProjects);
@@ -210,16 +230,15 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(noDefaultWorkspaceDetectingState.NoDefaultWorkspaceDetected, trySetDefaultWorkspaceState);
 
             // process server errors
-            transitions.ConfigureTransition(persistWorkspaces.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistUser.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistWorkspaceFeatures.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistPreferences.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistTags.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistClients.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistProjects.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistTasks.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(createProjectPlaceholders.ErrorOccured, retryOrThrow);
-            transitions.ConfigureTransition(persistTimeEntries.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchWorkspacesSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchUserSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchWorkspaceFeaturesSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchPreferencesSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchTagsSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchClientsSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchProjectsSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchTasksSucceeded.ErrorOccured, retryOrThrow);
+            transitions.ConfigureTransition(ensureFetchTimeEntriesSucceeded.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(refetchInaccessibleProjects.ErrorOccured, retryOrThrow);
 
             // retry loop

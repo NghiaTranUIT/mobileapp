@@ -22,8 +22,6 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         public StateResult<IFetchObservables> FinishedPersisting { get; } = new StateResult<IFetchObservables>();
 
-        public StateResult<ApiException> ErrorOccured { get; } = new StateResult<ApiException>();
-
         public PersistListState(
             IDataSource<TThreadsafeInterface, TDatabaseInterface> dataSource,
             Func<TInterface, TThreadsafeInterface> convertToThreadsafeEntity)
@@ -40,8 +38,7 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SingleAsync()
                 .Select(toThreadsafeList)
                 .SelectMany(dataSource.BatchUpdate)
-                .Select(_ => FinishedPersisting.Transition(fetch))
-                .OnErrorReturnResult(ErrorOccured);
+                .Select(_ => FinishedPersisting.Transition(fetch));
 
         private IList<TThreadsafeInterface> toThreadsafeList(IEnumerable<TInterface> entities)
             => entities.Select(convertToThreadsafeEntity).ToList();
