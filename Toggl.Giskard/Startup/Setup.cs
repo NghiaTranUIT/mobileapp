@@ -102,7 +102,7 @@ namespace Toggl.Giskard
                     .WithMailService(mailService)
                     .WithApiEnvironment(environment)
                     .WithGoogleService<GoogleServiceAndroid>()
-                    .WithRatingService<RatingServiceAndroid>()
+                    .WithRatingService(new RatingServiceAndroid(ApplicationContext))
                     .WithLicenseProvider<LicenseProviderAndroid>()
                     .WithAnalyticsService(analyticsService)
                     .WithSchedulerProvider(schedulerProvider)
