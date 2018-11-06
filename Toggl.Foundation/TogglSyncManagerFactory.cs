@@ -105,8 +105,10 @@ namespace Toggl.Foundation
                     analyticsService,
                     () => new HasFinsihedSyncBeforeInteractor(dataSource));
 
+            var resetSinceParams = new ResetSinceParamsState(database.SinceParameters);
+
             var persistNewWorkspaces =
-                new PersistNewWorkspacesState(dataSource.Workspaces, database.SinceParameters);
+                new PersistNewWorkspacesState(dataSource.Workspaces);
 
             var detectLosingAccessToWorkspaces =
                 new DetectLosingAccessToWorkspacesState(dataSource.Workspaces, analyticsService);
@@ -181,7 +183,8 @@ namespace Toggl.Foundation
 
             // detect gaining access to workspaces
             transitions.ConfigureTransition(detectGainingAccessToWorkspaces.Continue, detectLosingAccessToWorkspaces);
-            transitions.ConfigureTransition(detectGainingAccessToWorkspaces.NewWorkspacesDetected, persistNewWorkspaces);
+            transitions.ConfigureTransition(detectGainingAccessToWorkspaces.NewWorkspacesDetected, resetSinceParams);
+            transitions.ConfigureTransition(resetSinceParams.Continue, persistNewWorkspaces);
             transitions.ConfigureTransition(persistNewWorkspaces.FinishedPersisting, fetchAllSince);
 
             // detect losing access to workspaces
