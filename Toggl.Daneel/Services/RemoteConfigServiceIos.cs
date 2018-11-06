@@ -17,7 +17,7 @@ namespace Toggl.Daneel.Services
         }
 
         public IObservable<RatingViewConfiguration> RatingViewConfiguration
-            => Observable.Create<RatingViewConfiguration>( observer =>
+            => Observable.Create<RatingViewConfiguration>(observer =>
             {
                 var remoteConfig = RemoteConfig.SharedInstance;
                 remoteConfig.Fetch((status, error) =>
@@ -27,7 +27,7 @@ namespace Toggl.Daneel.Services
 
                     var configuration = new RatingViewConfiguration(
                         remoteConfig["day_count"].NumberValue.Int32Value,
-                        criterionStringToEnum(remoteConfig["criterion"].StringValue)
+                        remoteConfig["criterion"].StringValue.ToRatingViewCriterion()
                     );
                     observer.OnNext(configuration);
                     observer.OnCompleted();
@@ -37,20 +37,5 @@ namespace Toggl.Daneel.Services
 
         public IObservable<bool> IsCalendarFeatureEnabled
             => Observable.Return(true);
-
-        private RatingViewCriterion criterionStringToEnum(string criterion)
-        {
-            switch (criterion)
-            {
-                case "stop":
-                    return RatingViewCriterion.Stop;
-                case "start":
-                    return RatingViewCriterion.Start;
-                case "continue":
-                    return RatingViewCriterion.Continue;
-                default:
-                    return RatingViewCriterion.None;
-            }
-        }
     }
 }
