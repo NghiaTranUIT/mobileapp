@@ -22,6 +22,8 @@ namespace Toggl.Giskard.Adapters
 
         private readonly ITimeService timeService;
 
+        private bool isRatingViewVisible = false;
+
         public IObservable<TimeEntryViewModel> TimeEntryTaps
             => timeEntryTappedSubject.AsObservable();
 
@@ -61,11 +63,12 @@ namespace Toggl.Giskard.Adapters
             deleteTimeEntrySubject.OnNext(deletedTimeEntry);
         }
 
-        public override int HeaderOffset => 2;
+        public override int HeaderOffset => isRatingViewVisible ? 2 : 1; 
 
         protected override bool TryBindCustomViewType(RecyclerView.ViewHolder holder, int position)
         {
-            return holder is MainLogSuggestionsListViewHolder;
+            return holder is MainLogSuggestionsListViewHolder
+                || holder is MainLogUserFeedbackViewHolder;
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
@@ -80,7 +83,7 @@ namespace Toggl.Giskard.Adapters
                 return mainLogSuggestionsListViewHolder;
             }
 
-            if (viewType == UserFeedbackViewType) 
+            if (viewType == UserFeedbackViewType)
             {
                 var suggestionsView = LayoutInflater.FromContext(parent.Context).Inflate(Resource.Layout.MainUserFeedbackCard, parent, false);
                 var userFeedbackViewHolder = new MainLogUserFeedbackViewHolder(suggestionsView, RatingViewModel);
@@ -121,7 +124,7 @@ namespace Toggl.Giskard.Adapters
             if (position == 0)
                 return SuggestionViewType;
 
-            if (position == 1)
+            if (isRatingViewVisible && position == 1)
                 return UserFeedbackViewType;
 
             return base.GetItemViewType(position);
@@ -136,6 +139,12 @@ namespace Toggl.Giskard.Adapters
             mainLogSectionViewHolder.Now = timeService.CurrentDateTime;
             mainLogSectionStopwatch.Stop();
             return mainLogSectionViewHolder;
+        }
+
+        internal void SetupRatingViewVisibility(bool isVisible)
+        {
+            isRatingViewVisible = isVisible;
+            NotifyDataSetChanged();
         }
 
         protected override MainLogCellViewHolder CreateItemViewHolder(ViewGroup parent)

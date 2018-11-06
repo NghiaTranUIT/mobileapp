@@ -886,6 +886,7 @@
     <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragmentCell.axml" />
     <AndroidResource Include="Resources\drawable\ic_thumbs_down.xml" />
     <AndroidResource Include="Resources\drawable\ic_thumbs_up.xml" />
+    <AndroidResource Include="Resources\layout\MainUserFeedbackCard.axml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj">

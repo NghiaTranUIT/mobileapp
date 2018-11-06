@@ -134,6 +134,11 @@ namespace Toggl.Giskard.Activities
             onCreateStopwatch.Stop();
         }
 
+        public void SetupRatingViewVisibility(bool isVisible)
+        {
+            mainRecyclerAdapter.SetupRatingViewVisibility(isVisible);
+        }
+
         private void reload()
         {
             mainRecyclerAdapter.NotifyDataSetChanged();

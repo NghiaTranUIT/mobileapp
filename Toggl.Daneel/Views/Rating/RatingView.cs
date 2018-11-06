@@ -100,8 +100,8 @@ namespace Toggl.Daneel
                 .VoidSubscribe(() => DataContext.RegisterImpression(false))
                 .DisposedBy(DisposeBag);
 
-            CtaButton.Rx().Tap()
-                .Subscribe(DataContext.PerformMainAction)
+            CtaButton.Rx()
+                .BindAction(DataContext.PerformMainAction)
                 .DisposedBy(DisposeBag);
 
             DismissButton.Rx().Tap()
