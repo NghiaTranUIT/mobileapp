@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -201,7 +202,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task HidesTheViewModel()
                 {
-                    await ViewModel.PerformMainAction();
+                    await ViewModel.PerformMainAction.Execute();
 
                     NavigationService.Received().ChangePresentation(
                         Arg.Is<ToggleRatingViewVisibilityHint>(hint => hint.ShouldHide == true)
@@ -216,7 +217,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task PerformsTheCorrectAction()
                 {
-                    await ViewModel.PerformMainAction();
+                    await ViewModel.PerformMainAction.Execute();
 
                     EnsureCorrectActionWasPerformed();
                 }
@@ -224,7 +225,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task TracksTheAppropriateEventWithTheExpectedParameter()
                 {
-                    await ViewModel.PerformMainAction();
+                    await ViewModel.PerformMainAction.Execute();
 
                     AnalyticsService
                         .UserFinishedRatingViewSecondStep
@@ -235,7 +236,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task TracksTheCorrectEvent()
                 {
-                    await ViewModel.PerformMainAction();
+                    await ViewModel.PerformMainAction.Execute();
 
                     ExpectedEvent.Received().Track();
                 }
@@ -243,7 +244,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task StoresTheAppropriateRatingViewOutcomeAndTime()
                 {
-                    await ViewModel.PerformMainAction();
+                    await ViewModel.PerformMainAction.Execute();
 
                     OnboardingStorage
                         .Received()
@@ -283,7 +284,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task DoesNothing()
                 {
-                    await ViewModel.PerformMainAction();
+                    await ViewModel.PerformMainAction.Execute();
 
                     RatingService.DidNotReceive().AskForRating();
                 }
