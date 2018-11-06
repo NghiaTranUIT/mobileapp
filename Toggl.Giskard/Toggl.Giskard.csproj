@@ -484,6 +484,7 @@
 		<DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
 	</Compile>
     <Compile Include="ViewHolders\MainLogUserFeedbackViewHolder.cs" />
+    <Compile Include="Extensions\Reactive\ImageViewExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
