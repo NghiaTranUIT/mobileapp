@@ -111,6 +111,8 @@ namespace Toggl.Foundation
             var detectLosingAccessToWorkspaces =
                 new DetectLosingAccessToWorkspacesState(dataSource.Workspaces, analyticsService);
 
+            var markWorkspacesAsInaccessible = new MarkWorkspacesAsInaccessibleState(dataSource.Workspaces);
+
             var persistWorkspaces =
                 new PersistListState<IWorkspace, IDatabaseWorkspace, IThreadSafeWorkspace>(dataSource.Workspaces, Workspace.Clean);
 
@@ -183,7 +185,8 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(persistNewWorkspaces.FinishedPersisting, fetchAllSince);
 
             // detect losing access to workspaces
-            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.WorkspaceAccessLost, scheduleCleanUp);
+            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.WorkspaceAccessLost, markWorkspacesAsInaccessible);
+            transitions.ConfigureTransition(markWorkspacesAsInaccessible.Continue, scheduleCleanUp);
             transitions.ConfigureTransition(scheduleCleanUp.CleanUpScheduled, deleteRunningInaccessibleTimeEntry);
             transitions.ConfigureTransition(deleteRunningInaccessibleTimeEntry.Continue, persistWorkspaces);
             transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, persistWorkspaces);
