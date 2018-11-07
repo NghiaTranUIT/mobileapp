@@ -14,6 +14,9 @@ namespace Toggl.Multivac.Extensions
         {
         }
 
+        public IObservable<Unit> Execute(TInput input)
+            => Execute(input).ObserveOn(RxApp.MainScheduler);
+
         public static InputAction<TInput> FromAction(Action<TInput> action)
         {
             IObservable<Unit> workFactory(TInput input)
@@ -37,6 +40,11 @@ namespace Toggl.Multivac.Extensions
 
         public static InputAction<TInput> FromObservable(Func<TInput, IObservable<Unit>> workFactory, IObservable<bool> enabledIf = null)
             => new InputAction<TInput>(workFactory, enabledIf);
+
+        public new IObservable<Exception> Errors => base.Errors.ObserveOn(RxApp.MainScheduler);
+        public new IObservable<Unit> Elements => base.Elements.ObserveOn(RxApp.MainScheduler);
+        public new IObservable<bool> Executing => base.Executing.ObserveOn(RxApp.MainScheduler);
+        public new IObservable<bool> Enabled => base.Executing.ObserveOn(RxApp.MainScheduler);
     }
 
     public static class CompletableActionExtensions

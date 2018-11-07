@@ -15,7 +15,7 @@ namespace Toggl.Multivac.Extensions
         }
 
         public IObservable<Unit> Execute()
-            => Execute(Unit.Default);
+            => Execute(Unit.Default).ObserveOn(RxApp.MainScheduler);
 
         public static UIAction FromAction(Action action, IObservable<bool> enabledIf = null)
         {
@@ -40,6 +40,11 @@ namespace Toggl.Multivac.Extensions
 
         public static UIAction FromObservable(Func<IObservable<Unit>> workFactory, IObservable<bool> enabledIf = null)
             => new UIAction(workFactory, enabledIf);
+
+        public new IObservable<Exception> Errors => base.Errors.ObserveOn(RxApp.MainScheduler);
+        public new IObservable<Unit> Elements => base.Elements.ObserveOn(RxApp.MainScheduler);
+        public new IObservable<bool> Executing => base.Executing.ObserveOn(RxApp.MainScheduler);
+        public new IObservable<bool> Enabled => base.Executing.ObserveOn(RxApp.MainScheduler);
     }
 
     public static class RxActionExtensions
