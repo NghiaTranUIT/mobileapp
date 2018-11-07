@@ -68,7 +68,7 @@ namespace Toggl.Daneel.ViewSources
                 deleteTableViewRowAction.BackgroundColor = Color.TimeEntriesLog.DeleteSwipeActionBackground.ToNativeColor();
             }
 
-            FirstCell = firstCellSubject.AsDriver(schedulerProvider);
+            FirstCell = firstCellSubject.AsDriver();
         }
 
         public override UIView GetViewForFooter(UITableView tableView, nint section)

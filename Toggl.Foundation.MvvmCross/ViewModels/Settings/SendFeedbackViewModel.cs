@@ -58,15 +58,15 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
 
-            IsFeedbackEmpty = isEmptyObservable.DistinctUntilChanged().AsDriver(schedulerProvider);
-            SendEnabled = sendingIsEnabledObservable.DistinctUntilChanged().AsDriver(schedulerProvider);
+            IsFeedbackEmpty = isEmptyObservable.DistinctUntilChanged().AsDriver();
+            SendEnabled = sendingIsEnabledObservable.DistinctUntilChanged().AsDriver();
 
             Close = UIAction.FromObservable(cancel);
             DismissError = UIAction.FromAction(dismissError);
             Send = UIAction.FromObservable(sendFeedback, sendingIsEnabledObservable);
 
-            IsLoading = isLoadingSubject.AsDriver(false, schedulerProvider);
-            Error = currentErrorSubject.AsDriver(default(Exception), schedulerProvider);
+            IsLoading = isLoadingSubject.AsDriver(false);
+            Error = currentErrorSubject.AsDriver(default(Exception));
         }
 
         private void dismissError()

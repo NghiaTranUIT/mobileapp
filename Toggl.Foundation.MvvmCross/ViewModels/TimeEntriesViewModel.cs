@@ -66,7 +66,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             DelayDeleteTimeEntry = InputAction<TimeEntryViewModel>.FromAction(delayDeleteTimeEntry);
             CancelDeleteTimeEntry = UIAction.FromAction(cancelDeleteTimeEntry);
 
-            ShouldShowUndo = showUndoSubject.AsObservable().AsDriver(schedulerProvider);
+            ShouldShowUndo = showUndoSubject.AsObservable().AsDriver();
         }
 
         public async Task Initialize()

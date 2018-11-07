@@ -52,7 +52,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             CreateWorkspaceWithDefaultName = UIAction.FromAsync(createWorkspaceWithDefaultName);
             TryAgain = UIAction.FromAsync(tryAgain);
-            IsLoading = isLoading.AsDriver(onErrorJustReturn: false, schedulerProvider: schedulerProvider);
+            IsLoading = isLoading.AsDriver(onErrorJustReturn: false);
         }
 
         private async Task tryAgain()

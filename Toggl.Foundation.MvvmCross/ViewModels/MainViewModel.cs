@@ -174,8 +174,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             RatingViewModel = new RatingViewModel(timeService, dataSource, ratingService, analyticsService, onboardingStorage, navigationService, SchedulerProvider);
             TimeEntriesViewModel = new TimeEntriesViewModel(dataSource, interactorFactory, analyticsService, SchedulerProvider);
 
-            LogEmpty = TimeEntriesViewModel.Empty.AsDriver(SchedulerProvider);
-            TimeEntriesCount = TimeEntriesViewModel.Count.AsDriver(SchedulerProvider);
+            LogEmpty = TimeEntriesViewModel.Empty.AsDriver();
+            TimeEntriesCount = TimeEntriesViewModel.Count.AsDriver();
 
             ratingViewExperiment = new RatingViewExperiment(timeService, dataSource, onboardingStorage, remoteConfigService);
 
@@ -221,7 +221,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             SyncProgressState = dataSource
                 .SyncManager
                 .ProgressObservable
-                .AsDriver(SchedulerProvider);
+                .AsDriver();
 
             var isWelcome = onboardingStorage.IsNewUser;
 
@@ -235,7 +235,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     noTimeEntries
                 )
                 .DistinctUntilChanged()
-                .AsDriver(SchedulerProvider);
+                .AsDriver();
 
             ShouldShowWelcomeBack = ObservableAddons.CombineLatestAll(
                     isWelcome.Select(b => !b),
@@ -243,7 +243,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 )
                 .StartWith(false)
                 .DistinctUntilChanged()
-                .AsDriver(SchedulerProvider);
+                .AsDriver();
 
             ShouldShowRunningTimeEntryNotification = userPreferences.AreRunningTimerNotificationsEnabledObservable;
             ShouldShowStoppedTimeEntryNotification = userPreferences.AreStoppedTimerNotificationsEnabledObservable;
@@ -251,7 +251,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             CurrentRunningTimeEntry = dataSource
                 .TimeEntries
                 .CurrentlyRunningTimeEntry
-                .AsDriver(SchedulerProvider);
+                .AsDriver();
 
             CurrentTimeEntryHasDescription = CurrentRunningTimeEntry
                 .Select(te => !string.IsNullOrWhiteSpace(te?.Description))
@@ -277,7 +277,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ShouldReloadTimeEntryLog = Observable.Merge(
                 TimeService.MidnightObservable.SelectUnit(),
                 TimeService.SignificantTimeChangeObservable.SelectUnit())
-                .AsDriver(SchedulerProvider);
+                .AsDriver();
 
             switch (urlNavigationAction)
             {

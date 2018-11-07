@@ -103,40 +103,40 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var emailObservable = emailSubject.Select(email => email.TrimmedEnd());
 
-            Shake = shakeSubject.AsDriver(this.schedulerProvider);
+            Shake = shakeSubject.AsDriver();
 
             Email = emailObservable
                 .Select(email => email.ToString())
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             Password = passwordSubject
                 .Select(password => password.ToString())
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsLoading = isLoadingSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             ErrorMessage = errorMessageSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsPasswordMasked = isPasswordMaskedSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsShowPasswordButtonVisible = Password
                 .Select(password => password.Length > 1)
                 .CombineLatest(isShowPasswordButtonVisibleSubject.AsObservable(), CommonFunctions.And)
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             HasError = ErrorMessage
                 .Select(string.IsNullOrEmpty)
                 .Select(CommonFunctions.Invert)
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             LoginEnabled = emailObservable
                 .CombineLatest(
@@ -144,7 +144,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     IsLoading,
                     (email, password, isLoading) => email.IsValid && password.IsValid && !isLoading)
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsPasswordManagerAvailable = passwordManagerService.IsAvailable;
         }

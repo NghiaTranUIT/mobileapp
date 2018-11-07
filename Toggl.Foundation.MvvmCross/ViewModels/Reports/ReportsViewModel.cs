@@ -186,14 +186,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
             ToggleCalendarCommand = new MvxCommand(ToggleCalendar);
             ChangeDateRangeCommand = new MvxCommand<ReportsDateRangeParameter>(changeDateRange);
 
-            IsLoadingObservable = isLoading.AsObservable().StartWith(true).AsDriver(schedulerProvider);
-            StartDate = startDateSubject.AsObservable().AsDriver(schedulerProvider);
-            EndDate = endDateSubject.AsObservable().AsDriver(schedulerProvider);
+            IsLoadingObservable = isLoading.AsObservable().StartWith(true).AsDriver();
+            StartDate = startDateSubject.AsObservable().AsDriver();
+            EndDate = endDateSubject.AsObservable().AsDriver();
 
             WorkspaceNameObservable = workspaceSubject
                 .Select(workspace => workspace?.Name ?? string.Empty)
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             WorkspaceHasBillableFeatureEnabled = workspaceSubject
                 .Where(workspace => workspace != null)
@@ -201,11 +201,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
                 .Select(workspaceFeatures => workspaceFeatures.IsEnabled(WorkspaceFeatureId.Pro))
                 .StartWith(false)
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             CurrentDateRangeStringObservable = currentDateRangeStringSubject
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             WorkspacesObservable = dataSource.Workspaces
                 .ItemsChanged()
@@ -214,7 +214,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
                 .DistinctUntilChanged()
                 .Select(list => list.Where(w => !w.IsInaccessible))
                 .Select(readOnlyWorkspaceNameTuples)
-                .AsDriver(schedulerProvider);
+                .AsDriver();
         }
 
         public override void Prepare(ReportPeriod parameter)

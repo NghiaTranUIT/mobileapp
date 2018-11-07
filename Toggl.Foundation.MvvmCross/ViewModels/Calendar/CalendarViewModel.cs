@@ -111,7 +111,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
                 .AsObservable()
                 .DistinctUntilChanged();
 
-            ShouldShowOnboarding = onboardingObservable.AsDriver(false, schedulerProvider);
+            ShouldShowOnboarding = onboardingObservable.AsDriver(false);
 
             TimeOfDayFormat = dataSource
                 .Preferences

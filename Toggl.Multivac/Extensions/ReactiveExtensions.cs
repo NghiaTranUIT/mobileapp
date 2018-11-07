@@ -58,15 +58,12 @@ namespace Toggl.Multivac.Extensions
         public static IObservable<T> Share<T>(this IObservable<T> observable)
             => observable.Publish().RefCount();
 
-        public static IObservable<T> AsDriver<T>(this IObservable<T> observable, T onErrorJustReturn, ISchedulerProvider schedulerProvider)
+        public static IObservable<T> AsDriver<T>(this IObservable<T> observable, T onErrorJustReturn)
         {
-            if (schedulerProvider.MainScheduler == null)
-                throw new InvalidOperationException("You need to set the MainThreadScheduler property before using the AsDriver extension");
-
             return observable
                 .Replay(1).RefCount()
                 .Catch(Observable.Return(onErrorJustReturn))
-                .ObserveOn(schedulerProvider.MainScheduler);
+                .ObserveOn(RxApp.MainScheduler);
         }
 
         public static IObservable<TValue> NotNullable<TValue>(this IObservable<TValue?> observable)

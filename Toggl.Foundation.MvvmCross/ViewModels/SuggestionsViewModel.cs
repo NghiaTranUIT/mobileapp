@@ -57,17 +57,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Suggestions = Observable
                 .CombineLatest(
-                    dataSource.Workspaces.ItemsChanged(), 
+                    dataSource.Workspaces.ItemsChanged(),
                     dataSource.TimeEntries.ItemsChanged())
                 .SelectUnit()
                 .StartWith(Unit.Default)
                 .SelectMany(_ => getSuggestions())
-                .AsDriver(onErrorJustReturn: new Suggestion[0], schedulerProvider: schedulerProvider);
+                .AsDriver(onErrorJustReturn: new Suggestion[0]);
 
             IsEmpty = Suggestions
                 .Select(suggestions => suggestions.Length == 0)
                 .StartWith(true)
-                .AsDriver(onErrorJustReturn: true, schedulerProvider: schedulerProvider);
+                .AsDriver(onErrorJustReturn: true);
         }
 
         private IObservable<Suggestion[]> getSuggestions()

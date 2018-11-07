@@ -10,8 +10,8 @@ namespace Toggl.Foundation.MvvmCross.Extensions
 {
     public static class ObservableExtensions
     {
-        public static IObservable<T> AsDriver<T>(this IObservable<T> observable, ISchedulerProvider schedulerProvider)
-            => observable.AsDriver(default(T), schedulerProvider);
+        public static IObservable<T> AsDriver<T>(this IObservable<T> observable)
+            => observable.AsDriver(default(T));
 
         public static IDisposable VoidSubscribe<T>(this IObservable<T> observable, Action onNext)
             => observable.Subscribe((T _) => onNext());

@@ -82,24 +82,24 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.schedulerProvider = schedulerProvider;
 
             Error = errorSubject
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             Email = emailSubject
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             IsPasswordMasked = isPasswordMaskedSubject
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             Password = passwordSubject
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             HasError = Error
                 .Select(error => !string.IsNullOrEmpty(error))
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             TogglePasswordVisibility = UIAction.FromAction(togglePasswordVisibility);
             SetPassword = InputAction<string>.FromAction(setPassword);
@@ -109,12 +109,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             IsLoading = Done.Executing
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
 
             NextIsEnabled = Password
                 .CombineLatest(Done.Executing, (password, isExecuting) => password.IsValid && !isExecuting)
                 .DistinctUntilChanged()
-                .AsDriver(schedulerProvider);
+                .AsDriver();
         }
 
         public override async Task Initialize()

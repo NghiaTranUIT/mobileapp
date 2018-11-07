@@ -72,21 +72,21 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.schedulerProvider = schedulerProvider;
 
-            Impression = impressionSubject.AsDriver(this.schedulerProvider);
+            Impression = impressionSubject.AsDriver();
 
             CtaTitle = impressionSubject
                 .Select(ctaTitle)
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             CtaDescription = impressionSubject
                 .Select(ctaDescription)
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             CtaButtonTitle = impressionSubject
                 .Select(ctaButtonTitle)
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
-            IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsDriver(this.schedulerProvider);
+            IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsDriver();
         }
 
         public void CloseFeedbackSuccessView()

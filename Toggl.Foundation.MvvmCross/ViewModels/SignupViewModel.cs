@@ -119,48 +119,48 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var emailObservable = emailSubject.Select(email => email.TrimmedEnd());
 
-            Shake = shakeSubject.AsDriver(this.schedulerProvider);
+            Shake = shakeSubject.AsDriver();
 
             Email = emailObservable
                 .Select(email => email.ToString())
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             Password = passwordSubject
                 .Select(password => password.ToString())
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsLoading = isLoadingSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsCountryErrorVisible = isCountryErrorVisibleSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             ErrorMessage = errorMessageSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             CountryButtonTitle = countryNameSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsPasswordMasked = isPasswordMaskedSubject
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             IsShowPasswordButtonVisible = Password
                 .Select(password => password.Length > 1)
                 .CombineLatest(isShowPasswordButtonVisibleSubject.AsObservable(), CommonFunctions.And)
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             HasError = ErrorMessage
                 .Select(string.IsNullOrEmpty)
                 .Select(CommonFunctions.Invert)
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
 
             SignupEnabled = emailObservable
                 .CombineLatest(
@@ -169,7 +169,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     countryNameSubject.AsObservable(),
                     (email, password, isLoading, countryName) => email.IsValid && password.IsValid && !isLoading && (countryName != Resources.SelectCountry))
                 .DistinctUntilChanged()
-                .AsDriver(this.schedulerProvider);
+                .AsDriver();
         }
 
         public override void Prepare(CredentialsParameter parameter)
@@ -249,7 +249,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             if (!termsOfServiceAccepted)
                 return;
-            
+
             if (isLoadingSubject.Value) return;
 
             isLoadingSubject.OnNext(true);

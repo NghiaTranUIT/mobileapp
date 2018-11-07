@@ -39,18 +39,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
 
             DateFormat = preferencesDataSource.Current
                 .Select(preferences => preferences.DateFormat)
-                .AsDriver(onErrorJustReturn: defaultDateFormat, schedulerProvider: schedulerProvider);
+                .AsDriver(onErrorJustReturn: defaultDateFormat);
 
             var finalReports = reports.Share();
 
             Bars = finalReports.Select(bars)
-                .AsDriver(onErrorJustReturn: Array.Empty<BarViewModel>(), schedulerProvider: schedulerProvider);
+                .AsDriver(onErrorJustReturn: Array.Empty<BarViewModel>());
 
             MaximumHoursPerBar = finalReports.Select(upperHoursLimit)
-                .AsDriver(onErrorJustReturn: 0, schedulerProvider: schedulerProvider);
+                .AsDriver(onErrorJustReturn: 0);
 
             HorizontalLegend = finalReports.Select(weeklyLegend)
-                .AsDriver(onErrorJustReturn: null, schedulerProvider: schedulerProvider);
+                .AsDriver(onErrorJustReturn: null);
         }
 
         private BarViewModel[] bars(ITimeEntriesTotals report)
