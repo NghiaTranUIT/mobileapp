@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using CoreGraphics;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Reactive;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.Extensions.Reactive
@@ -66,5 +67,13 @@ namespace Toggl.Daneel.Extensions.Reactive
                 );
             };
 
+        public static IDisposable BindAction(this IReactive<UIView> reactive, UIAction action)
+        {
+            return Observable.Using(
+                    () => action.Enabled.Subscribe(e => { reactive.Base.UserInteractionEnabled = e; }),
+                    _ => reactive.Base.Rx().Tap()
+                )
+                .Subscribe(action.Inputs);
+        }
     }
 }

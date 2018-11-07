@@ -6,7 +6,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public abstract class ReactiveCollectionViewCell<TViewModel> : UICollectionViewCell, IReactiveBindingHolder
+    public abstract class ReactiveCollectionViewCell<TViewModel> : UICollectionViewCell
     {
         public CompositeDisposable DisposeBag { get; private set; } = new CompositeDisposable();
 

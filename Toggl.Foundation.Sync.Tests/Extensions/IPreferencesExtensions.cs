@@ -1,22 +1,14 @@
-using System.Runtime.CompilerServices;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant;
+using Toggl.Ultrawave.Models;
 
 namespace Toggl.Foundation.Sync.Tests.Extensions
 {
     public static class IPreferencesExtensions
     {
-        private sealed class Preferences : IPreferences
-        {
-            public TimeFormat TimeOfDayFormat { get; set; }
-            public DateFormat DateFormat { get; set; }
-            public DurationFormat DurationFormat { get; set; }
-            public bool CollapseTimeEntries { get; set; }
-        }
-
         public static IPreferences With(this IPreferences preferences,
             New<DurationFormat> durationFormat = default(New<DurationFormat>))
             => new Preferences

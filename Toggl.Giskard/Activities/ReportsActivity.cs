@@ -1,14 +1,17 @@
-﻿using System.Reactive.Disposables;
+﻿using System;
+using System.Reactive.Disposables;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Support.V7.Widget;
 using MvvmCross.Droid.Support.V7.AppCompat;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.Views;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -16,7 +19,7 @@ namespace Toggl.Giskard.Activities
     [Activity(Theme = "@style/AppTheme",
               ScreenOrientation = ScreenOrientation.Portrait,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed partial class ReportsActivity : MvxAppCompatActivity<ReportsViewModel>, IReactiveBindingHolder
+    public sealed partial class ReportsActivity : MvxAppCompatActivity<ReportsViewModel>
     {
         private ReportsRecyclerView reportsRecyclerView;
         private ReportsLinearLayout reportsMainContainer;
@@ -35,8 +38,13 @@ namespace Toggl.Giskard.Activities
 
             initializeViews();
 
-            this.Bind(selectWorkspaceFAB.Rx().Tap(), ViewModel.SelectWorkspace);
-            this.Bind(ViewModel.WorkspaceNameObservable, workspaceName.Rx().TextObserver());
+            selectWorkspaceFAB.Rx().Tap()
+                .Subscribe(ViewModel.SelectWorkspace)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.WorkspaceNameObservable
+                .Subscribe(workspaceName.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
             setupToolbar();
         }

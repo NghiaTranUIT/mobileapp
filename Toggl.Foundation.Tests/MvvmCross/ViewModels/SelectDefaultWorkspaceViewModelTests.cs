@@ -109,7 +109,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.SelectWorkspace.Execute(selectedWorkspace);
 
-                await NavigationService.Received().Close(ViewModel);
+                await NavigationService.Received().Close(ViewModel, Unit.Default);
             }
         }
     }

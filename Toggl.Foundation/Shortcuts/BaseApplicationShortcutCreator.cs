@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using Toggl.Foundation.DataSources;
 using Toggl.PrimeRadiant.Models;
@@ -28,11 +29,24 @@ namespace Toggl.Foundation.Shortcuts
             ShortcutType.ContinueLastTimeEntry
         );
 
+        private readonly ApplicationShortcut showCalendarShortcut = new ApplicationShortcut(
+            ApplicationUrls.Calendar.Default,
+            Resources.Calendar,
+            ShortcutType.Calendar
+        );
+
+        private readonly HashSet<ShortcutType> supportedShortcutTypes;
+
+        protected BaseApplicationShortcutCreator(HashSet<ShortcutType> supportedShortcutTypes)
+        {
+            this.supportedShortcutTypes = supportedShortcutTypes;
+        }
+
         public void OnLogin(ITogglDataSource dataSource)
         {
             if (dataSource == null) return;
 
-            SetShortcuts(new[] { reportsShortcut, startTimeEntryShortcut });
+            useShortcutsWhichAreSupported(new[] { reportsShortcut, startTimeEntryShortcut, showCalendarShortcut });
 
             dataSource
                 .TimeEntries
@@ -56,11 +70,21 @@ namespace Toggl.Foundation.Shortcuts
                 shortcuts.Add(continueLastEntryShortcut);
 
             shortcuts.Add(reportsShortcut);
+            shortcuts.Add(showCalendarShortcut);
 
-            SetShortcuts(shortcuts);
+            useShortcutsWhichAreSupported(shortcuts);
+        }
+
+        private void useShortcutsWhichAreSupported(IEnumerable<ApplicationShortcut> shortcuts)
+        {
+            SetShortcuts(shortcuts.Where(isShortcutSupported));
         }
 
         protected abstract void ClearAllShortCuts();
+
         protected abstract void SetShortcuts(IEnumerable<ApplicationShortcut> shortcuts);
+
+        private bool isShortcutSupported(ApplicationShortcut shortcut)
+            => supportedShortcutTypes?.Contains(shortcut.Type) ?? false;
     }
 }

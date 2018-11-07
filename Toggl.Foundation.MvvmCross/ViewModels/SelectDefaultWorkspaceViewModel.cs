@@ -18,7 +18,7 @@ using Toggl.PrimeRadiant.Settings;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectDefaultWorkspaceViewModel : MvxViewModel
+    public sealed class SelectDefaultWorkspaceViewModel : MvxViewModelResult<Unit>
     {
         private readonly ITogglDataSource dataSource;
         private readonly IInteractorFactory interactorFactory;
@@ -68,9 +68,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             => Observable.DeferAsync(async _ =>
             {
                 await interactorFactory.SetDefaultWorkspace(workspace.WorkspaceId).Execute();
-                await navigationService.Close(this);
                 accessRestrictionStorage.SetNoDefaultWorkspaceStateReached(false);
-                await navigationService.Close(this);
+                await navigationService.Close(this, Unit.Default);
                 return Observable.Return(Unit.Default);
             });
 

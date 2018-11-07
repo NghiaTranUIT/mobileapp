@@ -1,4 +1,5 @@
-﻿using System.Reactive.Disposables;
+﻿using System;
+using System.Reactive.Disposables;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
@@ -20,7 +21,7 @@ namespace Toggl.Giskard.Activities
     [Activity(Theme = "@style/AppTheme.BlueStatusBar",
               ScreenOrientation = ScreenOrientation.Portrait,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed partial class EditTimeEntryActivity : MvxAppCompatActivity<EditTimeEntryViewModel>, IReactiveBindingHolder
+    public sealed partial class EditTimeEntryActivity : MvxAppCompatActivity<EditTimeEntryViewModel>
     {
         private PopupWindow projectTooltip;
 
@@ -78,9 +79,17 @@ namespace Toggl.Giskard.Activities
 
         private void setupBindings()
         {
-            this.Bind(startTimeArea.Rx().Tap(), _ => ViewModel.SelectTimeCommand.Execute(StartTime));
-            this.Bind(stopTimeArea.Rx().Tap(), _ => ViewModel.StopTimeEntryCommand.Execute(StopTime));
-            this.Bind(durationArea.Rx().Tap(), _ => ViewModel.SelectTimeCommand.Execute(Duration));
+            startTimeArea.Rx().Tap()
+                .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(StartTime))
+                .DisposedBy(DisposeBag);
+
+            stopTimeArea.Rx().Tap()
+                .Subscribe(_ => ViewModel.StopTimeEntryCommand.Execute(StopTime))
+                .DisposedBy(DisposeBag);
+
+            durationArea.Rx().Tap()
+                .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(Duration))
+                .DisposedBy(DisposeBag);
         }
 
         public override bool OnKeyDown(Keycode keyCode, KeyEvent e)

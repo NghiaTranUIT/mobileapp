@@ -1,20 +1,11 @@
-using System;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
+using Toggl.Ultrawave.Models;
 
 namespace Toggl.Foundation.Sync.Tests.Extensions
 {
     public static class IClientExtensions
     {
-        private sealed class Client : IClient
-        {
-            public long Id { get; set; }
-            public DateTimeOffset? ServerDeletedAt { get; set; }
-            public DateTimeOffset At { get; set; }
-            public long WorkspaceId { get; set; }
-            public string Name { get; set; }
-        }
-
         public static IClient With(
             this IClient client,
             New<long> workspaceId = default(New<long>))

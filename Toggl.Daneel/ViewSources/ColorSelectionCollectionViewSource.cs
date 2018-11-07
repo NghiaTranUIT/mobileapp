@@ -1,34 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Reactive.Linq;
 using CoreGraphics;
 using Foundation;
-using MvvmCross.Platforms.Ios.Binding.Views;
+using MvvmCross.UI;
 using Toggl.Daneel.Views;
+using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
-    public sealed class ColorSelectionCollectionViewSource : MvxCollectionViewSource, IUICollectionViewDelegateFlowLayout
+    public sealed class ColorSelectionCollectionViewSource : ListCollectionViewSource<SelectableColorViewModel, ColorSelectionViewCell>, IUICollectionViewDelegateFlowLayout
     {
-        private const string cellIdentifier = nameof(ColorSelectionViewCell);
+        public IObservable<MvxColor> ColorSelected
+            => Observable
+                .FromEventPattern<SelectableColorViewModel>(e => OnItemTapped += e, e => OnItemTapped -= e)
+                .Select(e => e.EventArgs.Color);
 
-        public ColorSelectionCollectionViewSource(UICollectionView collectionView)
-            : base (collectionView)
+        public ColorSelectionCollectionViewSource(IObservable<IEnumerable<SelectableColorViewModel>> colors)
+            : base (new List<SelectableColorViewModel>().ToImmutableList(), ColorSelectionViewCell.Identifier)
         {
-            collectionView.RegisterNibForCell(ColorSelectionViewCell.Nib, cellIdentifier);
+
         }
 
-        public override UICollectionViewCell GetCell(UICollectionView collectionView, NSIndexPath indexPath)
+        public void SetNewColors(IEnumerable<SelectableColorViewModel> colors)
         {
-            var item = GetItemAt(indexPath);
-            var cell = GetOrCreateCellFor(collectionView, indexPath, item);
-            if (cell is IMvxBindable bindable)
-                bindable.DataContext = item;
-
-            return cell;
+            items = colors.ToImmutableList();
         }
-
-        protected override UICollectionViewCell GetOrCreateCellFor(UICollectionView collectionView, NSIndexPath indexPath, object item)
-            => collectionView.DequeueReusableCell(cellIdentifier, indexPath) as UICollectionViewCell;
 
         [Export("collectionView:layout:sizeForItemAtIndexPath:")]
         public CGSize GetSizeForItem(

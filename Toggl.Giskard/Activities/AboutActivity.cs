@@ -5,6 +5,7 @@ using Android.Support.V7.Widget;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -22,9 +23,17 @@ namespace Toggl.Giskard.Activities
 
             InitializeViews();
 
-            this.Bind(licensesButton.Rx().Tap(), ViewModel.OpenLicensesView);
-            this.Bind(privacyPolicyButton.Rx().Tap(), ViewModel.OpenPrivacyPolicyView);
-            this.Bind(termsOfServiceButton.Rx().Tap(), ViewModel.OpenTermsOfServiceView);
+            licensesButton.Rx()
+                .BindAction(ViewModel.OpenLicensesView)
+                .DisposedBy(DisposeBag);
+
+            privacyPolicyButton.Rx()
+                .BindAction(ViewModel.OpenPrivacyPolicyView)
+                .DisposedBy(DisposeBag);
+
+            termsOfServiceButton.Rx()
+                .BindAction(ViewModel.OpenTermsOfServiceView)
+                .DisposedBy(DisposeBag);
 
             setupToolbar();
         }

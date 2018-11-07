@@ -11,11 +11,12 @@ using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Fragments
 {
     [MvxDialogFragmentPresentation(AddToBackStack = true)]
-    public sealed partial class TermsOfServiceFragment : MvxDialogFragment<TermsOfServiceViewModel>, IReactiveBindingHolder
+    public sealed partial class TermsOfServiceFragment : MvxDialogFragment<TermsOfServiceViewModel>
     {
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -37,9 +38,17 @@ namespace Toggl.Giskard.Fragments
 
         private void bindViews()
         {
-            this.Bind(privacyPolicyTextView.Rx().Tap(), ViewModel.ViewPrivacyPolicy);
-            this.Bind(termsOfServiceTextView.Rx().Tap(), ViewModel.ViewTermsOfService);
-            this.Bind(acceptButton.Rx().Tap(), ViewModel.Close(true));
+            privacyPolicyTextView.Rx()
+                .BindAction(ViewModel.ViewPrivacyPolicy)
+                .DisposedBy(DisposeBag);
+
+            termsOfServiceTextView.Rx()
+                .BindAction(ViewModel.ViewTermsOfService)
+                .DisposedBy(DisposeBag);
+
+            acceptButton.Rx()
+                .BindAction(ViewModel.Close(true))
+                .DisposedBy(DisposeBag);
         }
 
         public override void OnResume()

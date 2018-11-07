@@ -9,9 +9,15 @@ namespace Toggl.Daneel
     [Preserve(AllMembers = true)]
     public sealed class ApplicationShortcutCreator : BaseApplicationShortcutCreator
     {
-        private IReadOnlyDictionary<ShortcutType, UIApplicationShortcutIcon> icons;
-        internal IReadOnlyDictionary<ShortcutType, UIApplicationShortcutIcon> Icons
-            => icons ?? (icons = createIcons());
+        private static readonly HashSet<ShortcutType> supportedShortcuts = new HashSet<ShortcutType>(new[] {
+            ShortcutType.Calendar,
+            ShortcutType.Reports,
+            ShortcutType.StartTimeEntry,
+            ShortcutType.StopTimeEntry,
+            ShortcutType.ContinueLastTimeEntry
+        });
+
+        private IReadOnlyDictionary<ShortcutType, UIApplicationShortcutIcon> icons => createIcons();
 
         private IReadOnlyDictionary<ShortcutType, UIApplicationShortcutIcon> createIcons()
             => new Dictionary<ShortcutType, UIApplicationShortcutIcon>
@@ -19,8 +25,13 @@ namespace Toggl.Daneel
                 { ShortcutType.Reports, UIApplicationShortcutIcon.FromType(UIApplicationShortcutIconType.Time) },
                 { ShortcutType.StopTimeEntry, UIApplicationShortcutIcon.FromType(UIApplicationShortcutIconType.Pause) },
                 { ShortcutType.StartTimeEntry, UIApplicationShortcutIcon.FromType(UIApplicationShortcutIconType.Play) },
-                { ShortcutType.ContinueLastTimeEntry, UIApplicationShortcutIcon.FromType(UIApplicationShortcutIconType.Play) }
+                { ShortcutType.ContinueLastTimeEntry, UIApplicationShortcutIcon.FromType(UIApplicationShortcutIconType.Play) },
+                { ShortcutType.Calendar, UIApplicationShortcutIcon.FromType(UIApplicationShortcutIconType.Date) }
             };
+
+        public ApplicationShortcutCreator() : base(supportedShortcuts)
+        {
+        }
 
         protected override void ClearAllShortCuts()
         {
@@ -45,7 +56,7 @@ namespace Toggl.Daneel
                 shortcut.Type.ToString(),
                 shortcut.Title,
                 shortcut.Subtitle,
-                Icons[shortcut.Type],
+                icons[shortcut.Type],
                 userInfoFor(shortcut)
             );
 

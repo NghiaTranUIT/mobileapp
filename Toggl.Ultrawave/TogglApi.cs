@@ -55,16 +55,15 @@ namespace Toggl.Ultrawave
 
     public static class TogglApiFactory
     {
-        internal static IApiClient CreateDefaultApiClient(UserAgent userAgent)
+        internal static IApiClient CreateDefaultApiClient(UserAgent userAgent, HttpMessageHandler httpHandler)
         {
-            var httpHandler = new HttpClientHandler { AutomaticDecompression = GZip | Deflate };
             var httpClient = new HttpClient(httpHandler);
             return new ApiClient(httpClient, userAgent);
         }
 
-        public static ITogglApi WithConfiguration(ApiConfiguration configuration)
+        public static ITogglApi WithConfiguration(ApiConfiguration configuration, HttpMessageHandler httpHandler)
         {
-            var apiClient = CreateDefaultApiClient(configuration.UserAgent);
+            var apiClient = CreateDefaultApiClient(configuration.UserAgent, httpHandler);
             return new TogglApi(configuration, apiClient);
         }
     }

@@ -1,15 +1,14 @@
-﻿using MvvmCross.ViewModels;
-using MvvmCross.UI;
+﻿using MvvmCross.UI;
 using Toggl.Multivac;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectableColorViewModel : MvxNotifyPropertyChanged
+    public sealed class SelectableColorViewModel
     {
-        public MvxColor Color { get; set; }
+        public MvxColor Color { get; }
 
-        public bool Selected { get; set; }
+        public bool Selected { get; }
 
         public SelectableColorViewModel(MvxColor color, bool selected)
         {

@@ -24,7 +24,7 @@ namespace Toggl.Ultrawave.Tests.ApiClients
             private readonly IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
             private readonly Credentials credentials = Credentials.None;
             private readonly UserApi api;
-            
+
             public Base()
             {
                 api = new UserApi(
@@ -45,45 +45,18 @@ namespace Toggl.Ultrawave.Tests.ApiClients
                 user.Should().Be(userWithValidApiToken);
             }
 
-            [Fact, LogIfTooSlow]
-            public void ThrowsIfReturnedUserApiTokenIsNull()
-            {
-                var userWithoutApiToken = userWithApiToken(null);
-
-                callingEndpointWithReturnedUser(userWithoutApiToken)
-                    .Should().Throw<UserIsMissingApiTokenException>();
-            }
-            
-            [Fact, LogIfTooSlow]
-            public void ThrowsIfReturnedUserApiTokenIsEmpty()
-            {
-                var userWithEmptyApiToken = userWithApiToken("");
-                
-                callingEndpointWithReturnedUser(userWithEmptyApiToken)
-                    .Should().Throw<UserIsMissingApiTokenException>();
-            }
-            
-            [Fact, LogIfTooSlow]
-            public void ThrowsIfReturnedUserApiTokenIsWhitespace()
-            {
-                var userWithWhitespaceApiToken = userWithApiToken(" ");
-                
-                callingEndpointWithReturnedUser(userWithWhitespaceApiToken)
-                    .Should().Throw<UserIsMissingApiTokenException>();
-            }
-            
             protected abstract IObservable<IUser> CallEndpoint(IUserApi api);
-            
+
             private Action callingEndpointWithReturnedUser(User user)
             {
                 setupMocksToReturnUser(user);
-                
+
                 return () => CallEndpoint(api).Wait();
             }
 
             private static User userWithApiToken(string apiToken)
                 => new User { ApiToken = apiToken };
-            
+
             private static IResponse successfulResponse()
             {
                 var response = Substitute.For<IResponse>();
@@ -101,7 +74,7 @@ namespace Toggl.Ultrawave.Tests.ApiClients
 
             private static Task<T> taskReturning<T>(T value) => Task.Run(() => value);
         }
-        
+
         public class TheGetMethod : Base
         {
             protected override IObservable<IUser> CallEndpoint(IUserApi api)

@@ -46,8 +46,13 @@ namespace Toggl.Daneel.ViewControllers
                     shouldShowOnboarding => OnboardingView.Alpha = shouldShowOnboarding ? 1: 0)
                 .DisposedBy(DisposeBag);
 
-            this.Bind(ViewModel.ShouldShowOnboarding, OnboardingView.Rx().IsVisibleWithFade());
-            this.Bind(GetStartedButton.Rx().Tap(), ViewModel.GetStarted);
+            ViewModel.ShouldShowOnboarding
+                .Subscribe(OnboardingView.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
+
+            GetStartedButton.Rx()
+                .BindAction(ViewModel.GetStarted)
+                .DisposedBy(DisposeBag);
 
             var timeService = Mvx.Resolve<ITimeService>();
 
@@ -67,11 +72,25 @@ namespace Toggl.Daneel.ViewControllers
             CalendarCollectionView.DataSource = dataSource;
             CalendarCollectionView.ContentInset = new UIEdgeInsets(20, 0, 20, 0);
 
-            this.Bind(dataSource.ItemTapped, ViewModel.OnItemTapped);
-            this.Bind(settingsButton.Rx().Tap(), ViewModel.SelectCalendars);
-            this.Bind(editItemHelper.EditCalendarItem, ViewModel.OnUpdateTimeEntry);
-            this.Bind(ViewModel.SettingsAreVisible , settingsButton.Rx().IsVisible());
-            this.Bind(createFromSpanHelper.CreateFromSpan, ViewModel.OnDurationSelected);
+            dataSource.ItemTapped
+                .Subscribe(ViewModel.OnItemTapped.Inputs)
+                .DisposedBy(DisposeBag);
+
+            settingsButton.Rx()
+                .BindAction(ViewModel.SelectCalendars)
+                .DisposedBy(DisposeBag);
+
+            editItemHelper.EditCalendarItem
+                .Subscribe(ViewModel.OnUpdateTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SettingsAreVisible
+                .Subscribe(settingsButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            createFromSpanHelper.CreateFromSpan
+                .Subscribe(ViewModel.OnDurationSelected.Inputs)
+                .DisposedBy(DisposeBag);
 
             CalendarCollectionView.LayoutIfNeeded();
             var currentTimeY = layout.FrameForCurrentTime().Y;

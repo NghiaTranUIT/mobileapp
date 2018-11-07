@@ -25,7 +25,6 @@ namespace Toggl.Giskard.Activities
         private bool sendEnabled;
         private Subject<Unit> sendFeedbackSubject = new Subject<Unit>();
         private Subject<Unit> closeSubject = new Subject<Unit>();
-        private Subject<string> errorTextSubject = new Subject<string>();
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -39,8 +38,13 @@ namespace Toggl.Giskard.Activities
             SupportActionBar.SetDisplayHomeAsUpEnabled(true);
             SupportActionBar.SetDisplayShowHomeEnabled(true);
 
-            this.Bind(feedbackEditText.Rx().Text(), ViewModel.FeedbackText);
-            this.Bind(errorCard.Rx().Tap(), ViewModel.DismissError);
+            feedbackEditText.Rx().Text()
+                .Subscribe(ViewModel.FeedbackText)
+                .DisposedBy(DisposeBag);
+
+            errorCard.Rx()
+                .BindAction(ViewModel.DismissError)
+                .DisposedBy(DisposeBag);
 
             var sendButtonEnabled = ViewModel.SendEnabled.CombineLatest(ViewModel.IsLoading,
                 (sendIsEnabled, isLoading) => sendIsEnabled && !isLoading);
@@ -50,15 +54,30 @@ namespace Toggl.Giskard.Activities
 
             ViewModel.Error
                 .Select(selectErrorMessage)
-                .Subscribe(errorTextSubject.OnNext)
+                .Subscribe(errorInfoText.Rx().TextObserver())
                 .DisposedBy(DisposeBag);
-            this.Bind(errorTextSubject, errorInfoText.Rx().TextObserver());
 
-            this.Bind(sendFeedbackSubject, ViewModel.Send);
-            this.Bind(closeSubject, ViewModel.Close);
-            this.Bind(ViewModel.Error.Select(error => error != null), errorCard.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading, progressBar.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading.Invert(), feedbackEditText.Rx().Enabled());
+            sendFeedbackSubject
+                .Subscribe(ViewModel.Send.Inputs)
+                .DisposedBy(DisposeBag);
+
+            closeSubject
+                .Subscribe(ViewModel.Close.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Error
+                .Select(error => error != null)
+                .Subscribe(errorCard.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(progressBar.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Invert()
+                .Subscribe(feedbackEditText.Rx().Enabled())
+                .DisposedBy(DisposeBag);
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu)

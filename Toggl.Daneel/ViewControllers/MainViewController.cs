@@ -118,22 +118,38 @@ namespace Toggl.Daneel.ViewControllers
                 .Bind(tableViewSource)
                 .DisposedBy(disposeBag);
 
-            this.Bind(tableViewSource.FirstCell, f =>
-            {
-                onFirstTimeEntryChanged(f);
-                firstTimeEntryCell = f;
-            });
+            tableViewSource.FirstCell
+                .Subscribe(f =>
+                {
+                    onFirstTimeEntryChanged(f);
+                    firstTimeEntryCell = f;
+                })
+                .DisposedBy(DisposeBag);
 
-            this.Bind(tableViewSource.ScrollOffset, onTableScroll);
+            tableViewSource.ScrollOffset
+                .Subscribe(onTableScroll)
+                .DisposedBy(DisposeBag);
 
             var continueTimeEntry = Observable.Merge(
                 tableViewSource.ContinueTap,
                 tableViewSource.SwipeToContinue
             );
-            this.Bind(continueTimeEntry, ViewModel.ContinueTimeEntry);
-            this.Bind(tableViewSource.SwipeToDelete, ViewModel.TimeEntriesViewModel.DelayDeleteTimeEntry);
-            this.Bind(tableViewSource.ItemSelected, ViewModel.SelectTimeEntry);
-            this.Bind(ViewModel.TimeEntriesViewModel.ShouldShowUndo, toggleUndoDeletion);
+
+            continueTimeEntry
+                .Subscribe(ViewModel.ContinueTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            tableViewSource.SwipeToDelete
+                .Subscribe(ViewModel.TimeEntriesViewModel.DelayDeleteTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            tableViewSource.ItemSelected
+                .Subscribe(ViewModel.SelectTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.TimeEntriesViewModel.ShouldShowUndo
+                .Subscribe(toggleUndoDeletion)
+                .DisposedBy(DisposeBag);
 
             tableViewSource.SwipeToContinue
                 .VoidSubscribe(() =>
@@ -151,7 +167,9 @@ namespace Toggl.Daneel.ViewControllers
 
             // Refresh Control
             var refreshControl = new RefreshControl(ViewModel.SyncProgressState, tableViewSource);
-            this.Bind(refreshControl.Refresh, ViewModel.Refresh);
+            refreshControl.Refresh
+                .Subscribe(ViewModel.Refresh.Inputs)
+                .DisposedBy(DisposeBag);
             TimeEntriesLogTableView.CustomRefreshControl = refreshControl;
 
             //Commands
@@ -171,16 +189,28 @@ namespace Toggl.Daneel.ViewControllers
 
             //Visibility
             var shouldWelcomeBack = ViewModel.ShouldShowWelcomeBack;
-            this.Bind(ViewModel.ShouldShowEmptyState, visible => emptyStateView.Hidden = !visible);
-            this.Bind(shouldWelcomeBack, WelcomeBackView.Rx().IsVisible());
-            this.Bind(shouldWelcomeBack, spiderContainerView.Rx().IsVisible());
-            this.Bind(shouldWelcomeBack, visible =>
-            {
-                if (visible)
-                    spiderBroView.Show();
-                else
-                    spiderBroView.Hide();
-            });
+
+            ViewModel.ShouldShowEmptyState
+                .Subscribe(visible => emptyStateView.Hidden = !visible)
+                .DisposedBy(DisposeBag);
+
+            shouldWelcomeBack
+                .Subscribe(WelcomeBackView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            shouldWelcomeBack
+                .Subscribe(spiderContainerView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            shouldWelcomeBack
+                .Subscribe(visible =>
+                {
+                    if (visible)
+                        spiderBroView.Show();
+                    else
+                        spiderBroView.Hide();
+                })
+                .DisposedBy(DisposeBag);
 
             //Text
             bindingSet.Bind(CurrentTimeEntryDescriptionLabel).To(vm => vm.CurrentTimeEntryDescription);
@@ -212,14 +242,26 @@ namespace Toggl.Daneel.ViewControllers
 
             bindingSet.Apply();
 
-            this.Bind(ViewModel.RatingViewModel.IsFeedbackSuccessViewShowing,
-                SendFeedbackSuccessView.Rx().AnimatedIsVisible());
-            this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.RatingViewModel.CloseFeedbackSuccessView);
+            ViewModel.RatingViewModel.IsFeedbackSuccessViewShowing
+                .Subscribe(SendFeedbackSuccessView.Rx().AnimatedIsVisible())
+                .DisposedBy(DisposeBag);
+
+            SendFeedbackSuccessView.Rx().Tap()
+                .VoidSubscribe(ViewModel.RatingViewModel.CloseFeedbackSuccessView)
+                .DisposedBy(DisposeBag);
 
             // Suggestion View
-            this.Bind(suggestionsView.SuggestionTapped, ViewModel.SuggestionsViewModel.StartTimeEntry);
-            this.Bind(ViewModel.SuggestionsViewModel.IsEmpty.Invert(), suggestionsView.Rx().IsVisible());
-            this.Bind(ViewModel.SuggestionsViewModel.Suggestions, suggestionsView.OnSuggestions);
+            suggestionsView.SuggestionTapped
+                .Subscribe(ViewModel.SuggestionsViewModel.StartTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SuggestionsViewModel.IsEmpty.Invert()
+                .Subscribe(suggestionsView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SuggestionsViewModel.Suggestions
+                .Subscribe(suggestionsView.OnSuggestions)
+                .DisposedBy(DisposeBag);
 
             ViewModel.ShouldReloadTimeEntryLog
                 .VoidSubscribe(reload)

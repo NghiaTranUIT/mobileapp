@@ -9,6 +9,7 @@ using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Daneel.Extensions.RangeExtensions;
 
@@ -45,8 +46,13 @@ namespace Toggl.Daneel.ViewControllers
             PreferredContentSize = new CGSize(View.Frame.Width, View.Frame.Height);
             prepareTextView();
 
-            this.BindToAction(AcceptButton, ViewModel.Close(true));
-            this.BindToAction(CloseButton, ViewModel.Close(false));
+            AcceptButton.Rx()
+                .BindAction(ViewModel.Close(true))
+                .DisposedBy(DisposeBag);
+
+            CloseButton.Rx()
+                .BindAction(ViewModel.Close(false))
+                .DisposedBy(DisposeBag);
         }
 
         private void prepareTextView()

@@ -1,14 +1,17 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Reactive.Linq;
 using Android.App;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -33,24 +36,66 @@ namespace Toggl.Giskard.Activities
             passwordEditText.Text = ViewModel.Password.FirstAsync().GetAwaiter().GetResult();
 
             //Text
-            this.Bind(ViewModel.ErrorMessage, errorTextView.Rx().TextObserver());
-            this.Bind(emailEditText.Rx().Text().Select(Email.From), ViewModel.SetEmail);
-            this.Bind(passwordEditText.Rx().Text().Select(Password.From), ViewModel.SetPassword);
-            this.Bind(ViewModel.IsLoading.Select(signupButtonTitle), signupButton.Rx().TextObserver());
-            this.Bind(ViewModel.CountryButtonTitle, countryNameTextView.Rx().TextObserver());
+            ViewModel.ErrorMessage
+                .Subscribe(errorTextView.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            emailEditText.Rx().Text()
+                .Select(Email.From)
+                .Subscribe(ViewModel.SetEmail)
+                .DisposedBy(DisposeBag);
+
+            passwordEditText.Rx().Text()
+                .Select(Password.From)
+                .Subscribe(ViewModel.SetPassword)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Select(signupButtonTitle)
+                .Subscribe(signupButton.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.CountryButtonTitle
+                .Subscribe(countryNameTextView.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
             //Visibility
-            this.Bind(ViewModel.HasError, errorTextView.Rx().IsVisible(useGone: false));
-            this.Bind(ViewModel.IsLoading, progressBar.Rx().IsVisible(useGone: false));
-            this.Bind(ViewModel.SignupEnabled, signupButton.Rx().Enabled());
-            this.Bind(ViewModel.IsCountryErrorVisible, countryErrorView.Rx().IsVisible(useGone: false));
+            ViewModel.HasError
+                .Subscribe(errorTextView.Rx().IsVisible(useGone: false))
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(progressBar.Rx().IsVisible(useGone: false))
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SignupEnabled
+                .Subscribe(signupButton.Rx().Enabled())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsCountryErrorVisible
+                .Subscribe(countryErrorView.Rx().IsVisible(useGone: false))
+                .DisposedBy(DisposeBag);
 
             //Commands
-            this.Bind(loginCard.Rx().Tap(), ViewModel.Login);
-            this.Bind(signupButton.Rx().Tap(), ViewModel.Signup);
-            this.Bind(passwordEditText.Rx().EditorActionSent(), ViewModel.Signup);
-            this.BindVoid(googleSignupButton.Rx().Tap(), ViewModel.GoogleSignup);
-            this.Bind(countrySelection.Rx().Tap(), ViewModel.PickCountry);
+            loginCard.Rx().Tap()
+                .Subscribe(ViewModel.Login)
+                .DisposedBy(DisposeBag);
+
+            signupButton.Rx().Tap()
+                .Subscribe(ViewModel.Signup)
+                .DisposedBy(DisposeBag);
+
+            passwordEditText.Rx().EditorActionSent()
+                .Subscribe(ViewModel.Signup)
+                .DisposedBy(DisposeBag);
+
+            googleSignupButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.GoogleSignup)
+                .DisposedBy(DisposeBag);
+
+            countrySelection.Rx().Tap()
+                .Subscribe(ViewModel.PickCountry)
+                .DisposedBy(DisposeBag);
 
             string signupButtonTitle(bool isLoading)
                 => isLoading ? "" : Resources.GetString(Resource.String.SignUpForFree);
