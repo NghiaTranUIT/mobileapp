@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
-using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources.Interfaces;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Sync;
@@ -13,7 +12,6 @@ using Toggl.Foundation.Sync.States;
 using Toggl.Foundation.Sync.States.Pull;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
-using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant.Models;
 using Xunit;
 
