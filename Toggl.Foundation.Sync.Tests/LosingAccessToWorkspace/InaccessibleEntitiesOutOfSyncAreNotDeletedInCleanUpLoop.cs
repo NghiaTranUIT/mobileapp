@@ -12,7 +12,7 @@ using Toggl.PrimeRadiant;
 
 namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
 {
-    public class InaccessibleEntitiesOutOfSyncAreNotDeletedInCleanUpLoop : BaseComplexSyncTest
+    public sealed class InaccessibleEntitiesOutOfSyncAreNotDeletedInCleanUpLoop : BaseComplexSyncTest
     {
         protected override ServerState ArrangeServerState(ServerState initialServerState)
             => initialServerState;
