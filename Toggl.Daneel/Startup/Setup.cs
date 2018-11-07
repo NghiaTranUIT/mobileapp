@@ -24,6 +24,7 @@ using MvvmCross.Platforms.Ios.Presenters;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Reflection;
+using Toggl.Multivac;
 using ColorPlugin = MvvmCross.Plugin.Color.Platforms.Ios.Plugin;
 using VisibilityPlugin = MvvmCross.Plugin.Visibility.Platforms.Ios.Plugin;
 using Toggl.Multivac.Extensions;
@@ -99,6 +100,7 @@ namespace Toggl.Daneel
             var remoteConfigService = new RemoteConfigServiceIos();
             remoteConfigService.SetupDefaults(remoteConfigDefaultsFileName);
             var schedulerProvider = new IOSSchedulerProvider();
+            RxApp.MainScheduler = schedulerProvider.MainScheduler;
             var calendarService = new CalendarServiceIos(permissionsService);
             var notificationService = new NotificationServiceIos(permissionsService, timeService);
 

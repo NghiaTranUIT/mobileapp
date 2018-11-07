@@ -24,6 +24,7 @@ using Toggl.Foundation.Suggestions;
 using Toggl.Giskard.BroadcastReceivers;
 using Toggl.Giskard.Presenters;
 using Toggl.Giskard.Services;
+using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Realm;
 using Toggl.PrimeRadiant.Settings;
@@ -89,6 +90,7 @@ namespace Toggl.Giskard
             var settingsStorage = new SettingsStorage(appVersion, keyValueStorage);
             var feedbackService = new FeedbackService(userAgent, mailService, dialogService, platformConstants);
             var schedulerProvider = new AndroidSchedulerProvider();
+            RxApp.MainScheduler = schedulerProvider.MainScheduler;
             var permissionsService = new PermissionsServiceAndroid();
             var calendarService = new CalendarServiceAndroid(permissionsService);
 
