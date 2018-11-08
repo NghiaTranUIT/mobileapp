@@ -15,7 +15,7 @@ using Toggl.Ultrawave.Helpers;
 
 namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
 {
-    public sealed class GainingAccessToWorkspaceTest : BaseComplexSyncTest
+    public sealed class GainAccessToAWorkspaceForTheFirstTimeTest : BaseComplexSyncTest
     {
         protected override ServerState ArrangeServerState(ServerState initialServerState)
             => initialServerState.With(
@@ -24,10 +24,31 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                     new MockTag { Id = -1, WorkspaceId = -2, Name = "t1" },
                     new MockTag { Id = -2, WorkspaceId = -2, Name = "t2" }
                 },
-                projects: new[] { new MockProject { Id = -1, WorkspaceId = -2, ClientId = -1, Name = "p1", Color = Helper.Color.DefaultProjectColors[0], Active = true } },
+                projects: new[] { 
+                    new MockProject { 
+                        Id = -1,
+                        WorkspaceId = -2,
+                        ClientId = -1,
+                        Name = "p1",
+                        Color = Helper.Color.DefaultProjectColors[0],
+                        Active = true } },
                 timeEntries: new[] {
-                    new MockTimeEntry { Id = -1, Start = DateTimeOffset.Now - TimeSpan.FromDays(2), Duration = 10 * 60, WorkspaceId = -2, ProjectId = -1, TagIds = new long[] { -1, -2 }, Description = "te1" },
-                    new MockTimeEntry { Id = -2, Start = DateTimeOffset.Now - TimeSpan.FromDays(1), Duration = 10 * 60, WorkspaceId = -2, ProjectId = -1, TagIds = new long[] { -1 }, Description = "te2" }
+                    new MockTimeEntry {
+                        Id = -1,
+                        Start = DateTimeOffset.Now - TimeSpan.FromDays(2),
+                        Duration = 10 * 60,
+                        WorkspaceId = -2,
+                        ProjectId = -1,
+                        TagIds = new long[] { -1, -2 },
+                        Description = "te1" },
+                    new MockTimeEntry { 
+                        Id = -2,
+                        Start = DateTimeOffset.Now - TimeSpan.FromDays(1),
+                        Duration = 10 * 60,
+                        WorkspaceId = -2,
+                        ProjectId = -1,
+                        TagIds = new long[] { -1 },
+                        Description = "te2" }
                 },
                 workspaces: new[] {
                     initialServerState.Workspaces.Single(),
@@ -51,11 +72,6 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                 {
                     defaultWorkspace.ToSyncable()
                 });
-        }
-
-        protected override async Task Act(ISyncManager syncManager)
-        {
-            await syncManager.ForceFullSync();
         }
 
         protected override void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState)
