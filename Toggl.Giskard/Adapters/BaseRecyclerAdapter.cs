@@ -37,7 +37,7 @@ namespace Toggl.Giskard.Adapters
         {
             var inflater = LayoutInflater.From(parent.Context);
 
-            var viewHolder = CreateViewHolder(parent, inflater);
+            var viewHolder = CreateViewHolder(parent, inflater, viewType);
             viewHolder.Tapped = async item =>
             {
                 itemTapSubject.OnNext(item);
@@ -47,7 +47,8 @@ namespace Toggl.Giskard.Adapters
             return viewHolder;
         }
 
-        protected abstract BaseRecyclerViewHolder<T> CreateViewHolder(ViewGroup parent, LayoutInflater inflater);
+        protected abstract BaseRecyclerViewHolder<T> CreateViewHolder(ViewGroup parent, LayoutInflater inflater,
+            int viewType);
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {

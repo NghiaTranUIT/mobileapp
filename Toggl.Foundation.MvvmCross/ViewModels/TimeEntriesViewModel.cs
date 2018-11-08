@@ -107,7 +107,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             delayedDeletionDisposable = Observable.Merge( // If 5 seconds pass or we try to delete another TE
                     Observable.Return(timeEntry).Delay(Constants.UndoTime, schedulerProvider.DefaultScheduler),
-                    showUndoSubject.Where(t => t).Select(timeEntry)
+                    showUndoSubject.Where(t => t).SelectValue(timeEntry)
                 )
                 .Take(1)
                 .SelectMany(deleteTimeEntry)
@@ -141,7 +141,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     analyticsService.DeleteTimeEntry.Track();
                     dataSource.SyncManager.PushSync();
                 })
-                .Select(timeEntry);
+                .SelectValue(timeEntry);
         }
 
         private async Task fetchSectionedTimeEntries()

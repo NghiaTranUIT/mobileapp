@@ -33,7 +33,6 @@
     <AndroidSupportedAbis>arm64-v8a;armeabi;armeabi-v7a;x86;x86_64</AndroidSupportedAbis>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
     <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
-    <AndroidTlsProvider>btls</AndroidTlsProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
@@ -266,6 +265,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Activities\ForgotPasswordActivity.cs" />
+    <Compile Include="Activities\ForgotPasswordActivity.ViewBinds.cs">
+      <DependentUpon>ForgotPasswordActivity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Activities\OutdatedAppActivity.ViewBinds.cs">
       <DependentUpon>OutdatedAppActivity.cs</DependentUpon>
     </Compile>
@@ -487,8 +489,8 @@
     <Compile Include="ViewHolders\SelectDefaultWorkspaceViewHolder.cs" />
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.cs" />
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.ViewBinds.cs">
-		<DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
-	</Compile>
+      <DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />

@@ -28,6 +28,9 @@ namespace Toggl.Giskard
         {
             this.context = context;
 
+            if (NougatApis.AreNotAvailable)
+                return;
+
             var shortcutManagerType = Class.FromType(typeof(ShortcutManager));
             shortcutManager = context.GetSystemService(shortcutManagerType).JavaCast<ShortcutManager>();
         }

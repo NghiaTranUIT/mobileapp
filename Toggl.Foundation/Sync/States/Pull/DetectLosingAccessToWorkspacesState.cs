@@ -36,7 +36,7 @@ namespace Toggl.Foundation.Sync.States.Pull
         public IObservable<ITransition> Start(IFetchObservables fetchObservables)
             => fetchObservables.GetList<IWorkspace>()
                 .SelectMany(workspacesWhichWereNotFetched)
-                .Select(lostWorkspaces => lostWorkspaces.Any()
+                .SelectValue(lostWorkspaces => lostWorkspaces.Any()
                     ? processLostWorkspaces(lostWorkspaces, fetchObservables)
                     : Continue.Transition(fetchObservables));
 
@@ -49,7 +49,8 @@ namespace Toggl.Foundation.Sync.States.Pull
             => dataSource.GetAll(ws => ws.Id > 0 && ws.IsInaccessible == false)
                          .SelectMany(CommonFunctions.Identity);
 
-        private ITransition processLostWorkspaces(IEnumerable<IThreadSafeWorkspace> workspaces,
+        private ITransition processLostWorkspaces(
+            IEnumerable<IThreadSafeWorkspace> workspaces,
             IFetchObservables fetchObservables)
         {
             analyticsService.LostWorkspaceAccess.Track();

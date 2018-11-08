@@ -31,7 +31,7 @@ namespace Toggl.Foundation.Sync.States.CleanUp
                 .WhereAsync(SuitableForDeletion)
                 .ToList()
                 .SelectMany(dataSource.DeleteAll)
-                .Select(FinishedDeleting.Transition());
+                .SelectValue(FinishedDeleting.Transition());
 
         protected abstract IObservable<bool> SuitableForDeletion(TInterface entity);
 

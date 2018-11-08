@@ -132,26 +132,20 @@ myButton.Rx().Tap()
     .DisposedBy(disposeBag);
 ```
 
-or use the binding method that already exists in `ReactiveBindingHolderExtensions`
+But better yet, we could use one of the `BindAction` extensions on UIButton.
 
 ```c#
-this.Bind(myButton.Rx().Tap, myAction);
+myButton.Rx()
+    .BindAction(myAction)
+    .DisposedBy(disposeBag);
 ```
 
-But better yet, we could use one of the `BindToAction` methods on the `ReactiveBindingHolderExtensions` for `UIButton`, which will also bind the `Enabled` Observable.
+This will also bing the enabled Observable back to the button. You can also specify the event that would trigger the action (tap by default). For example, for long press:
 
-While this will only bind the taps to the execution of the action
 ```c#
-this.Bind(SaveButton.Rx().Tap(), ViewModel.SaveAction);
+myButton.Rx()
+    .BindAction(myAction, ButtonEventType.Longpress)
+    .DisposedBy(disposeBag);
 ```
 
-This will also bing the enabled Observable back to the button
-```c#
-this.BindToAction(SaveButton, ViewModel.SaveAction);
-```
-
-Also, if we want to bind different buttons to the same action but with different input parameters we could do so via the third argument to that method:
-```c#
-this.BindToAction(Add1Button, ViewModel.AddToValue, _ => 1);
-this.BindToAction(Add10Button, ViewModel.AddToValue, _ => 10);
-```
+There's also a similar method for UIView and version for Android Views. It's recommended to write this extensions for other commonly used UI controls that are bound to an action and can be disabled.

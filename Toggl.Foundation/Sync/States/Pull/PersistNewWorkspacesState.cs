@@ -30,7 +30,7 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .Select(Workspace.Clean)
                 .SelectMany(createOrUpdate)
                 .ToList()
-                .Select(FinishedPersisting.Transition());
+                .SelectValue(FinishedPersisting.Transition());
 
         private IObservable<IThreadSafeWorkspace> createOrUpdate(IThreadSafeWorkspace workspace)
             => dataSource

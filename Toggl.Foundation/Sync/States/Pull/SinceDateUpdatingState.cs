@@ -29,7 +29,7 @@ namespace Toggl.Foundation.Sync.States.Pull
         public IObservable<ITransition> Start(IFetchObservables fetch)
             => fetch.GetList<TInterface>()
                 .Do(maybeUpdateSinceDates)
-                .Select(Finished.Transition(fetch));
+                .SelectValue(Finished.Transition(fetch));
 
         private void maybeUpdateSinceDates(List<TInterface> entities)
         {
