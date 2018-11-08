@@ -91,7 +91,7 @@ namespace Toggl.Ultrawave.ApiClients
                 });
         }
 
-        private async Task sendRequest(IRequest request)
+        private async Task<IResponse> sendRequest(IRequest request)
         {
             try
             {
@@ -100,7 +100,7 @@ namespace Toggl.Ultrawave.ApiClients
             catch (HttpRequestException exception)
             {
                 throw new OfflineException(exception);
-            }        
+            }
         }
 
         private async Task throwIfRequestFailed(IRequest request, IResponse response, IEnumerable<HttpHeader> headers)
