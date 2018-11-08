@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
@@ -82,38 +83,18 @@ namespace Toggl.Ultrawave.ApiClients
             var headerList = headers as IList<HttpHeader> ?? headers.ToList();
             var request = new Request(body, endpoint.Url, headerList, endpoint.Method);
 
-            return Observable.Create<T>(async observer =>
-            {
-                T data;
-                try
+            return sendRequest(request)
+                .SelectMany(response =>
                 {
-                    var response = await sendRequest(request).ConfigureAwait(false);
-
-                    await throwIfRequestFailed(request, response, headerList).ConfigureAwait(false);
-
-                    data = await processResponseData(request, response, process).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    observer.OnError(e);
-                    return;
-                }
-
-                observer.OnNext(data);
-                observer.OnCompleted();
-            });
+                    return throwIfRequestFailed(request, response, headerList).ToObservable()
+                        .SelectMany(processResponseData(request, response, process).ToObservable());
+                });
         }
 
-        private async Task<IResponse> sendRequest(IRequest request)
+        private IObservable<IResponse> sendRequest(IRequest request)
         {
-            try
-            {
-                return await apiClient.Send(request).ConfigureAwait(false);
-            }
-            catch (HttpRequestException exception)
-            {
-                throw new OfflineException(exception);
-            }
+            return apiClient.Send(request).ToObservable()
+                .Catch<IResponse, HttpRequestException>(e => throw new OfflineException(e));
         }
 
         private async Task throwIfRequestFailed(IRequest request, IResponse response, IEnumerable<HttpHeader> headers)
