@@ -128,6 +128,14 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                         ProjectId = regainedAccessProject.Id,
                         TagIds = new long[] { regainedAccessTag2.Id },
                         SyncStatus = SyncStatus.SyncNeeded }
+                },
+                sinceParameters: new Dictionary<Type, DateTimeOffset?>
+                {
+                    [typeof(IDatabaseWorkspace)] = DateTimeOffset.Now.AddDays(1),
+                    [typeof(IDatabaseClient)] = DateTimeOffset.Now.AddDays(1),
+                    [typeof(IDatabaseProject)] = DateTimeOffset.Now.AddDays(1),
+                    [typeof(IDatabaseTag)] = DateTimeOffset.Now.AddDays(1),
+                    [typeof(IDatabaseTimeEntry)] = DateTimeOffset.Now.AddDays(1)
                 });
         }
 
