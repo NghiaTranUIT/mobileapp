@@ -263,11 +263,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
 
             private static IApiClient createApiClient()
             {
-                var httpHandler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip
-                };
-                var realApiClient = Ultrawave.TogglApiFactory.CreateDefaultApiClient(userAgent, httpHandler);
+                var realApiClient = Ultrawave.TogglApiFactory.CreateDefaultApiClient(userAgent);
 
                 return new SlowApiClient(new RetryingApiClient(realApiClient));
             }
