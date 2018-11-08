@@ -52,33 +52,33 @@ namespace Toggl.Ultrawave.ApiClients
         protected IObservable<List<TInterface>> CreateListObservable<TModel, TInterface>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
             where TModel : class, TInterface
         {
-            var observable = CreateObservable<List<TModel>>(endpoint, headers, body);
+            var observable = SendRequest<List<TModel>>(endpoint, headers, body);
             return observable.Select(items => items?.ToList<TInterface>());
         }
 
-        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, HttpHeader header, T entity,
+        protected IObservable<T> SendRequest<T>(Endpoint endpoint, HttpHeader header, T entity,
             SerializationReason serializationReason, IWorkspaceFeatureCollection features = null)
         {
             var body = serializer.Serialize(entity, serializationReason, features);
-            return CreateObservable<T>(endpoint, header, body);
+            return SendRequest<T>(endpoint, header, body);
         }
 
-        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, HttpHeader header, string body = "")
-        => CreateObservable<T>(endpoint, new[] { header }, body);
+        protected IObservable<T> SendRequest<T>(Endpoint endpoint, HttpHeader header, string body = "")
+        => SendRequest<T>(endpoint, new[] { header }, body);
 
-        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
-            => createObservable(endpoint, headers, body, async (rawData) =>
+        protected IObservable<T> SendRequest<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
+            => sendRequest(endpoint, headers, body, async (rawData) =>
                 !string.IsNullOrEmpty(rawData)
                     ? await Task.Run(() => serializer.Deserialize<T>(rawData)).ConfigureAwait(false)
                     : default(T));
 
-        protected IObservable<string> CreateObservable(Endpoint endpoint, HttpHeader header, string body = "")
-            => createObservable(endpoint, new[] { header }, body, Task.FromResult);
+        protected IObservable<string> SendRequest(Endpoint endpoint, HttpHeader header, string body = "")
+            => sendRequest(endpoint, new[] { header }, body, Task.FromResult);
 
-        protected IObservable<string> CreateObservable(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
-            => createObservable(endpoint, headers, body, Task.FromResult);
+        protected IObservable<string> SendRequest(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
+            => sendRequest(endpoint, headers, body, Task.FromResult);
 
-        private IObservable<T> createObservable<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body, Func<string, Task<T>> process)
+        private IObservable<T> sendRequest<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body, Func<string, Task<T>> process)
         {
             var headerList = headers as IList<HttpHeader> ?? headers.ToList();
             var request = new Request(body, endpoint.Url, headerList, endpoint.Method);

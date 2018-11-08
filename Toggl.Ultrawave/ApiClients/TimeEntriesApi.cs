@@ -44,7 +44,7 @@ namespace Toggl.Ultrawave.ApiClients
             => pushTimeEntry(endPoints.Put(timeEntry.WorkspaceId, timeEntry.Id), timeEntry, SerializationReason.Default);
 
         public IObservable<Unit> Delete(ITimeEntry timeEntry)
-            => CreateObservable<ITimeEntry>(endPoints.Delete(timeEntry.WorkspaceId, timeEntry.Id), AuthHeader)
+            => SendRequest<ITimeEntry>(endPoints.Delete(timeEntry.WorkspaceId, timeEntry.Id), AuthHeader)
                 .SingleAsync()
                 .Select(_ => Unit.Default);
 
@@ -56,7 +56,7 @@ namespace Toggl.Ultrawave.ApiClients
                 timeEntryCopy.CreatedWith = userAgent.ToString();
             }
 
-            var observable = CreateObservable(endPoint, AuthHeader, timeEntryCopy, reason);
+            var observable = SendRequest(endPoint, AuthHeader, timeEntryCopy, reason);
             return observable;
         }
     }

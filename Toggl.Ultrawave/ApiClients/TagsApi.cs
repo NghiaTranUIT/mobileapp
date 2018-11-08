@@ -27,7 +27,7 @@ namespace Toggl.Ultrawave.ApiClients
         {
             var endPoint = endPoints.Post(tag.WorkspaceId);
             var tagCopy = tag as Tag ?? new Tag(tag);
-            var observable = CreateObservable(endPoint, AuthHeader, tagCopy, SerializationReason.Post);
+            var observable = SendRequest(endPoint, AuthHeader, tagCopy, SerializationReason.Post);
             return observable;
         }
     }
