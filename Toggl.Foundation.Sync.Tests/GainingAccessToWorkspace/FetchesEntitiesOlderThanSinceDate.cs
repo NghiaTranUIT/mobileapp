@@ -16,7 +16,7 @@ using Toggl.PrimeRadiant.Models;
 
 namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
 {
-    public class FetchesEntitiesOlderThanSinceDate : BaseComplexSyncTest
+    public sealed class FetchesEntitiesOlderThanSinceDate : BaseComplexSyncTest
     {
         protected override ServerState ArrangeServerState(ServerState initialServerState)
             => initialServerState.With(
