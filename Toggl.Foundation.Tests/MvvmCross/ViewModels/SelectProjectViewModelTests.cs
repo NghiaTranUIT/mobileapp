@@ -316,7 +316,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory
                     .Received()
                     .GetProjectsAutocompleteSuggestions(Arg.Is<IList<string>>(
-                         words => words.SequenceEqual(text.SplitToQueryWords())));
+                        words => words.SequenceEqual(text.SplitToQueryWords())));
             }
         }
 
