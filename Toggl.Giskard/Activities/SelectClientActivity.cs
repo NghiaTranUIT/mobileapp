@@ -8,6 +8,7 @@ using Android.Support.V7.Widget;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Adapters;
+using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
@@ -34,7 +35,17 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(replaceClients)
                 .DisposedBy(DisposeBag);
 
+            backImageView.Rx()
+                .BindAction(ViewModel.Close)
+                .DisposedBy(DisposeBag);
 
+            filterEditText.Rx().Text()
+                .Subscribe(ViewModel.ClientFilterText)
+                .DisposedBy(DisposeBag);
+
+            selectClientRecyclerAdapter.ItemTapObservable
+                .Subscribe(ViewModel.SelectClient.Inputs)
+                .DisposedBy(DisposeBag);
         }
 
         private void setupLayoutManager(SelectClientRecyclerAdapter adapter)
