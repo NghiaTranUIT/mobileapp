@@ -22,17 +22,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     {
         public ISubject<string> ClientFilterText { get; } = new BehaviorSubject<string>(string.Empty);
 
-        public IObservable<IEnumerable<SelectableClientViewModel>> Clients { get; private set; }
+        public IObservable<IEnumerable<SelectableClientBaseViewModel>> Clients { get; private set; }
 
         public UIAction Close { get; }
 
-        public InputAction<SelectableClientViewModel> SelectClient { get; }
+        public InputAction<SelectableClientBaseViewModel> SelectClient { get; }
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
         private readonly ISchedulerProvider schedulerProvider;
         private long workspaceId;
-        private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient, false);
+        private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient);
 
         public SelectClientViewModel(
             IInteractorFactory interactorFactory,
@@ -46,7 +46,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
 
             Close = UIAction.FromAsync(close);
-            SelectClient = InputAction<SelectableClientViewModel>.FromAsync(selectClient);
+            SelectClient = InputAction<SelectableClientBaseViewModel>.FromAsync(selectClient);
         }
 
         public override void Prepare(SelectClientParameters parameter)
@@ -78,7 +78,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     else if (suggestCreation)
                     {
                         var creationSelectableViewModel =
-                            new SelectableClientViewModel(long.MinValue, trimmedText, true);
+                            new SelectableClientCreationViewModel(trimmedText);
                         selectableViewModels = selectableViewModels.Prepend(creationSelectableViewModel);
                     }
 
@@ -86,22 +86,23 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 });
         }
 
-        private SelectableClientViewModel toSelectableViewModel(IThreadSafeClient client)
-            => new SelectableClientViewModel(client.Id, client.Name, false);
+        private SelectableClientBaseViewModel toSelectableViewModel(IThreadSafeClient client)
+            => new SelectableClientViewModel(client.Id, client.Name);
 
         private Task close()
             => navigationService.Close(this, null);
 
-        private async Task selectClient(SelectableClientViewModel client)
+        private async Task selectClient(SelectableClientBaseViewModel client)
         {
-            if (client.IsCreation)
+            switch (client)
             {
-                var newClient = await interactorFactory.CreateClient(client.Name.Trim(), workspaceId).Execute();
-                await navigationService.Close(this, newClient.Id);
-            }
-            else
-            {
-                await navigationService.Close(this, client.Id);
+                case SelectableClientCreationViewModel c:
+                    var newClient = await interactorFactory.CreateClient(c.Name.Trim(), workspaceId).Execute();
+                    await navigationService.Close(this, newClient.Id);
+                    break;
+                case SelectableClientViewModel c:
+                    await navigationService.Close(this, c.Id);
+                    break;
             }
         }
     }

@@ -85,7 +85,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
 
                 ViewModel.Clients.First().First().Name.Should().Be(Resources.NoClient);
-                ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
+                ViewModel.Clients.First().First().Should().BeOfType<SelectableClientViewModel>();
             }
         }
 
@@ -116,7 +116,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
         public sealed class TheSelectClientAction : SelectClientViewModelTest
         {
-            private readonly SelectableClientViewModel client = new SelectableClientViewModel(9, "Client A", false);
+            private readonly SelectableClientViewModel client = new SelectableClientViewModel(9, "Client A");
 
             public TheSelectClientAction()
             {
@@ -155,7 +155,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 long workspaceId = 10;
                 await ViewModel.Initialize();
-                var newClient = new SelectableClientViewModel(long.MinValue, "Some name of the client", true);
+                var newClient = new SelectableClientCreationViewModel("Some name of the client");
                 ViewModel.Prepare(Parameters);
 
                 await ViewModel.SelectClient.Execute(newClient);
@@ -176,7 +176,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                await ViewModel.SelectClient.Execute(new SelectableClientViewModel(long.MinValue, name, true));
+                await ViewModel.SelectClient.Execute(new SelectableClientCreationViewModel(name));
 
                 await InteractorFactory
                     .Received()
@@ -215,7 +215,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ClientFilterText.OnNext(nonExistingClientName);
 
                 ViewModel.Clients.First().First().Name.Should().Equals(nonExistingClientName);
-                ViewModel.Clients.First().First().IsCreation.Should().BeTrue();
+                ViewModel.Clients.First().First().Should().BeOfType<SelectableClientCreationViewModel>();
             }
 
             [Theory, LogIfTooSlow]
@@ -234,7 +234,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ClientFilterText.OnNext(name);
 
-                ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
+                ViewModel.Clients.First().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -248,7 +248,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ClientFilterText.OnNext(clients.First().Name);
 
-                ViewModel.Clients.First().First().IsCreation.Should().BeFalse();
+                ViewModel.Clients.First().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
         }
     }

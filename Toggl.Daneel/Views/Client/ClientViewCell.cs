@@ -6,7 +6,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Views.Client
 {
-    public partial class ClientViewCell : BaseTableViewCell<SelectableClientViewModel>
+    public partial class ClientViewCell : BaseTableViewCell<SelectableClientBaseViewModel>
     {
         public static readonly string Identifier = nameof(ClientViewCell);
         public static readonly UINib Nib;

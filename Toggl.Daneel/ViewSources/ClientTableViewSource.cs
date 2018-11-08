@@ -13,21 +13,21 @@ using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
-    public sealed class ClientTableViewSource : ListTableViewSource<SelectableClientViewModel, ClientViewCell>
+    public sealed class ClientTableViewSource : ListTableViewSource<SelectableClientBaseViewModel, ClientViewCell>
     {
-        public IObservable<SelectableClientViewModel> ClientSelected
+        public IObservable<SelectableClientBaseViewModel> ClientSelected
             => Observable
-                .FromEventPattern<SelectableClientViewModel>(e => OnItemTapped += e, e => OnItemTapped -= e)
+                .FromEventPattern<SelectableClientBaseViewModel>(e => OnItemTapped += e, e => OnItemTapped -= e)
                 .Select(e => e.EventArgs);
 
         private const int rowHeight = 48;
 
         public ClientTableViewSource() : base(
-            new ImmutableArray<SelectableClientViewModel>(), ClientViewCell.Identifier)
+            new ImmutableArray<SelectableClientBaseViewModel>(), ClientViewCell.Identifier)
         {
         }
 
-        public void SetNewClients(IEnumerable<SelectableClientViewModel> clients)
+        public void SetNewClients(IEnumerable<SelectableClientBaseViewModel> clients)
         {
             items = clients.ToImmutableList();
         }
@@ -35,8 +35,8 @@ namespace Toggl.Daneel.ViewSources
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
         {
             var item = items[indexPath.Row];
-            var identifier = item.IsCreation ? CreateClientViewCell.Identifier : cellIdentifier;
-            var cell = tableView.DequeueReusableCell(identifier) as BaseTableViewCell<SelectableClientViewModel>;
+            var identifier = item is SelectableClientCreationViewModel ? CreateClientViewCell.Identifier : cellIdentifier;
+            var cell = tableView.DequeueReusableCell(identifier) as BaseTableViewCell<SelectableClientBaseViewModel>;
             cell.Item = item;
             return cell;
         }

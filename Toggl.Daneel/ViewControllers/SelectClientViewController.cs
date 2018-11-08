@@ -57,7 +57,7 @@ namespace Toggl.Daneel.ViewControllers
             return true;
         }
 
-        private void replaceClients(IEnumerable<SelectableClientViewModel> clients)
+        private void replaceClients(IEnumerable<SelectableClientBaseViewModel> clients)
         {
             tableViewSource.SetNewClients(clients);
             SuggestionsTableView.ReloadData();
