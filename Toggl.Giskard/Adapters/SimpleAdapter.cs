@@ -24,7 +24,7 @@ namespace Toggl.Giskard.Adapters
         {
         }
 
-        protected override BaseRecyclerViewHolder<T> CreateViewHolder(ViewGroup parent, LayoutInflater inflater)
+        protected override BaseRecyclerViewHolder<T> CreateViewHolder(ViewGroup parent, LayoutInflater inflater, int viewType)
         {
             var itemView = inflater.Inflate(layoutId, parent, false);
             return createViewHolder(itemView);

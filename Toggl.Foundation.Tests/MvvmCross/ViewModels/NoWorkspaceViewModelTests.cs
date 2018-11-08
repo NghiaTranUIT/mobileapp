@@ -55,7 +55,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.TryAgain.Execute();
 
-                await NavigationService.Received().Close(Arg.Is(ViewModel));
+                await NavigationService.Received().Close(Arg.Is(ViewModel), Unit.Default);
             }
 
             [Fact, LogIfTooSlow]
@@ -124,7 +124,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.CreateWorkspaceWithDefaultName.Execute();
 
-                await NavigationService.Received().Close(Arg.Is(ViewModel));
+                await NavigationService.Received().Close(Arg.Is(ViewModel), Unit.Default);
             }
 
             [Fact, LogIfTooSlow]

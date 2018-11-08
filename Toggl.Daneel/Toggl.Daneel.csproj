@@ -50,7 +50,7 @@
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>SdkOnly</MtouchLink>
     <MtouchArch>ARMv7, ARM64</MtouchArch>
-    <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
+    <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release.AppStore|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -768,6 +768,11 @@
       <DependentUpon>CreateClientViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\EditDuration\DurationFieldTextFormatter.cs" />
+    <Compile Include="Views\EditDuration\Shapes\Arc.cs" />
+    <Compile Include="Views\EditDuration\Shapes\Caps\Cap.cs" />
+    <Compile Include="Views\EditDuration\Shapes\Caps\EndCap.cs" />
+    <Compile Include="Views\EditDuration\Shapes\Caps\StartCap.cs" />
+    <Compile Include="Views\EditDuration\Shapes\Wheel.cs" />
     <Compile Include="Views\Log\RefreshControl.cs" />
     <Compile Include="Views\Log\TimeEntriesLogTableView.cs" />
     <Compile Include="Views\MarqueeView.cs" />

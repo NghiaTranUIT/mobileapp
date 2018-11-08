@@ -7,97 +7,23 @@ using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Foundation.MvvmCross.Helper;
 using Foundation;
 using UIKit;
-using MvvmCross.Core;
 using static Toggl.Multivac.Math;
 using Toggl.Daneel.Extensions;
 using Toggl.Foundation.Analytics;
 using Toggl.Multivac.Extensions;
 using MvvmCross.Base;
+using Toggl.Daneel.Views.EditDuration.Shapes;
+using Toggl.Daneel.Views.EditDuration.Shapes.Caps;
 
 namespace Toggl.Daneel.Views.EditDuration
 {
     [Register(nameof(WheelForegroundView))]
     public sealed class WheelForegroundView : BaseWheelView
     {
-        private CGColor backgroundColor
-            => Color.EditDuration.Wheel.Rainbow.GetPingPongIndexedItem(numberOfFullLoops).ToNativeColor().CGColor;
-
-        private CGColor foregroundColor
-            => Color.EditDuration.Wheel.Rainbow.GetPingPongIndexedItem(numberOfFullLoops + 1).ToNativeColor().CGColor;
-
-        private readonly CGColor capBackgroundColor = Color.EditDuration.Wheel.CapBackground.ToNativeColor().CGColor;
-
-        private readonly CGColor capColor = Color.EditDuration.Wheel.Cap.ToNativeColor().CGColor;
-
-        private readonly CGColor shadowColor = Color.EditDuration.Wheel.Shadow.ToNativeColor().CGColor;
-
-        // The sizes are relative to the radius of the wheel.
-        // The radius of the wheel in the design document is 128 points.
-        private readonly nfloat capRadius = 14.05f / 128f;
-
-        private readonly nfloat horizontalBarLength = 12f / 128f;
-
-        private readonly nfloat horizontalBarHeight = 1.5f / 128f;
-
-        private readonly nfloat horizontalBarsDistance = 3.1f / 128f;
-
-        private readonly nfloat horizontalBarCornerRadius = 0.2f / 128f;
-
-        private readonly nfloat shadowRadius = 4f / 128f;
-
-        private readonly float shadowOpacity = 0.32f;
-
-        private readonly nfloat triangleWidth = 9f / 128f;
-
-        private readonly nfloat triangleHeight = 10f / 128f;
-
-        private readonly nfloat triangleCenterHorizontalOffset = 1.4f / 128f;
-
-        private readonly nfloat squareHeight = 10f / 128f;
-
-        private readonly nfloat squareWidth = 10f / 128f;
-
-        private readonly nfloat suqareCenterHorizontalOffset = 0f;
-
-        private readonly nfloat extendedRadiusMultiplier = 1.5f;
-
-        private double endPointsRadius => SmallRadius + (Radius - SmallRadius) / 2;
-
-        private DateTimeOffset startTime;
-
-        private DateTimeOffset endTime;
-
-        private bool isRunning;
-
-        private CGPoint startTimePosition;
-
-        private CGPoint endTimePosition;
-
-        private bool isDragging;
-
-        private UIImage startHandleImage;
-
-        private UIImage endHandleImage;
-
-        private UISelectionFeedbackGenerator feedbackGenerator;
-
-        private WheelUpdateType updateType;
-
-        private int numberOfFullLoops => (int)((EndTime - StartTime).TotalMinutes / MinutesInAnHour);
-
-        private bool isFullCircle => numberOfFullLoops >= 1;
-
-        private double startTimeAngle => startTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
-
-        private double endTimeAngle => endTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
-
-        private double editBothAtOnceStartTimeAngleOffset;
-
         public event EventHandler StartTimeChanged;
 
         public event EventHandler EndTimeChanged;
 
-        private readonly  Subject<EditTimeSource> timeEditedSubject = new Subject<EditTimeSource>();
         public IObservable<EditTimeSource> TimeEdited
             => timeEditedSubject.AsObservable();
 
@@ -144,6 +70,42 @@ namespace Toggl.Daneel.Views.EditDuration
             }
         }
 
+        private CGColor backgroundColor
+            => Color.EditDuration.Wheel.Rainbow.GetPingPongIndexedItem(numberOfFullLoops).ToNativeColor().CGColor;
+
+        private CGColor foregroundColor
+            => Color.EditDuration.Wheel.Rainbow.GetPingPongIndexedItem(numberOfFullLoops + 1).ToNativeColor().CGColor;
+
+        private bool isRunning;
+
+        private DateTimeOffset startTime;
+        private DateTimeOffset endTime;
+
+        private CGPoint startTimePosition;
+        private CGPoint endTimePosition;
+
+        private double startTimeAngle => startTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
+        private double endTimeAngle => endTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
+
+        private readonly nfloat extendedRadiusMultiplier = 1.5f;
+        private double endPointsRadius => (Radius + SmallRadius) / 2;
+        private bool isDragging;
+        private UISelectionFeedbackGenerator feedbackGenerator;
+        private WheelUpdateType updateType;
+        private double editBothAtOnceStartTimeAngleOffset;
+
+        private int numberOfFullLoops => (int)((EndTime - StartTime).TotalMinutes / MinutesInAnHour);
+        private bool isFullCircle => numberOfFullLoops >= 1;
+
+        private readonly Subject<EditTimeSource> timeEditedSubject = new Subject<EditTimeSource>();
+
+        private CAShapeLayer fullWheel;
+        private Arc arc;
+        private EndCap endCap;
+        private StartCap startCap;
+
+        private CGRect currentFrame;
+
         public WheelForegroundView(IntPtr handle) : base(handle)
         {
         }
@@ -152,46 +114,61 @@ namespace Toggl.Daneel.Views.EditDuration
         {
             base.AwakeFromNib();
 
-            startHandleImage = UIImage.FromBundle("icStartLabel");
-            endHandleImage = UIImage.FromBundle("icEndLabel");
-
             var gestureRecognizer = new UIPanGestureRecognizer(handleTouch);
             AddGestureRecognizer(gestureRecognizer);
-        }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing == false) return;
-
-            startHandleImage.Dispose();
-            endHandleImage.Dispose();
+            SetNeedsLayout();
         }
 
         public override void LayoutSubviews()
         {
             base.LayoutSubviews();
 
-            RemoveSublayers();
             calculateEndPointPositions();
 
-            if (isFullCircle)
+            if (currentFrame != Frame || arc == null)
             {
-                var fullWheel = CreateWheelLayer(backgroundColor);
-                Layer.AddSublayer(fullWheel);
+                createSubLayers();
+                currentFrame = Frame;
             }
 
-            var backgroundLayer = createBackgroundLayer();
-            Layer.AddSublayer(backgroundLayer);
+            CATransaction.Begin();
+            CATransaction.DisableActions = true;
 
-            if (IsRunning == false)
-            {
-                var endCap = createCap(endTimePosition, endHandleImage, squareWidth, squareHeight, suqareCenterHorizontalOffset);
-                Layer.AddSublayer(endCap);
-            }
+            updateUIElements();
 
-            var startCap = createCap(startTimePosition, startHandleImage, triangleWidth, triangleHeight, triangleCenterHorizontalOffset);
+            CATransaction.Commit();
+        }
+
+        private void updateUIElements()
+        {
+            startCap.Position = startTimePosition;
+            startCap.Color = foregroundColor;
+            endCap.Position = endTimePosition;
+            endCap.Color = foregroundColor;
+            endCap.ShowOnlyBackground = IsRunning;
+
+            fullWheel.FillColor = backgroundColor;
+            fullWheel.Hidden = !isFullCircle;
+
+            arc.Color = foregroundColor;
+            arc.Update((nfloat)startTimeAngle, (nfloat)endTimeAngle);
+        }
+
+        private void createSubLayers()
+        {
+            RemoveSublayers();
+
+            fullWheel = new Wheel(Center, Radius, SmallRadius, backgroundColor);
+            Layer.AddSublayer(fullWheel);
+
+            arc = new Arc(Bounds, Center, (Radius + SmallRadius) / 2, Thickness);
+            Layer.AddSublayer(arc);
+
+            endCap = new EndCap(Resize);
+            Layer.AddSublayer(endCap);
+
+            startCap = new StartCap(Resize);
             Layer.AddSublayer(startCap);
         }
 
@@ -226,7 +203,7 @@ namespace Toggl.Daneel.Views.EditDuration
             }
         }
 
-        public void touchesBegan(CGPoint position)
+        private void touchesBegan(CGPoint position)
         {
             if (isValid(position))
             {
@@ -236,7 +213,7 @@ namespace Toggl.Daneel.Views.EditDuration
             }
         }
 
-        public void touchesMoved(CGPoint position)
+        private void touchesMoved(CGPoint position)
         {
             if (isDragging == false) return;
 
@@ -265,12 +242,12 @@ namespace Toggl.Daneel.Views.EditDuration
             updateEditedTime(timeChange);
         }
 
-        public void touchesCancelled()
+        private void touchesCancelled()
         {
             finishTouchEditing();
         }
 
-        public void touchesEnded()
+        private void touchesEnded()
         {
             finishTouchEditing();
             switch (updateType)
@@ -387,87 +364,6 @@ namespace Toggl.Daneel.Views.EditDuration
         {
             isDragging = false;
             feedbackGenerator = null;
-        }
-
-        #endregion
-
-        #region Shape layers factories
-
-        private CALayer createBackgroundLayer()
-        {
-            var capArcRadius = Thickness / 2f;
-
-            var startAngle = (nfloat)startTimeAngle;
-            var endAngle = (nfloat)endTimeAngle;
-
-            // these angles become obvious when you draw a diagram and mark all the angles
-            var startCapStartAngle = startAngle + (nfloat)Math.PI;
-            var startCapEndAngle = startAngle;
-            var endCapStartAngle = endAngle;
-            var endCapEndAngle = endAngle + (nfloat)Math.PI;
-
-            var durationArc = new UIBezierPath();
-
-            durationArc.AddArc(startTimePosition, capArcRadius, startCapStartAngle, startCapEndAngle, true); // start cap
-            durationArc.AddArc(Center, Radius, startAngle, endAngle, true); // outer arc
-            durationArc.AddArc(endTimePosition, capArcRadius, endCapStartAngle, endCapEndAngle, true); // end cap
-            durationArc.AddArc(Center, SmallRadius, endAngle, startAngle, false); // inner arc
-
-            var layer = new CAShapeLayer();
-            layer.Path = durationArc.CGPath;
-            layer.FillColor = foregroundColor;
-
-            setupEndCapShadow(layer);
-
-            var wheelLayer = CreateWheelLayer(backgroundColor);
-            layer.Mask = wheelLayer;
-
-            return layer;
-        }
-
-        private CALayer createCap(CGPoint center, UIImage image, nfloat imageWidth, nfloat imageHeight, nfloat centerHorizontalOffset)
-        {
-            var innerRadius = Resize(capRadius);
-            var outerRadius = (Radius - SmallRadius) / 2;
-
-            var outerPath = new UIBezierPath();
-            outerPath.AddArc(center, outerRadius, 0, (nfloat)FullCircle, false);
-
-            var backgroundLayer = new CAShapeLayer();
-            backgroundLayer.Path = outerPath.CGPath;
-            backgroundLayer.FillColor = capBackgroundColor;
-
-            var innerPath = new UIBezierPath();
-            innerPath.AddArc(center, innerRadius, 0, (nfloat)FullCircle, false);
-
-            var circleLayer = new CAShapeLayer();
-            circleLayer.Path = innerPath.CGPath;
-            circleLayer.FillColor = capColor;
-
-            var height = Resize(imageHeight);
-            var width = Resize(imageWidth);
-            var offset = Resize(centerHorizontalOffset);
-            var frame = new CGRect(center.X - width / 2f + offset, center.Y - height / 2f, width, height);
-            var imageLayer = new CALayer();
-            imageLayer.Contents = image.CGImage;
-            imageLayer.Frame = frame;
-            circleLayer.AddSublayer(imageLayer);
-
-            backgroundLayer.AddSublayer(circleLayer);
-
-            return backgroundLayer;
-        }
-
-        private void setupEndCapShadow(CALayer layer)
-        {
-            var shadowPath = new UIBezierPath();
-            shadowPath.AddArc(endTimePosition, Thickness / 2f, 0, (nfloat)FullCircle, false);
-
-            layer.ShadowPath = shadowPath.CGPath;
-            layer.ShadowColor = shadowColor;
-            layer.ShadowRadius = Resize(shadowRadius);
-            layer.ShadowOpacity = shadowOpacity;
-            layer.ShadowOffset = CGSize.Empty;
         }
 
         #endregion

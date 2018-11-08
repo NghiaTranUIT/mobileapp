@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Foundation;
 using Toggl.Daneel.ExtensionKit;
 using Toggl.Ultrawave;
@@ -24,7 +25,8 @@ namespace SiriExtension
             var version = NSBundle.MainBundle.InfoDictionary["CFBundleShortVersionString"].ToString();
             var userAgent = new UserAgent("Daneel", $"{version} SiriExtension");
             var apiConfiguration = new ApiConfiguration(environment, Credentials.WithApiToken(apiToken), userAgent);
-            return TogglApiFactory.WithConfiguration(apiConfiguration);
+            var httpHandler = new NSUrlSessionHandler();
+            return TogglApiFactory.WithConfiguration(apiConfiguration, httpHandler);
         }
     }
 }

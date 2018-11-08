@@ -143,10 +143,11 @@ namespace Toggl.Foundation
 
             transitions.ConfigureTransition(entryPoint, fetchAllSince);
             transitions.ConfigureTransition(fetchAllSince.FetchStarted, persistWorkspaces);
+
             transitions.ConfigureTransition(persistWorkspaces.FinishedPersisting, updateWorkspacesSinceDate);
             transitions.ConfigureTransition(updateWorkspacesSinceDate.Finished, detectNoWorkspaceState);
             transitions.ConfigureTransition(detectNoWorkspaceState.Continue, persistUser);
-
+            
             transitions.ConfigureTransition(persistUser.FinishedPersisting, persistWorkspaceFeatures);
             transitions.ConfigureTransition(persistWorkspaceFeatures.FinishedPersisting, persistPreferences);
 
@@ -287,6 +288,7 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(delete.DeletingFinished, finished);
             transitions.ConfigureTransition(deleteLocal.Deleted, finished);
             transitions.ConfigureTransition(deleteLocal.DeletingFailed, finished);
+            transitions.ConfigureTransition(unsyncable.MarkedAsUnsyncable, finished);
 
             transitions.ConfigureTransition(finished.Continue, push);
 
@@ -340,6 +342,7 @@ namespace Toggl.Foundation
 
             transitions.ConfigureTransition(create.EntityChanged, new InvalidTransitionState($"Entity cannot have changed since updating is not supported for {typeof(TModel).Name} during Push sync."));
             transitions.ConfigureTransition(create.Finished, finished);
+            transitions.ConfigureTransition(unsyncable.MarkedAsUnsyncable, finished);
 
             transitions.ConfigureTransition(finished.Continue, push);
 
@@ -391,6 +394,8 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(checkServerStatus.ServerIsAvailable, push);
 
             transitions.ConfigureTransition(update.Finished, finished);
+            transitions.ConfigureTransition(unsyncable.MarkedAsUnsyncable, finished);
+            transitions.ConfigureTransition(update.EntityChanged, finished);
 
             transitions.ConfigureTransition(finished.Continue, push);
 

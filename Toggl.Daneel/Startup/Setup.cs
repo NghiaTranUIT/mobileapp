@@ -22,6 +22,7 @@ using Toggl.Ultrawave.Network;
 using MvvmCross.Platforms.Ios.Core;
 using MvvmCross.Platforms.Ios.Presenters;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Reflection;
 using ColorPlugin = MvvmCross.Plugin.Color.Platforms.Ios.Plugin;
 using VisibilityPlugin = MvvmCross.Plugin.Visibility.Platforms.Ios.Plugin;
@@ -101,6 +102,8 @@ namespace Toggl.Daneel
             var calendarService = new CalendarServiceIos(permissionsService);
             var notificationService = new NotificationServiceIos(permissionsService, timeService);
 
+            var httpHandler = new NSUrlSessionHandler();
+
             var foundation =
                 TogglFoundation
                     .ForClient(userAgent, appVersion)
@@ -117,7 +120,7 @@ namespace Toggl.Daneel
                     .WithPlatformConstants(platformConstants)
                     .WithRemoteConfigService(remoteConfigService)
                     .WithNotificationService(notificationService)
-                    .WithApiFactory(new ApiFactory(environment, userAgent))
+                    .WithApiFactory(new ApiFactory(environment, userAgent, httpHandler))
                     .WithBackgroundService(new BackgroundService(timeService))
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator())
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
