@@ -1,10 +1,14 @@
-﻿using Android.App;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Android.App;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
-using MvvmCross.Droid.Support.V7.AppCompat;
+using Android.Support.V7.Widget;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Giskard.Adapters;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -12,13 +16,34 @@ namespace Toggl.Giskard.Activities
     [Activity(Theme = "@style/AppTheme.BlueStatusBar",
               ScreenOrientation = ScreenOrientation.Portrait,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed class SelectClientActivity : MvxAppCompatActivity<SelectClientViewModel>
+    public partial class SelectClientActivity : ReactiveActivity<SelectClientViewModel>
     {
+        private SelectClientRecyclerAdapter selectClientRecyclerAdapter = new SelectClientRecyclerAdapter();
+
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
             SetContentView(Resource.Layout.SelectClientActivity);
             OverridePendingTransition(Resource.Animation.abc_slide_in_bottom, Resource.Animation.abc_fade_out);
+
+            InitializeViews();
+
+            setupLayoutManager(selectClientRecyclerAdapter);
+
+            ViewModel.Clients
+                .Subscribe(replaceClients)
+                .DisposedBy(DisposeBag);
+
+
+        }
+
+        private void setupLayoutManager(SelectClientRecyclerAdapter adapter)
+        {
+            var layoutManager = new LinearLayoutManager(this);
+            layoutManager.ItemPrefetchEnabled = true;
+            layoutManager.InitialPrefetchItemCount = 4;
+            selectClientRecyclerView.SetLayoutManager(layoutManager);
+            selectClientRecyclerView.SetAdapter(adapter);
         }
 
         public override void Finish()
@@ -27,15 +52,9 @@ namespace Toggl.Giskard.Activities
             OverridePendingTransition(Resource.Animation.abc_fade_in, Resource.Animation.abc_slide_out_bottom);
         }
 
-        public override bool OnKeyDown(Keycode keyCode, KeyEvent e)
+        private void replaceClients(IEnumerable<SelectableClientBaseViewModel> clients)
         {
-            if (keyCode == Keycode.Back)
-            {
-                ViewModel.CloseCommand.Execute();
-                return true;
-            }
-
-            return base.OnKeyDown(keyCode, e);
+            selectClientRecyclerAdapter.Items = clients.ToList();
         }
     }
 }

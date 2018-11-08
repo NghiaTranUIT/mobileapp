@@ -8,7 +8,7 @@
     android:layout_height="48dp"
     android:layout_width="match_parent">
     <TextView
-        local:MvxBind="Text Name"
+        android:id="@+id/NameTextView"
         android:maxLines="1"
         android:textSize="15sp"
         android:textColor="@android:color/black"
@@ -29,7 +29,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical|right" />
     <ImageView
-        local:MvxBind="Visibility Visibility(Selected)"
+        android:id="@+id/SelectedImageView"
         android:src="@drawable/check"
         android:layout_marginRight="16dp"
         android:layout_width="wrap_content"

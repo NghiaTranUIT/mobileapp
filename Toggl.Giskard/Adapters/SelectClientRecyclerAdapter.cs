@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Windows.Input;
 using Android.Runtime;
-using Android.Support.V7.Widget;
 using Android.Views;
-using MvvmCross.Platforms.Android.Binding.BindingContext;
-using MvvmCross.Commands;
-using MvvmCross.Droid.Support.V7.RecyclerView;
-using Toggl.Giskard.TemplateSelectors;
+using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Giskard.ViewHolders;
 
 namespace Toggl.Giskard.Adapters
 {
-    public sealed class SelectClientRecyclerAdapter : SelectCreatableEntityRecyclerAdapter
+    public sealed class SelectClientRecyclerAdapter : BaseRecyclerAdapter<SelectableClientBaseViewModel>
     {
+        private const int selectableClientViewType = 1;
+        private const int selectableClientCreationViewType = 2;
+
         public SelectClientRecyclerAdapter()
         {
         }
@@ -21,10 +20,33 @@ namespace Toggl.Giskard.Adapters
         {
         }
 
-        protected override string SuggestingItemText
-            => $"Create client \"{Text.Trim()}\"";
+        public override int GetItemViewType(int position)
+        {
+            var item = GetItem(position);
+            switch (item)
+            {
+                case SelectableClientViewModel _:
+                    return selectableClientViewType;
+                case SelectableClientCreationViewModel _:
+                    return selectableClientCreationViewType;
+                default:
+                    throw new Exception("Invalid item type");
+            }
+        }
 
-        protected override ICommand GetClickCommand(int viewType) =>
-            viewType == SelectClientTemplateSelector.CreateEntity ? CreateCommand : ItemClick;
+        protected override BaseRecyclerViewHolder<SelectableClientBaseViewModel> CreateViewHolder(ViewGroup parent, LayoutInflater inflater, int viewType)
+        {
+            switch (viewType)
+            {
+                case selectableClientViewType:
+                    var inflatedView = inflater.Inflate(Resource.Layout.SelectClientActivityCell, parent, false);
+                    return new ClientSelectionViewHolder(inflatedView);
+                case selectableClientCreationViewType:
+                    var inflatedCreationView = inflater.Inflate(Resource.Layout.SelectClientCreationActivityCell, parent, false);
+                    return new ClientCreationSelectionViewHolder(inflatedCreationView);
+                default:
+                    throw new Exception("Unsupported view type");
+            }
+        }
     }
 }
