@@ -15,27 +15,34 @@ namespace Toggl.Giskard.Services
         public IObservable<RatingViewConfiguration> RatingViewConfiguration
             => Observable.Create<RatingViewConfiguration>(observer =>
             {
-                var remoteConfig = FirebaseRemoteConfig.Instance;
-
-                var settings = new FirebaseRemoteConfigSettings
-                    .Builder()
-                    .SetDeveloperModeEnabled(true)
-                    .Build();
-
-                remoteConfig.SetConfigSettings(settings);
-                remoteConfig.Fetch(error =>
+                try
                 {
-                    if (error != null)
-                        return;
+                    var remoteConfig = FirebaseRemoteConfig.Instance;
 
-                    remoteConfig.ActivateFetched();
-                    var configuration = new RatingViewConfiguration(
-                        (int)remoteConfig.GetValue("day_count").AsLong(),
-                        remoteConfig.GetString("criterion").ToRatingViewCriterion()
-                    );
-                    observer.OnNext(configuration);
-                    observer.OnCompleted();
-                });
+                    var settings = new FirebaseRemoteConfigSettings
+                        .Builder()
+                        .SetDeveloperModeEnabled(true)
+                        .Build();
+
+                    remoteConfig.SetConfigSettings(settings);
+                    remoteConfig.Fetch(error =>
+                    {
+                        if (error != null)
+                            return;
+
+                        remoteConfig.ActivateFetched();
+                        var configuration = new RatingViewConfiguration(
+                            (int)remoteConfig.GetValue("day_count").AsLong(),
+                            remoteConfig.GetString("criterion").ToRatingViewCriterion()
+                        );
+                        observer.OnNext(configuration);
+                        observer.OnCompleted();
+                    });
+                }
+                catch (Exception ex)
+                {
+
+                }
 
                 return Disposable.Empty;
             });

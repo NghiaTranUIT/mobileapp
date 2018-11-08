@@ -14,6 +14,12 @@ namespace Toggl.Giskard
         {
         }
 
+        public override void OnCreate()
+        {
+            base.OnCreate();
+            Firebase.FirebaseApp.InitializeApp(this);
+        }
+
 #if USE_ANALYTICS
         public override void OnCreate()
         {
