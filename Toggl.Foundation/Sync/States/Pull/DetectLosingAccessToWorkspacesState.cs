@@ -34,7 +34,7 @@ namespace Toggl.Foundation.Sync.States.Pull
             => fetchObservables.GetList<IWorkspace>()
                 .SelectMany(workspacesWhichWereNotFetched)
                 .SelectMany(markAsInaccessible)
-                .Select(Continue.Transition(fetchObservables));
+                .SelectValue(Continue.Transition(fetchObservables));
 
         private IObservable<IList<IThreadSafeWorkspace>> workspacesWhichWereNotFetched(List<IWorkspace> fetchedWorkspaces)
             => allStoredWorkspaces()
@@ -51,7 +51,7 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SelectMany(CommonFunctions.Identity)
                 .SelectMany(markAsInaccessible)
                 .ToList()
-                .Select(Unit.Default);
+                .SelectValue(Unit.Default);
 
         private IObservable<IThreadSafeWorkspace> markAsInaccessible(IThreadSafeWorkspace workspaceToMark)
             => dataSource.Update(workspaceToMark.AsInaccessible());

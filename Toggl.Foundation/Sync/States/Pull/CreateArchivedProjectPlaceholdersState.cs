@@ -48,7 +48,7 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SelectMany(createProjectPlaceholder)
                 .Count()
                 .Track(analyticsService.ProjectPlaceholdersCreated)
-                .Select(FinishedPersisting.Transition(fetch))
+                .SelectValue(FinishedPersisting.Transition(fetch))
                 .OnErrorReturnResult(ErrorOccured);
 
         private IObservable<bool> hasUnknownProject(ITimeEntry timeEntry)
