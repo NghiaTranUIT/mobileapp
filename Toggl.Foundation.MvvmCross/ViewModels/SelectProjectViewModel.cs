@@ -149,7 +149,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             infoSubject.AsObservable()
                        .StartWith(Text)
                        .Select(text => text.SplitToQueryWords())
-                       .ObserveOn(schedulerProvider.DefaultScheduler)
+                       .ObserveOn(schedulerProvider.BackgroundScheduler)
                        .SelectMany(query => interactorFactory.GetProjectsAutocompleteSuggestions(query).Execute())
                        .SubscribeOn(schedulerProvider.MainScheduler)
                        .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
