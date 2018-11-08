@@ -2,12 +2,13 @@
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Daneel.ViewControllers
 {
     public sealed partial class AboutViewController : ReactiveViewController<AboutViewModel>
     {
-        public AboutViewController() 
+        public AboutViewController()
             : base(nameof(AboutViewController))
         {
         }
@@ -18,9 +19,17 @@ namespace Toggl.Daneel.ViewControllers
 
             Title = Resources.About;
 
-            this.Bind(LicensesView.Rx().Tap(), ViewModel.OpenLicensesView);
-            this.Bind(PrivacyPolicyView.Rx().Tap(), ViewModel.OpenPrivacyPolicyView);
-            this.Bind(TermsOfServiceView.Rx().Tap(), ViewModel.OpenTermsOfServiceView);
+            LicensesView.Rx()
+                .BindAction(ViewModel.OpenLicensesView)
+                .DisposedBy(DisposeBag);
+
+            PrivacyPolicyView.Rx()
+                .BindAction(ViewModel.OpenPrivacyPolicyView)
+                .DisposedBy(DisposeBag);
+
+            TermsOfServiceView.Rx()
+                .BindAction(ViewModel.OpenTermsOfServiceView)
+                .DisposedBy(DisposeBag);
         }
     }
 }

@@ -7,7 +7,7 @@ using Toggl.Multivac;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class NotificationService : INotificationService
+    public sealed class NotificationServiceAndroid : INotificationService
     {
         public IObservable<Unit> Schedule(IImmutableList<Multivac.Notification> notifications)
             => Observable.Return(Unit.Default);

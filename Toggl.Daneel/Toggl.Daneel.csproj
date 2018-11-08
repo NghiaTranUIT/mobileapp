@@ -662,7 +662,6 @@
     <Compile Include="Binding\DatePickerDateTimeOffsetTargetBinding.cs" />
     <Compile Include="Extensions\Binders\ReactiveTableViewBinder.cs" />
     <Compile Include="Extensions\IntentPeriod.cs" />
-    <Compile Include="Extensions\Reactive\ReactiveBindingHolderExtensions.cs" />
     <Compile Include="Extensions\SectionedIndexExtensions.cs" />
     <Compile Include="Services\PermissionsServiceIos.cs" />
     <Compile Include="Services\CalendarServiceIos.cs" />
@@ -1159,6 +1158,7 @@
     <Compile Include="Cells\SelectDefaultWorkspaceTableViewCell.designer.cs">
       <DependentUpon>SelectDefaultWorkspaceTableViewCell.cs</DependentUpon>
     </Compile>
+    <Compile Include="Extensions\IThreadSafeTimeEntryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation.MvvmCross\Toggl.Foundation.MvvmCross.csproj">

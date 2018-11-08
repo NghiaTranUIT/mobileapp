@@ -6,6 +6,7 @@ using Android.Support.V7.Widget;
 using Android.Webkit;
 using MvvmCross.Droid.Support.V7.AppCompat;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac;
 using static Android.Support.V7.Widget.Toolbar;
@@ -66,7 +67,7 @@ namespace Toggl.Giskard.Activities
 
         private void onNavigateBack(object sender, NavigationClickEventArgs e)
         {
-            ViewModel.Close.Execute();
+            ViewModel.Close().Execute();
         }
 
         private class TogglWebViewClient : WebViewClient

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CoreGraphics;
 using Foundation;
@@ -30,21 +31,53 @@ namespace Toggl.Daneel.ViewControllers.Settings
             prepareViews();
             prepareIndicatorView();
 
-            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
-            this.Bind(FeedbackTextView.Rx().Text(), ViewModel.FeedbackText);
-            this.Bind(ErrorView.Rx().Tap(), ViewModel.DismissError);
+            CloseButton.Rx()
+                .BindAction(ViewModel.Close)
+                .DisposedBy(DisposeBag);
 
-            this.Bind(SendButton.Rx().Tap(), ViewModel.Send);
+            FeedbackTextView.Rx().Text()
+                .Subscribe(ViewModel.FeedbackText)
+                .DisposedBy(DisposeBag);
+
+            ErrorView.Rx()
+                .BindAction(ViewModel.DismissError)
+                .DisposedBy(DisposeBag);
+
+            SendButton.Rx()
+                .BindAction(ViewModel.Send)
+                .DisposedBy(DisposeBag);
             SendButton.TouchUpInside += (sender, args) => { FeedbackTextView.ResignFirstResponder(); };
 
-            this.Bind(ViewModel.IsFeedbackEmpty, FeedbackPlaceholderTextView.Rx().IsVisible());
-            this.Bind(ViewModel.Error.Select(NotNull), ErrorView.Rx().AnimatedIsVisible());
-            this.Bind(ViewModel.SendEnabled, SendButton.Rx().Enabled());
+            ViewModel.IsFeedbackEmpty
+                .Subscribe(FeedbackPlaceholderTextView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(ViewModel.IsLoading.Invert(), SendButton.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading.Invert(), CloseButton.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading, IndicatorView.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading, UIApplication.SharedApplication.Rx().NetworkActivityIndicatorVisible());
+            ViewModel.Error
+                .Select(NotNull)
+                .Subscribe(ErrorView.Rx().AnimatedIsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SendEnabled
+                .Subscribe(SendButton.Rx().Enabled())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Invert()
+                .Subscribe(SendButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Invert()
+                .Subscribe(CloseButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(IndicatorView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(UIApplication.SharedApplication.Rx().NetworkActivityIndicatorVisible())
+                .DisposedBy(DisposeBag);
         }
 
         protected override void KeyboardWillShow(object sender, UIKeyboardEventArgs e)

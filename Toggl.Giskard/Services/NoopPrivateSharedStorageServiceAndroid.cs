@@ -3,7 +3,7 @@ using Toggl.Foundation.Services;
 
 namespace Toggl.Giskard.Services
 {
-    public class NoopPrivateSharedStorageService : IPrivateSharedStorageService
+    public class NoopPrivateSharedStorageServiceAndroid : IPrivateSharedStorageService
     {
         public void SaveApiToken(string apiToken)
         {

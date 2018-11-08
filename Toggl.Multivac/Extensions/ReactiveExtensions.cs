@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace Toggl.Multivac.Extensions
@@ -30,13 +31,13 @@ namespace Toggl.Multivac.Extensions
             public void OnNext(T value) { }
         }
 
-        public static IDisposable Subscribe<T>(this IObservable<T> observable, Action<Exception> onError, Action onCompleted)
+        public static IDisposable SubscribeToErrorsAndCompletion<T>(this IObservable<T> observable, Action<Exception> onError, Action onCompleted)
         {
             var observer = new Observer<T>(onError, onCompleted);
             return observable.Subscribe(observer);
         }
 
-        public static IDisposable Subscribe<T>(this IObservable<T> observable, Action<Exception> onError)
+        public static IDisposable SubscribeToErrors<T>(this IObservable<T> observable, Action<Exception> onError)
         {
             var observer = new Observer<T>(onError, () => { });
             return observable.Subscribe(observer);
@@ -91,6 +92,12 @@ namespace Toggl.Multivac.Extensions
                 if (predicate(value))
                     action(value);
             });
+
+        public static IObservable<T> ThrowIf<T>(
+            this IObservable<T> observable,
+            Predicate<T> predicate,
+            Exception exception)
+            => observable.DoIf(predicate, _ => throw exception);
 
         public static IObservable<bool> Invert(this IObservable<bool> observable) => observable.Select(b => !b);
 

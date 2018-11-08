@@ -4,6 +4,8 @@ using Android.Content;
 using MvvmCross;
 using MvvmCross.Binding;
 using MvvmCross.Droid.Support.V7.AppCompat;
+using MvvmCross.Exceptions;
+using MvvmCross.Logging;
 using MvvmCross.Navigation;
 using MvvmCross.Platforms.Android;
 using MvvmCross.Platforms.Android.Presenters;
@@ -48,7 +50,7 @@ namespace Toggl.Giskard
 
         protected override IMvxNavigationService InitializeNavigationService(IMvxViewModelLocatorCollection collection)
         {
-            analyticsService = new AnalyticsService();
+            analyticsService = new AnalyticsServiceAndroid();
             platformInfo = new PlatformInfo { Platform = Platform.Giskard };
 
             var loader = CreateViewModelLoader(collection);
@@ -79,15 +81,15 @@ namespace Toggl.Giskard
 
             var appVersion = Version.Parse(version);
             var userAgent = new UserAgent(clientName, version);
-            var mailService = new MailService(ApplicationContext);
-            var dialogService = new DialogService();
+            var mailService = new MailServiceAndroid(ApplicationContext);
+            var dialogService = new DialogServiceAndroid();
             var platformConstants = new PlatformConstants();
-            var keyValueStorage = new SharedPreferencesStorage(sharedPreferences);
+            var keyValueStorage = new SharedPreferencesStorageAndroid(sharedPreferences);
             var settingsStorage = new SettingsStorage(appVersion, keyValueStorage);
             var feedbackService = new FeedbackService(userAgent, mailService, dialogService, platformConstants);
             var schedulerProvider = new AndroidSchedulerProvider();
-            var permissionsService = new PermissionsService();
-            var calendarService = new CalendarService(permissionsService);
+            var permissionsService = new PermissionsServiceAndroid();
+            var calendarService = new CalendarServiceAndroid(permissionsService);
 
             ApplicationContext.RegisterReceiver(new TimezoneChangedBroadcastReceiver(timeService),
                 new IntentFilter(Intent.ActionTimezoneChanged));
@@ -100,28 +102,28 @@ namespace Toggl.Giskard
                     .WithTimeService(timeService)
                     .WithMailService(mailService)
                     .WithApiEnvironment(environment)
-                    .WithGoogleService<GoogleService>()
-                    .WithRatingService<RatingService>()
-                    .WithLicenseProvider<LicenseProvider>()
+                    .WithGoogleService<GoogleServiceAndroid>()
+                    .WithRatingService<RatingServiceAndroid>()
+                    .WithLicenseProvider<LicenseProviderAndroid>()
                     .WithAnalyticsService(analyticsService)
                     .WithSchedulerProvider(schedulerProvider)
                     .WithPlatformConstants(platformConstants)
-                    .WithNotificationService<NotificationService>()
-                    .WithRemoteConfigService<RemoteConfigService>()
+                    .WithNotificationService<NotificationServiceAndroid>()
+                    .WithRemoteConfigService<RemoteConfigServiceAndroid>()
                     .WithApiFactory(new ApiFactory(environment, userAgent))
                     .WithBackgroundService(new BackgroundService(timeService))
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator(ApplicationContext))
                     .WithPlatformInfo(platformInfo)
-                    .WithStopwatchProvider<AndroidFirebaseStopwatchProvider>()
-                    .WithIntentDonationService(new NoopIntentDonationService())
-                    .WithPrivateSharedStorageService(new NoopPrivateSharedStorageService())
+                    .WithStopwatchProvider<FirebaseStopwatchProviderAndroid>()
+                    .WithIntentDonationService(new NoopIntentDonationServiceAndroid())
+                    .WithPrivateSharedStorageService(new NoopPrivateSharedStorageServiceAndroid())
 
                     .StartRegisteringPlatformServices()
                     .WithDialogService(dialogService)
                     .WithFeedbackService(feedbackService)
                     .WithLastTimeUsageStorage(settingsStorage)
-                    .WithBrowserService<BrowserService>()
+                    .WithBrowserService<BrowserServiceAndroid>()
                     .WithCalendarService(calendarService)
                     .WithKeyValueStorage(keyValueStorage)
                     .WithUserPreferences(settingsStorage)
@@ -148,6 +150,12 @@ namespace Toggl.Giskard
         }
 
         // Skip the sluggish and reflection-based manager and load our plugins by hand
+        protected override IMvxPluginManager InitializePluginFramework()
+        {
+            LoadPlugins(null);
+            return null;
+        }
+
         public override void LoadPlugins(IMvxPluginManager pluginManager)
         {
             new ColorPlugin().Load();

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Reactive.Linq;
 using CoreGraphics;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
@@ -6,6 +7,7 @@ using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewControllers.Calendar
@@ -33,10 +35,22 @@ namespace Toggl.Daneel.ViewControllers.Calendar
             var source = new SelectUserCalendarsTableViewSource(TableView, ViewModel.Calendars);
             TableView.Source = source;
 
-            this.Bind(DoneButton.Rx().Tap(), ViewModel.Done);
-            this.Bind(source.ItemSelected, ViewModel.SelectCalendar);
-            this.Bind(ViewModel.Done.Enabled, DoneButton.Rx().Enabled());
-            this.Bind(ViewModel.Done.Enabled.Select(alphaForEnabled), DoneButton.Rx().AnimatedAlpha());
+            DoneButton.Rx()
+                .BindAction(ViewModel.Done)
+                .DisposedBy(DisposeBag);
+
+            source.ItemSelected
+                .Subscribe(ViewModel.SelectCalendar.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Done.Enabled
+                .Subscribe(DoneButton.Rx().Enabled())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Done.Enabled
+                .Select(alphaForEnabled)
+                .Subscribe(DoneButton.Rx().AnimatedAlpha())
+                .DisposedBy(DisposeBag);
         }
 
         public override void ViewDidLayoutSubviews()

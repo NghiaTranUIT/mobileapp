@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Toggl.Foundation.Exceptions;
 using Toggl.Foundation.Sync.Tests.Extensions;
 using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Multivac;
@@ -25,29 +26,6 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
         {
             Api = api;
             InitialServerState = initialServerState;
-        }
-
-        public static async Task<Server> Create()
-        {
-            IUser user = null;
-            do
-            {
-                if (user != null) await Task.Delay(TimeSpan.FromSeconds(1));
-                user = await Ultrawave.Tests.Integration.User.Create();
-            } while (user.DefaultWorkspaceId.HasValue == false);
-
-            var credentials = Credentials.WithApiToken(user.ApiToken);
-            var api = Ultrawave.Tests.Integration.Helper.TogglApiFactory.TogglApiWith(credentials);
-
-            var defaultWorkspace = await api.Workspaces.GetById(user.DefaultWorkspaceId.Value);
-            var preferences = await api.Preferences.Get();
-
-            var initialServerState = new ServerState(
-                user,
-                workspaces: new[] { defaultWorkspace },
-                preferences: preferences);
-
-            return new Server(api, initialServerState);
         }
 
         public async Task<ServerState> PullCurrentState()
@@ -208,6 +186,65 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             }
 
             await timeEntries.Select(Api.TimeEntries.Create).Merge().ToList();
+        }
+    
+        public static class Factory
+        {
+            private static readonly UserAgent userAgent = new UserAgent("TogglSyncingTests", "0.0.0");
+            private static readonly ApiEnvironment environment = ApiEnvironment.Staging;
+
+            public static async Task<Server> Create()
+            {
+                var user = await createUserAccountForTesting();
+                var api = createApiFor(user);
+                var initialServerState = await fetchInitialServerState(user, api);
+
+                return new Server(api, initialServerState);
+            }
+
+            private static async Task<IUser> createUserAccountForTesting()
+            {
+                IUser user = null;
+                int numberOfTries = 0;
+
+                do
+                {
+                    if (user != null) await Task.Delay(TimeSpan.FromSeconds(1));
+                    user = await Ultrawave.Tests.Integration.User.Create();
+                } while (user.DefaultWorkspaceId.HasValue == false && ++numberOfTries < 3);
+
+                if (!user.DefaultWorkspaceId.HasValue)
+                    throw new NoDefaultWorkspaceException($"Failed to create a new user account for testing even after {numberOfTries} tries.");
+
+                return user;
+            }
+
+            private static ITogglApi createApiFor(IUser user)
+            {
+                var credentials = Credentials.WithApiToken(user.ApiToken);
+                var apiConfiguration = new ApiConfiguration(environment, credentials, userAgent);
+                var apiClient = createApiClient();
+
+                return new TogglApi(apiConfiguration, apiClient);
+            }
+
+            private static IApiClient createApiClient()
+            {
+                var realApiClient = Ultrawave.TogglApiFactory.CreateDefaultApiClient(userAgent);
+
+                return new SlowApiClient(new RetryingApiClient(realApiClient));
+            }
+
+            private static async Task<ServerState> fetchInitialServerState(IUser user, ITogglApi api)
+            {
+                var defaultWorkspace = await api.Workspaces.GetById(user.DefaultWorkspaceId.Value);
+                var preferences = await api.Preferences.Get();
+
+                return new ServerState(
+                    user,
+                    workspaces: new[] { defaultWorkspace },
+                    preferences: preferences);
+            }
         }
     }
 }

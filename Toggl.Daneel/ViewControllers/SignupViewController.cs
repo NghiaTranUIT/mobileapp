@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Reactive.Linq;
 using MvvmCross.Platforms.Ios.Presenters.Attributes;
@@ -5,9 +6,11 @@ using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Daneel.Extensions.LoginSignupViewExtensions;
 using static Toggl.Daneel.Extensions.ViewExtensions;
@@ -42,45 +45,109 @@ namespace Toggl.Daneel.ViewControllers
             UIKeyboard.Notifications.ObserveWillHide(KeyboardWillHide);
 
             //Text
-            this.Bind(ViewModel.ErrorMessage, ErrorLabel.Rx().Text());
-            this.Bind(ViewModel.Email, EmailTextField.Rx().TextObserver());
-            this.Bind(ViewModel.Password, PasswordTextField.Rx().TextObserver());
-            this.Bind(EmailTextField.Rx().Text().Select(Email.From), ViewModel.SetEmail);
-            this.Bind(PasswordTextField.Rx().Text().Select(Password.From), ViewModel.SetPassword);
-            this.Bind(ViewModel.IsLoading.Select(signupButtonTitle), SignupButton.Rx().AnimatedTitle());
-            this.Bind(ViewModel.CountryButtonTitle, SelectCountryButton.Rx().AnimatedTitle());
+            ViewModel.ErrorMessage
+                .Subscribe(ErrorLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Email
+                .Subscribe(EmailTextField.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Password
+                .Subscribe(PasswordTextField.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            EmailTextField.Rx().Text()
+                .Select(Email.From)
+                .Subscribe(ViewModel.SetEmail)
+                .DisposedBy(DisposeBag);
+
+            PasswordTextField.Rx().Text()
+                .Select(Password.From)
+                .Subscribe(ViewModel.SetPassword)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Select(signupButtonTitle)
+                .Subscribe(SignupButton.Rx().AnimatedTitle())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.CountryButtonTitle
+                .Subscribe(SelectCountryButton.Rx().AnimatedTitle())
+                .DisposedBy(DisposeBag);
 
             //Visibility
-            this.Bind(ViewModel.HasError, ErrorLabel.Rx().AnimatedIsVisible());
-            this.Bind(ViewModel.IsLoading, ActivityIndicator.Rx().IsVisibleWithFade());
-            this.Bind(ViewModel.IsPasswordMasked.Skip(1), PasswordTextField.Rx().SecureTextEntry());
-            this.Bind(ViewModel.IsShowPasswordButtonVisible, ShowPasswordButton.Rx().IsVisible());
-            this.Bind(PasswordTextField.FirstResponder, ViewModel.SetIsShowPasswordButtonVisible);
-            this.Bind(ViewModel.IsCountryErrorVisible, CountryNotSelectedImageView.Rx().AnimatedIsVisible());
+            ViewModel.HasError
+                .Subscribe(ErrorLabel.Rx().AnimatedIsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(ActivityIndicator.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsPasswordMasked
+                .Skip(1)
+                .Subscribe(PasswordTextField.Rx().SecureTextEntry())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsShowPasswordButtonVisible
+                .Subscribe(ShowPasswordButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            PasswordTextField.FirstResponder
+                .Subscribe(ViewModel.SetIsShowPasswordButtonVisible)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsCountryErrorVisible
+                .Subscribe(CountryNotSelectedImageView.Rx().AnimatedIsVisible())
+                .DisposedBy(DisposeBag);
 
             //Commands
-            this.Bind(LoginCard.Rx().Tap(), ViewModel.Login);
-            this.Bind(SignupButton.Rx().Tap(), ViewModel.Signup);
-            this.BindVoid(GoogleSignupButton.Rx().Tap(), ViewModel.GoogleSignup);
-            this.BindVoid(ShowPasswordButton.Rx().Tap(), ViewModel.TogglePasswordVisibility);
-            this.Bind(SelectCountryButton.Rx().Tap(), ViewModel.PickCountry);
+            LoginCard.Rx().Tap()
+                .Subscribe(ViewModel.Login)
+                .DisposedBy(DisposeBag);
+
+            SignupButton.Rx().Tap()
+                .Subscribe(ViewModel.Signup)
+                .DisposedBy(DisposeBag);
+
+            GoogleSignupButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.GoogleSignup)
+                .DisposedBy(DisposeBag);
+
+            ShowPasswordButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.TogglePasswordVisibility)
+                .DisposedBy(DisposeBag);
+
+            SelectCountryButton.Rx().Tap()
+                .Subscribe(ViewModel.PickCountry)
+                .DisposedBy(DisposeBag);
 
             //Color
-            this.Bind(ViewModel.HasError.Select(signupButtonTintColor), SignupButton.Rx().TintColor());
-            this.Bind(ViewModel.SignupEnabled.Select(signupButtonTitleColor), SignupButton.Rx().TitleColor());
+            ViewModel.HasError
+                .Select(signupButtonTintColor)
+                .Subscribe(SignupButton.Rx().TintColor())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.SignupEnabled
+                .Select(signupButtonTitleColor)
+                .Subscribe(SignupButton.Rx().TitleColor())
+                .DisposedBy(DisposeBag);
 
             //Animation
-            this.Bind(ViewModel.Shake, shakeTargets =>
-            {
-                if (shakeTargets.HasFlag(SignupViewModel.ShakeTargets.Email))
-                    EmailTextField.Shake();
+            ViewModel.Shake
+                .Subscribe(shakeTargets =>
+                {
+                    if (shakeTargets.HasFlag(SignupViewModel.ShakeTargets.Email))
+                        EmailTextField.Shake();
 
-                if (shakeTargets.HasFlag(SignupViewModel.ShakeTargets.Password))
-                    PasswordTextField.Shake();
+                    if (shakeTargets.HasFlag(SignupViewModel.ShakeTargets.Password))
+                        PasswordTextField.Shake();
 
-                if (shakeTargets.HasFlag(SignupViewModel.ShakeTargets.Country))
-                    SelectCountryButton.Shake();
-            });
+                    if (shakeTargets.HasFlag(SignupViewModel.ShakeTargets.Country))
+                        SelectCountryButton.Shake();
+                })
+                .DisposedBy(DisposeBag);
 
             prepareViews();
 

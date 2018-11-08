@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Reactive.Linq;
 using CoreGraphics;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
@@ -35,12 +36,27 @@ namespace Toggl.Daneel.ViewControllers
 
             prepareViews();
 
-            this.Bind(CreateWorkspaceButton.Rx().Tap(), ViewModel.CreateWorkspaceWithDefaultName);
-            this.Bind(TryAgainButton.Rx().Tap(), ViewModel.TryAgain);
+            CreateWorkspaceButton.Rx()
+                .BindAction(ViewModel.CreateWorkspaceWithDefaultName)
+                .DisposedBy(DisposeBag);
 
-            this.Bind(ViewModel.IsLoading.Select(CommonFunctions.Invert), CreateWorkspaceButton.Rx().Enabled());
-            this.Bind(ViewModel.IsLoading.Select(CommonFunctions.Invert), TryAgainButton.Rx().IsVisibleWithFade());
-            this.Bind(ViewModel.IsLoading.StartWith(false), ActivityIndicatorView.Rx().IsVisibleWithFade());
+            TryAgainButton.Rx()
+                .BindAction(ViewModel.TryAgain)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Invert()
+                .Subscribe(CreateWorkspaceButton.Rx().Enabled())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Invert()
+                .Subscribe(TryAgainButton.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading.StartWith(false)
+                .Subscribe(ActivityIndicatorView.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
         }
 
         public override void ViewDidAppear(bool animated)

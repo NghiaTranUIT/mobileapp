@@ -6,11 +6,11 @@ using Toggl.PrimeRadiant.Settings;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class SharedPreferencesStorage : KeyValueStorage
+    public sealed class SharedPreferencesStorageAndroid : KeyValueStorage
     {
         private readonly ISharedPreferences sharedPreferences;
 
-        public SharedPreferencesStorage(ISharedPreferences sharedPreferences)
+        public SharedPreferencesStorageAndroid(ISharedPreferences sharedPreferences)
         {
             this.sharedPreferences = sharedPreferences;
         }

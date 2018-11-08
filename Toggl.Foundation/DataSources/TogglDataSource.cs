@@ -111,7 +111,7 @@ namespace Toggl.Foundation.DataSources
         {
             SyncManager = createSyncManager(this);
             errorHandlingDisposable?.Dispose();
-            errorHandlingDisposable = SyncManager.ProgressObservable.Subscribe(onSyncError);
+            errorHandlingDisposable = SyncManager.ProgressObservable.SubscribeToErrors(onSyncError);
         }
 
         public IObservable<Unit> StartSyncing()
@@ -151,7 +151,7 @@ namespace Toggl.Foundation.DataSources
                 .Do(stopSyncingOnSignal)
                 .SelectMany(_ => database.Clear())
                 .Do(shortcutCreator.OnLogout)
-                .SelectMany(_ => 
+                .SelectMany(_ =>
                     notificationService
                         .UnscheduleAllNotifications()
                         .Catch(Observable.Return(Unit.Default)))

@@ -16,7 +16,7 @@ using Toggl.Foundation.Login;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class GoogleService : MvxAndroidTask, IGoogleService
+    public sealed class GoogleServiceAndroid : MvxAndroidTask, IGoogleService
     {
         private const int googleSignInResult = 123;
         private readonly object lockable = new object();
@@ -28,7 +28,7 @@ namespace Toggl.Giskard.Services
 
         private GoogleApiClient googleApiClient;
 
-        public GoogleService()
+        public GoogleServiceAndroid()
         {
             var signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
                 .RequestIdToken("{TOGGL_DROID_GOOGLE_SERVICES_CLIENT_ID}")

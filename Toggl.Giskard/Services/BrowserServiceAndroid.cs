@@ -5,7 +5,7 @@ using Toggl.Foundation.MvvmCross.Services;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class BrowserService : MvxAndroidTask, IBrowserService
+    public sealed class BrowserServiceAndroid : MvxAndroidTask, IBrowserService
     {
         public void OpenStore()
         {

@@ -56,11 +56,6 @@ namespace Toggl.Giskard.Converters
             : base(Color.ParseColor("#e20505"), Color.ParseColor("#5e5b5b")) { }
     }
 
-    public sealed class ManualModeEnabledDrawableValueConverter : BoolToConstantValueConverter<int>
-    {
-        public ManualModeEnabledDrawableValueConverter() : base(Resource.Drawable.add_white, Resource.Drawable.play_white) { }
-    }
-
     public sealed class ReportsCalendarDayColorValueConverter : BoolToConstantValueConverter<Color>
     {
         public ReportsCalendarDayColorValueConverter() : base(Color.White, Reports.DayNotInMonth.ToNativeColor()) { }

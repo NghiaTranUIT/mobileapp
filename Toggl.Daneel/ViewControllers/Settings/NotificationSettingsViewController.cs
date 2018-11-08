@@ -1,4 +1,5 @@
-﻿using MvvmCross.Platforms.Ios.Presenters.Attributes;
+﻿using System;
+using MvvmCross.Platforms.Ios.Presenters.Attributes;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Foundation.MvvmCross.ViewModels;
@@ -21,13 +22,26 @@ namespace Toggl.Daneel.ViewControllers.Settings
 
             NavigationItem.Title = FoundationResources.NotificationSettingsTitle;
 
-            this.Bind(ViewModel.PermissionGranted.Invert(), OpenSettingsContainer.Rx().IsVisible());
-            this.Bind(ViewModel.PermissionGranted, CalendarNotificationsContainer.Rx().IsVisible());
+            ViewModel.PermissionGranted
+                .Invert()
+                .Subscribe(OpenSettingsContainer.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(OpenSettingsButton.Rx().Tap(), ViewModel.RequestAccess);
+            ViewModel.PermissionGranted
+                .Subscribe(CalendarNotificationsContainer.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(CalendarNotificationsRow.Rx().Tap(), ViewModel.OpenUpcomingEvents);
-            this.Bind(ViewModel.UpcomingEvents, CalendarNotificationsValue.Rx().Text());
+            OpenSettingsButton.Rx()
+                .BindAction(ViewModel.RequestAccess)
+                .DisposedBy(DisposeBag);
+
+            CalendarNotificationsRow.Rx().Tap()
+                .Subscribe(ViewModel.OpenUpcomingEvents.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.UpcomingEvents
+                .Subscribe(CalendarNotificationsValue.Rx().Text())
+                .DisposedBy(DisposeBag);
         }
     }
 }

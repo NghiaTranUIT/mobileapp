@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Linq;
 using CoreText;
 using Foundation;
@@ -36,24 +37,62 @@ namespace Toggl.Daneel.ViewControllers
 
             prepareViews();
 
-            this.Bind(ViewModel.Error, ErrorLabel.Rx().Text());
-            this.Bind(ViewModel.Email.SelectToString(), EmailLabel.Rx().Text());
-            this.Bind(ViewModel.Password.SelectToString(), PasswordTextField.Rx().TextObserver());
-            this.Bind(PasswordTextField.Rx().Text(), ViewModel.SetPassword);
-            this.Bind(ViewModel.IsPasswordMasked, PasswordTextField.Rx().SecureTextEntry());
+            ViewModel.Error
+                .Subscribe(ErrorLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(SignOutButton.Rx().Tap(), ViewModel.SignOut);
-            this.Bind(ShowPasswordButton.Rx().Tap(), ViewModel.TogglePasswordVisibility);
-            this.Bind(nextButton.Rx().Tap(), ViewModel.Done);
-            this.Bind(PasswordTextField.Rx().ShouldReturn(), ViewModel.Done);
+            ViewModel.Email
+                .SelectToString()
+                .Subscribe(EmailLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Password
+                .SelectToString()
+                .Subscribe(PasswordTextField.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            PasswordTextField.Rx().Text()
+                .Subscribe(ViewModel.SetPassword.Inputs)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsPasswordMasked
+                .Subscribe(PasswordTextField.Rx().SecureTextEntry())
+                .DisposedBy(DisposeBag);
+
+            SignOutButton.Rx()
+                .BindAction(ViewModel.SignOut)
+                .DisposedBy(DisposeBag);
+
+            ShowPasswordButton.Rx()
+                .BindAction(ViewModel.TogglePasswordVisibility)
+                .DisposedBy(DisposeBag);
+
+            nextButton.Rx().Tap()
+                .Subscribe(ViewModel.Done.Inputs)
+                .DisposedBy(DisposeBag);
+
+            PasswordTextField.Rx().ShouldReturn()
+                .Subscribe(ViewModel.Done.Inputs)
+                .DisposedBy(DisposeBag);
 
             //Enabled
-            this.Bind(ViewModel.NextIsEnabled, nextButton.Rx().Enabled());
+            ViewModel.NextIsEnabled
+                .Subscribe(nextButton.Rx().Enabled())
+                .DisposedBy(DisposeBag);
 
             //Visibility
-            this.Bind(ViewModel.HasError, ErrorView.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading.Invert(), ShowPasswordButton.Rx().IsVisible());
-            this.Bind(ViewModel.IsLoading, ActivityIndicatorView.Rx().IsVisible());
+            ViewModel.HasError
+                .Subscribe(ErrorView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Invert()
+                .Subscribe(ShowPasswordButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(ActivityIndicatorView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
             PasswordTextField.BecomeFirstResponder();
         }

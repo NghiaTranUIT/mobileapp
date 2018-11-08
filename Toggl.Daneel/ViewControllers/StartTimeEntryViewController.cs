@@ -192,14 +192,14 @@ namespace Toggl.Daneel.ViewControllers
             bindingSet.Apply();
 
             // Reactive
-            this.Bind(ViewModel.TextFieldInfoObservable, onTextFieldInfo);
+            ViewModel.TextFieldInfoObservable
+                .Subscribe(onTextFieldInfo)
+                .DisposedBy(DisposeBag);
 
-            this.Bind(
-                DescriptionTextView
-                    .Rx()
-                    .AttributedText()
-                    .Select(attributedString => attributedString.Length == 0),
-                isDescriptionEmptySubject);
+            DescriptionTextView.Rx().AttributedText()
+                .Select(attributedString => attributedString.Length == 0)
+                .Subscribe(isDescriptionEmptySubject)
+                .DisposedBy(DisposeBag);
 
             DescriptionTextView.Rx().AttributedText()
                 .CombineLatest(DescriptionTextView.Rx().CursorPosition(), (text, _) => text)

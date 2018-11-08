@@ -8,11 +8,13 @@ namespace Toggl.Giskard
     {
         public IScheduler MainScheduler { get; }
         public IScheduler DefaultScheduler { get; }
+        public IScheduler BackgroundScheduler { get; }
 
         public AndroidSchedulerProvider()
         {
             MainScheduler = new HandlerScheduler(new Handler(Looper.MainLooper), Looper.MainLooper.Thread.Id);
             DefaultScheduler = Scheduler.Default;
+            BackgroundScheduler = NewThreadScheduler.Default;
         }
     }
 }

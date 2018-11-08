@@ -15,7 +15,7 @@ using Toggl.Giskard.ViewHolders;
 namespace Toggl.Giskard.Fragments
 {
     [MvxDialogFragmentPresentation(AddToBackStack = true, Cancelable = false)]
-    public sealed partial class SelectDefaultWorkspaceFragment : MvxDialogFragment<SelectDefaultWorkspaceViewModel>, IReactiveBindingHolder
+    public sealed partial class SelectDefaultWorkspaceFragment : MvxDialogFragment<SelectDefaultWorkspaceViewModel>
     {
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 

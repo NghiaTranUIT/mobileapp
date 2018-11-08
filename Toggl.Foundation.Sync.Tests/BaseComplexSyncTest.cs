@@ -3,6 +3,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Sync.Tests.Helpers;
 using Toggl.Foundation.Sync.Tests.State;
+using Toggl.Multivac.Extensions;
+using Toggl.Ultrawave.Exceptions;
 using Toggl.Ultrawave.Tests.Integration;
 using Xunit;
 
@@ -26,7 +28,7 @@ namespace Toggl.Foundation.Sync.Tests
         public async Task Execute()
         {
             // Initialize
-            var server = await Server.Create();
+            var server = await Server.Factory.Create();
             var appServices = new AppServices(server.Api, storage.Database);
 
             // Arrange
@@ -54,9 +56,25 @@ namespace Toggl.Foundation.Sync.Tests
 
         protected virtual async Task Act(ISyncManager syncManager)
         {
+            var progressMonitoring = MonitorProgress(syncManager);
             await syncManager.ForceFullSync();
+            await progressMonitoring;
         }
 
         protected abstract void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState);
+
+        protected IObservable<SyncProgress> MonitorProgress(ISyncManager syncManager)
+            => syncManager.ProgressObservable
+                .ThrowIf(
+                    progress => progress == SyncProgress.OfflineModeDetected,
+                    new SyncProcessFailedException(
+                        "The syncing process failed because the device running the test is offline."))
+                .ThrowIf(
+                    progress => progress == SyncProgress.Failed,
+                    new SyncProcessFailedException(
+                        "The syncing process failed for some unknown reason. Consider debugging the test " +
+                        "and putting a breakpoint into `SyncManager.processError` method"))
+                .Where(progress => progress == SyncProgress.Synced)
+                .FirstAsync();
     }
 }

@@ -9,6 +9,7 @@ using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.Models.Interfaces;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
@@ -63,17 +64,37 @@ namespace Toggl.Daneel.ViewControllers
             };
 
             //Text
-            this.Bind(ViewModel.WorkspaceNameObservable, WorkspaceLabel.Rx().Text());
-            this.Bind(ViewModel.CurrentDateRangeStringObservable, titleButton.Rx().Title());
+            ViewModel.WorkspaceNameObservable
+                .Subscribe(WorkspaceLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.CurrentDateRangeStringObservable
+                .Subscribe(titleButton.Rx().Title())
+                .DisposedBy(DisposeBag);
 
             //Visibility
-            this.Bind(ViewModel.WorkspacesObservable.Select(areThereEnoughWorkspaces), WorkspaceButton.Rx().IsVisible());
-            this.Bind(ViewModel.WorkspaceNameObservable.Select(isWorkspaceNameTooLong), WorkspaceFadeView.Rx().FadeRight());
+            ViewModel.WorkspacesObservable
+                .Select(areThereEnoughWorkspaces)
+                .Subscribe(WorkspaceButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.WorkspaceNameObservable
+                .Select(isWorkspaceNameTooLong)
+                .Subscribe(WorkspaceFadeView.Rx().FadeRight())
+                .DisposedBy(DisposeBag);
 
             //Commands
-            this.BindVoid(titleButton.Rx().Tap(), ViewModel.ToggleCalendar);
-            this.BindVoid(ReportsTableView.Rx().Tap(), ViewModel.HideCalendar);
-            this.Bind(WorkspaceButton.Rx().Tap(), ViewModel.SelectWorkspace);
+            titleButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.ToggleCalendar)
+                .DisposedBy(DisposeBag);
+
+            ReportsTableView.Rx().Tap()
+                .VoidSubscribe(ViewModel.HideCalendar)
+                .DisposedBy(DisposeBag);
+
+            WorkspaceButton.Rx().Tap()
+                .Subscribe(ViewModel.SelectWorkspace)
+                .DisposedBy(DisposeBag);
 
             var bindingSet = this.CreateBindingSet<ReportsViewController, ReportsViewModel>();
 

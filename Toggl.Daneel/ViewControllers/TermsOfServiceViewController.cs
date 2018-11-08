@@ -1,15 +1,15 @@
 ﻿using System;
 using CoreGraphics;
 using Foundation;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Views;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Daneel.Extensions.RangeExtensions;
 
@@ -46,8 +46,13 @@ namespace Toggl.Daneel.ViewControllers
             PreferredContentSize = new CGSize(View.Frame.Width, View.Frame.Height);
             prepareTextView();
 
-            this.Bind(AcceptButton.Rx().Tap(), ViewModel.Accept);
-            this.Bind(CloseButton.Rx().Tap(), ViewModel.Close);
+            AcceptButton.Rx()
+                .BindAction(ViewModel.Close(true))
+                .DisposedBy(DisposeBag);
+
+            CloseButton.Rx()
+                .BindAction(ViewModel.Close(false))
+                .DisposedBy(DisposeBag);
         }
 
         private void prepareTextView()

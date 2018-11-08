@@ -17,7 +17,7 @@ using Toggl.Multivac.Extensions;
 namespace Toggl.Giskard.Fragments
 {
     [MvxDialogFragmentPresentation(Cancelable = false)]
-    public sealed partial class NoWorkspaceFragment : MvxDialogFragment<NoWorkspaceViewModel>, IReactiveBindingHolder
+    public sealed partial class NoWorkspaceFragment : MvxDialogFragment<NoWorkspaceViewModel>
     {
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -35,11 +35,30 @@ namespace Toggl.Giskard.Fragments
             base.OnCreateView(LayoutInflater, container, savedInstanceState);
             var rootView = inflater.Inflate(Resource.Layout.NoWorkspaceFragment, container, false);
             InitializeViews(rootView);
-            this.Bind(createWorkspaceTextView.Rx().Tap(), ViewModel.CreateWorkspaceWithDefaultName);
-            this.Bind(tryAgainTextView.Rx().Tap(), ViewModel.TryAgain);
-            this.Bind(ViewModel.IsLoading.Select(CommonFunctions.Invert), createWorkspaceTextView.Rx().Enabled());
-            this.Bind(ViewModel.IsLoading.Select(CommonFunctions.Invert), tryAgainTextView.Rx().Enabled());
-            this.Bind(ViewModel.IsLoading.StartWith(false), onLoadingStateChanged);
+
+            createWorkspaceTextView.Rx()
+                .BindAction(ViewModel.CreateWorkspaceWithDefaultName)
+                .DisposedBy(DisposeBag);
+
+            tryAgainTextView.Rx()
+                .BindAction(ViewModel.TryAgain)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Select(CommonFunctions.Invert)
+                .Subscribe(createWorkspaceTextView.Rx().Enabled())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Select(CommonFunctions.Invert)
+                .Subscribe(tryAgainTextView.Rx().Enabled())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .StartWith(false)
+                .Subscribe(onLoadingStateChanged)
+                .DisposedBy(DisposeBag);
+
             return rootView;
         }
 

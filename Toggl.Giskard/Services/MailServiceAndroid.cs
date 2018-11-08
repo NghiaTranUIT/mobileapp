@@ -6,11 +6,11 @@ using Uri = Android.Net.Uri;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class MailService : IMailService
+    public sealed class MailServiceAndroid : IMailService
     {
         private readonly Context context;
 
-        public MailService(Context context)
+        public MailServiceAndroid(Context context)
         {
             this.context = context;
         }

@@ -17,7 +17,7 @@ using Object = Java.Lang.Object;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class DialogService : Object, IDialogService
+    public sealed class DialogServiceAndroid : Object, IDialogService
     {
         private readonly long delayBeforeLookingForTopActivityAgain = 300;
 

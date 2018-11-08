@@ -3,7 +3,7 @@ using Toggl.Foundation.Services;
 
 namespace Toggl.Giskard.Services
 {
-    public class NoopIntentDonationService: IIntentDonationService
+    public class NoopIntentDonationServiceAndroid: IIntentDonationService
     {
         public void SetDefaultShortcutSuggestions(IWorkspace workspace)
         {

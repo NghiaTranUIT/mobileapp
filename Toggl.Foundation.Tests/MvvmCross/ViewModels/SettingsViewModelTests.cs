@@ -454,17 +454,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheGoBackMethod : SettingsViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModel()
-            {
-                await ViewModel.GoBack();
-
-                await NavigationService.Received().Close(ViewModel);
-            }
-        }
-
         public sealed class TheToggleManualModeMethod : SettingsViewModelTest
         {
             public TheToggleManualModeMethod()

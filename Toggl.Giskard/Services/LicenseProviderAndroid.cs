@@ -3,7 +3,7 @@ using Toggl.Foundation.Services;
 
 namespace Toggl.Giskard.Services
 {
-    public sealed class LicenseProvider : BaseLicenseProvider
+    public sealed class LicenseProviderAndroid : BaseLicenseProvider
     {
         protected override Dictionary<string, string> GetPlatformSpecificLicenses() => new Dictionary<string, string>
         {
