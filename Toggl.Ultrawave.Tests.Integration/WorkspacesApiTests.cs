@@ -12,6 +12,7 @@ using Toggl.Ultrawave.Helpers;
 using Toggl.Ultrawave.Models;
 using Toggl.Ultrawave.Network;
 using Toggl.Ultrawave.Tests.Integration.BaseTests;
+using Toggl.Ultrawave.Tests.Integration.Helper;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
@@ -53,21 +54,11 @@ namespace Toggl.Ultrawave.Tests.Integration
             public async Task ReturnsEmptyListWhenTheDefaultWorkspaceIsDeleted()
             {
                 var (togglClient, user) = await SetupTestUser();
-                await deleteDefaultWorkspaceUsingV8Api(user);
+                await WorkspaceHelper.Delete(user, user.DefaultWorkspaceId.Value).ConfigureAwait(false);
 
                 var workspaces = await CallEndpointWith(togglClient);
 
                 workspaces.Should().BeEmpty();
-            }
-
-            private async Task deleteDefaultWorkspaceUsingV8Api(IUser user)
-            {
-                var credentials = Credentials.WithApiToken(user.ApiToken);
-                var httpClient = new HttpClient();
-                var urlPrefixForV8 = BaseUrls.ForApi(ApiEnvironment.Staging).AbsoluteUri.Replace("/v9/", "/v8");
-                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"{urlPrefixForV8}/workspaces/{user.DefaultWorkspaceId}/leave");
-                requestMessage.Headers.AddRange(new[] { credentials.Header });
-                await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
             }
         }
 

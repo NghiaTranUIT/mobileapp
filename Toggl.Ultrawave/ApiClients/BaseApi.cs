@@ -16,8 +16,6 @@ namespace Toggl.Ultrawave.ApiClients
 {
     internal abstract class BaseApi
     {
-        internal delegate void ResponseValidator<T>(IRequest request, IResponse response, T data);
-        
         private readonly IApiClient apiClient;
         private readonly IJsonSerializer serializer;
 
@@ -58,24 +56,20 @@ namespace Toggl.Ultrawave.ApiClients
         }
 
         protected IObservable<T> CreateObservable<T>(Endpoint endpoint, HttpHeader header, T entity,
-            SerializationReason serializationReason, IWorkspaceFeatureCollection features = null,
-            ResponseValidator<T> responseValidator = null)
+            SerializationReason serializationReason, IWorkspaceFeatureCollection features = null)
         {
             var body = serializer.Serialize(entity, serializationReason, features);
-            return CreateObservable(endpoint, header, body, responseValidator);
+            return CreateObservable<T>(endpoint, header, body);
         }
-        
-        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, HttpHeader header, string body = "",
-            ResponseValidator<T> responseValidator = null)
-        => CreateObservable(endpoint, new[] { header }, body, responseValidator);
 
-        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "",
-            ResponseValidator<T> responseValidator = null)
+        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, HttpHeader header, string body = "")
+        => CreateObservable<T>(endpoint, new[] { header }, body);
+
+        protected IObservable<T> CreateObservable<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
             => createObservable(endpoint, headers, body, async (rawData) =>
                 !string.IsNullOrEmpty(rawData)
                     ? await Task.Run(() => serializer.Deserialize<T>(rawData)).ConfigureAwait(false)
-                    : default(T),
-                responseValidator);
+                    : default(T));
 
         protected IObservable<string> CreateObservable(Endpoint endpoint, HttpHeader header, string body = "")
             => createObservable(endpoint, new[] { header }, body, Task.FromResult);
@@ -83,13 +77,11 @@ namespace Toggl.Ultrawave.ApiClients
         protected IObservable<string> CreateObservable(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body = "")
             => createObservable(endpoint, headers, body, Task.FromResult);
 
-        private IObservable<T> createObservable<T>(Endpoint endpoint,
-            IEnumerable<HttpHeader> headers, string body, Func<string, Task<T>> process,
-            ResponseValidator<T> responseValidator = null)
+        private IObservable<T> createObservable<T>(Endpoint endpoint, IEnumerable<HttpHeader> headers, string body, Func<string, Task<T>> process)
         {
             var headerList = headers as IList<HttpHeader> ?? headers.ToList();
             var request = new Request(body, endpoint.Url, headerList, endpoint.Method);
-            
+
             return Observable.Create<T>(async observer =>
             {
                 T data;
@@ -100,8 +92,6 @@ namespace Toggl.Ultrawave.ApiClients
                     await throwIfRequestFailed(request, response, headerList).ConfigureAwait(false);
 
                     data = await processResponseData(request, response, process).ConfigureAwait(false);
-
-                    validateResponse(request, response, data, responseValidator);
                 }
                 catch (Exception e)
                 {
@@ -145,9 +135,6 @@ namespace Toggl.Ultrawave.ApiClients
                 throw new DeserializationException<T>(request, response, response.RawData);
             }
         }
-
-        private static void validateResponse<T>(IRequest request, IResponse response, T data, ResponseValidator<T> validateResponse)
-            => validateResponse?.Invoke(request, response, data);
 
         private async Task<Exception> getExceptionFor(
             IRequest request,

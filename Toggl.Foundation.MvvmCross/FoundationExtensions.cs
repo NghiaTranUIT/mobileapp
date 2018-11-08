@@ -64,7 +64,7 @@ namespace Toggl.Foundation.MvvmCross
             }
 
             var loginManager =
-                new LoginManager(foundation.ApiFactory, foundation.Database, foundation.GoogleService, foundation.ShortcutCreator, foundation.AccessRestrictionStorage, foundation.AnalyticsService, foundation.PrivateSharedStorageService, createDataSource, foundation.Scheduler);
+                new LoginManager(foundation.ApiFactory, foundation.Database, foundation.GoogleService, foundation.ShortcutCreator, foundation.PrivateSharedStorageService, createDataSource);
 
             Mvx.RegisterSingleton<ILoginManager>(loginManager);
         }

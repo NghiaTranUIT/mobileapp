@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CoreGraphics;
 using Foundation;
-using MvvmCross.Commands;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Views;
 using Toggl.Foundation;
@@ -14,7 +13,6 @@ using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using UIKit;
-
 
 namespace Toggl.Daneel.ViewSources
 {
@@ -27,8 +25,13 @@ namespace Toggl.Daneel.ViewSources
         private readonly ITimeService timeService;
         private readonly ISchedulerProvider schedulerProvider;
 
-        public event EventHandler SwipeToContinueWasUsed;
-        public event EventHandler SwipeToDeleteWasUsed;
+        private readonly Subject<TimeEntryViewModel> continueTapSubject = new Subject<TimeEntryViewModel>();
+        private readonly Subject<TimeEntryViewModel> swipeToContinueSubject = new Subject<TimeEntryViewModel>();
+        private readonly Subject<TimeEntryViewModel> swipeToDeleteSubject = new Subject<TimeEntryViewModel>();
+        private readonly ReplaySubject<TimeEntriesLogViewCell> firstCellSubject = new ReplaySubject<TimeEntriesLogViewCell>(1);
+
+        //Using the old API so that delete action would work on pre iOS 11 devices
+        private readonly UITableViewRowAction deleteTableViewRowAction;
 
         public bool IsEmptyState { get; set; }
 
@@ -42,14 +45,6 @@ namespace Toggl.Daneel.ViewSources
             => swipeToDeleteSubject.AsObservable();
 
         public IObservable<TimeEntriesLogViewCell> FirstCell { get; }
-
-        private Subject<TimeEntryViewModel> continueTapSubject = new Subject<TimeEntryViewModel>();
-        private Subject<TimeEntryViewModel> swipeToContinueSubject = new Subject<TimeEntryViewModel>();
-        private Subject<TimeEntryViewModel> swipeToDeleteSubject = new Subject<TimeEntryViewModel>();
-        private ReplaySubject<TimeEntriesLogViewCell> firstCellSubject = new ReplaySubject<TimeEntriesLogViewCell>(1);
-
-        //Using the old API so that delete action would work on pre iOS 11 devices
-        private readonly UITableViewRowAction deleteTableViewRowAction;
 
         public TimeEntriesLogViewSource(
             ObservableGroupedOrderedCollection<TimeEntryViewModel> collection,
@@ -172,7 +167,6 @@ namespace Toggl.Daneel.ViewSources
                 Resources.Continue,
                 (action, sourceView, completionHandler) =>
                 {
-                    SwipeToContinueWasUsed?.Invoke(this, EventArgs.Empty);
                     swipeToContinueSubject.OnNext(timeEntry);
                     completionHandler.Invoke(finished: true);
                 }
@@ -188,7 +182,6 @@ namespace Toggl.Daneel.ViewSources
                 Resources.Delete,
                 (action, sourceView, completionHandler) =>
                 {
-                    SwipeToDeleteWasUsed?.Invoke(this, EventArgs.Empty);
                     swipeToDeleteSubject.OnNext(timeEntry);
                     completionHandler.Invoke(finished: true);
                 }

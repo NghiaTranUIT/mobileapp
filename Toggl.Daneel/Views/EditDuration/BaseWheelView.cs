@@ -34,21 +34,6 @@ namespace Toggl.Daneel.Views.EditDuration
             Thickness = Radius - SmallRadius;
         }
 
-        protected CALayer CreateWheelLayer(CGColor background)
-        {
-            var wheel = new CAShapeLayer();
-            var discPath = new UIBezierPath();
-            discPath.AddArc(Center, Radius, 0, (nfloat)FullCircle, true);
-            var cutOutPath = new UIBezierPath();
-            cutOutPath.AddArc(Center, SmallRadius, 0, (nfloat)FullCircle, true);
-            discPath.AppendPath(cutOutPath.BezierPathByReversingPath());
-
-            wheel.Path = discPath.CGPath;
-            wheel.FillColor = background;
-
-            return wheel;
-        }
-
         protected CGAffineTransform CreateTranslationTransform(nfloat radius, nfloat angle)
         {
             var tx = radius * (nfloat)Math.Sin(angle);

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Android.Runtime;
 using Android.Support.V7.Widget;
@@ -10,6 +12,9 @@ namespace Toggl.Giskard.Adapters
 {
     public abstract class BaseRecyclerAdapter<T> : RecyclerView.Adapter
     {
+        private Subject<T> itemTapSubject = new Subject<T>();
+        public IObservable<T> ItemTapObservable => itemTapSubject.AsObservable();
+
         public Func<T, Task> OnItemTapped { get; set; }
 
         private IList<T> items = new List<T>();
@@ -32,13 +37,18 @@ namespace Toggl.Giskard.Adapters
         {
             var inflater = LayoutInflater.From(parent.Context);
 
-            var viewHolder = CreateViewHolder(parent, inflater);
-            viewHolder.Tapped = OnItemTapped;
+            var viewHolder = CreateViewHolder(parent, inflater, viewType);
+            viewHolder.Tapped = async item =>
+            {
+                itemTapSubject.OnNext(item);
+                await OnItemTapped(item);
+            };
 
             return viewHolder;
         }
 
-        protected abstract BaseRecyclerViewHolder<T> CreateViewHolder(ViewGroup parent, LayoutInflater inflater);
+        protected abstract BaseRecyclerViewHolder<T> CreateViewHolder(ViewGroup parent, LayoutInflater inflater,
+            int viewType);
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {

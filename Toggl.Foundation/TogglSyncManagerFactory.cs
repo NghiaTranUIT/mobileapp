@@ -84,9 +84,6 @@ namespace Toggl.Foundation
 
             var fetchAllSince = new FetchAllSinceState(database, api, timeService);
 
-            var detectLosingAccessToWorkspaces =
-                new DetectLosingAccessToWorkspacesState(dataSource.Workspaces, analyticsService);
-
             var persistWorkspaces =
                 new PersistListState<IWorkspace, IDatabaseWorkspace, IThreadSafeWorkspace>(dataSource.Workspaces, Workspace.Clean);
 
@@ -129,9 +126,6 @@ namespace Toggl.Foundation
             var persistTimeEntries =
                 new PersistListState<ITimeEntry, IDatabaseTimeEntry, IThreadSafeTimeEntry>(dataSource.TimeEntries, TimeEntry.Clean);
 
-            var deleteRunningInaccessibleTimeEntry =
-                new DeleteInaccessibleRunningTimeEntryState(dataSource.TimeEntries);
-
             var updateTimeEntriesSinceDate = new SinceDateUpdatingState<ITimeEntry, IDatabaseTimeEntry>(database.SinceParameters);
 
             var persistTasks =
@@ -148,22 +142,12 @@ namespace Toggl.Foundation
             var finished = new ResetAPIDelayState(apiDelay);
 
             transitions.ConfigureTransition(entryPoint, fetchAllSince);
+            transitions.ConfigureTransition(fetchAllSince.FetchStarted, persistWorkspaces);
 
-            // start all the API requests first
-            transitions.ConfigureTransition(fetchAllSince.FetchStarted, detectLosingAccessToWorkspaces);
-
-            // detect losing access to workspaces
-            transitions.ConfigureTransition(detectLosingAccessToWorkspaces.Continue, deleteRunningInaccessibleTimeEntry);
-            transitions.ConfigureTransition(deleteRunningInaccessibleTimeEntry.Continue, persistWorkspaces);
-
-            // detect gaining access to new workspaces
-            // (not implemented yet)
-
-            // persist all the data pulled from the server
             transitions.ConfigureTransition(persistWorkspaces.FinishedPersisting, updateWorkspacesSinceDate);
             transitions.ConfigureTransition(updateWorkspacesSinceDate.Finished, detectNoWorkspaceState);
             transitions.ConfigureTransition(detectNoWorkspaceState.Continue, persistUser);
-
+            
             transitions.ConfigureTransition(persistUser.FinishedPersisting, persistWorkspaceFeatures);
             transitions.ConfigureTransition(persistWorkspaceFeatures.FinishedPersisting, persistPreferences);
 
@@ -184,15 +168,11 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(createProjectPlaceholders.FinishedPersisting, persistTimeEntries);
             transitions.ConfigureTransition(persistTimeEntries.FinishedPersisting, updateTimeEntriesSinceDate);
             transitions.ConfigureTransition(updateTimeEntriesSinceDate.Finished, refetchInaccessibleProjects);
-
-            // fetch archived projects
             transitions.ConfigureTransition(refetchInaccessibleProjects.FetchNext, refetchInaccessibleProjects);
-            transitions.ConfigureTransition(refetchInaccessibleProjects.FinishedPersisting, noDefaultWorkspaceDetectingState);
 
-            // try to fix invalid data
+            transitions.ConfigureTransition(refetchInaccessibleProjects.FinishedPersisting, noDefaultWorkspaceDetectingState);
             transitions.ConfigureTransition(noDefaultWorkspaceDetectingState.NoDefaultWorkspaceDetected, trySetDefaultWorkspaceState);
 
-            // process server errors
             transitions.ConfigureTransition(persistWorkspaces.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(persistUser.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(persistWorkspaceFeatures.ErrorOccured, retryOrThrow);
@@ -205,7 +185,6 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(persistTimeEntries.ErrorOccured, retryOrThrow);
             transitions.ConfigureTransition(refetchInaccessibleProjects.ErrorOccured, retryOrThrow);
 
-            // retry loop
             transitions.ConfigureTransition(retryOrThrow.Retry, checkServerStatus);
             transitions.ConfigureTransition(checkServerStatus.Retry, checkServerStatus);
             transitions.ConfigureTransition(checkServerStatus.ServerIsAvailable, finished);
@@ -309,6 +288,7 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(delete.DeletingFinished, finished);
             transitions.ConfigureTransition(deleteLocal.Deleted, finished);
             transitions.ConfigureTransition(deleteLocal.DeletingFailed, finished);
+            transitions.ConfigureTransition(unsyncable.MarkedAsUnsyncable, finished);
 
             transitions.ConfigureTransition(finished.Continue, push);
 
@@ -362,6 +342,7 @@ namespace Toggl.Foundation
 
             transitions.ConfigureTransition(create.EntityChanged, new InvalidTransitionState($"Entity cannot have changed since updating is not supported for {typeof(TModel).Name} during Push sync."));
             transitions.ConfigureTransition(create.Finished, finished);
+            transitions.ConfigureTransition(unsyncable.MarkedAsUnsyncable, finished);
 
             transitions.ConfigureTransition(finished.Continue, push);
 
@@ -413,6 +394,8 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(checkServerStatus.ServerIsAvailable, push);
 
             transitions.ConfigureTransition(update.Finished, finished);
+            transitions.ConfigureTransition(unsyncable.MarkedAsUnsyncable, finished);
+            transitions.ConfigureTransition(update.EntityChanged, finished);
 
             transitions.ConfigureTransition(finished.Continue, push);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Reactive.Concurrency;
 using Android.Content;
 using Android.OS;
@@ -28,6 +29,7 @@ using Toggl.PrimeRadiant.Realm;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
+using Xamarin.Android.Net;
 
 namespace Toggl.Giskard
 {
@@ -90,6 +92,11 @@ namespace Toggl.Giskard
             var permissionsService = new PermissionsServiceAndroid();
             var calendarService = new CalendarServiceAndroid(permissionsService);
 
+            var httpHandler = new AndroidClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            };
+
             ApplicationContext.RegisterReceiver(new TimezoneChangedBroadcastReceiver(timeService),
                 new IntentFilter(Intent.ActionTimezoneChanged));
 
@@ -109,7 +116,7 @@ namespace Toggl.Giskard
                     .WithPlatformConstants(platformConstants)
                     .WithNotificationService<NotificationServiceAndroid>()
                     .WithRemoteConfigService<RemoteConfigServiceAndroid>()
-                    .WithApiFactory(new ApiFactory(environment, userAgent))
+                    .WithApiFactory(new ApiFactory(environment, userAgent, httpHandler))
                     .WithBackgroundService(new BackgroundService(timeService))
                     .WithSuggestionProviderContainer(suggestionProviderContainer)
                     .WithApplicationShortcutCreator(new ApplicationShortcutCreator(ApplicationContext))

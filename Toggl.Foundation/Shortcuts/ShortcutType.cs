@@ -5,6 +5,7 @@
         Reports,
         StopTimeEntry,
         StartTimeEntry,
-        ContinueLastTimeEntry
+        ContinueLastTimeEntry,
+        Calendar
     }
 }

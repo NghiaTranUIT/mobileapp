@@ -386,16 +386,27 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             base.ViewAppearing();
 
             IsInManualMode = userPreferences.IsManualModeEnabled;
+            handleNoWorkspaceState()
+                .ContinueWith(_ => handleNoDefaultWorkspaceState());
+        }
+
+        private async Task handleNoWorkspaceState()
+        {
             if (accessRestrictionStorage.HasNoWorkspace() && !noWorkspaceViewPresented)
             {
-                navigationService.Navigate<NoWorkspaceViewModel>();
                 noWorkspaceViewPresented = true;
+                await navigationService.Navigate<NoWorkspaceViewModel, Unit>();
+                noWorkspaceViewPresented = false;
             }
+        }
 
+        private async Task handleNoDefaultWorkspaceState()
+        {
             if (accessRestrictionStorage.HasNoDefaultWorkspace() && !noDefaultWorkspaceViewPresented)
             {
-                navigationService.Navigate<SelectDefaultWorkspaceViewModel>();
                 noDefaultWorkspaceViewPresented = true;
+                await navigationService.Navigate<SelectDefaultWorkspaceViewModel, Unit>();
+                noDefaultWorkspaceViewPresented = false;
             }
         }
 

@@ -80,11 +80,26 @@ namespace Toggl.Multivac.Extensions
             => observable.Select(Unit.Default);
 
         public static IObservable<T> Debug<T>(this IObservable<T> observable, string tag = "")
-            => observable.Do(
-                x => Console.WriteLine($"OnNext {tag}: {x}"),
-                ex => Console.WriteLine($"OnError {tag}: {ex}"),
-                () => Console.WriteLine($"OnCompleted {tag}")
-        );
+        {
+            return Observable.Defer(() => Observable.Create<T>(observer =>
+                {
+                    Console.WriteLine($"Subscribed {tag}");
+
+                    var disposable = observable.Do(
+                            x => Console.WriteLine($"OnNext {tag}: {x}"),
+                            ex => Console.WriteLine($"OnError {tag}: {ex}"),
+                            () => Console.WriteLine($"OnCompleted {tag}")
+                        )
+                        .Subscribe(observer);
+
+                    return Disposable.Create(() =>
+                    {
+                        disposable.Dispose();
+                        Console.WriteLine($"Disposed {tag}");
+                    });
+                }
+            ));
+        }
 
         public static IObservable<T> DoIf<T>(this IObservable<T> observable, Predicate<T> predicate, Action<T> action)
             => observable.Do(value =>
