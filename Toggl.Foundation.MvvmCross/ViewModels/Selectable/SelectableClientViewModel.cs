@@ -6,6 +6,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     {
         public string Name { get; set; }
 
+        public SelectableClientBaseViewModel(string name)
+        {
+            Ensure.Argument.IsNotNullOrWhiteSpaceString(name, nameof(name));
+            Name = name;
+        }
+
         public override string ToString() => Name;
     }
 
@@ -13,23 +19,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     {
         public long Id { get; }
 
+        public bool Selected { get; set; }
+
         public SelectableClientViewModel(long id, string name)
+            : base(name)
         {
             Ensure.Argument.IsNotNull(Id, nameof(Id));
-            Ensure.Argument.IsNotNullOrWhiteSpaceString(name, nameof(name));
-
             Id = id;
-            Name = name;
         }
     }
 
     public sealed class SelectableClientCreationViewModel : SelectableClientBaseViewModel
     {
-        public SelectableClientCreationViewModel(string name)
+        public SelectableClientCreationViewModel(string name) : base(name)
         {
-            Ensure.Argument.IsNotNullOrWhiteSpaceString(name, nameof(name));
-
-            Name = name;
         }
     }
 }
