@@ -28,10 +28,10 @@ namespace Toggl.Foundation.Sync.States.Pull
             var fetchObservables = stateParams.FetchObservables;
 
             return Observable.Return(workspaces)
-                    .SelectMany(CommonFunctions.Identity)
-                    .SelectMany(markAsInaccessible)
-                    .ToList()
-                    .Select(Continue.Transition(fetchObservables));
+                .SelectMany(CommonFunctions.Identity)
+                .SelectMany(markAsInaccessible)
+                .ToList()
+                .SelectValue(Continue.Transition(fetchObservables));
         }
 
         private IObservable<IThreadSafeWorkspace> markAsInaccessible(IThreadSafeWorkspace workspaceToMark)

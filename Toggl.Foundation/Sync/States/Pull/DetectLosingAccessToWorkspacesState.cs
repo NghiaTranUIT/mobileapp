@@ -36,7 +36,7 @@ namespace Toggl.Foundation.Sync.States.Pull
         public IObservable<ITransition> Start(IFetchObservables fetchObservables)
             => fetchObservables.GetList<IWorkspace>()
                 .SelectMany(workspacesWhichWereNotFetched)
-                .SelectValue(lostWorkspaces => lostWorkspaces.Any()
+                .Select(lostWorkspaces => lostWorkspaces.Any()
                     ? processLostWorkspaces(lostWorkspaces, fetchObservables)
                     : Continue.Transition(fetchObservables));
 
