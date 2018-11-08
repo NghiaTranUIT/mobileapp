@@ -83,7 +83,7 @@ namespace Toggl.Ultrawave.ApiClients
             var headerList = headers as IList<HttpHeader> ?? headers.ToList();
             var request = new Request(body, endpoint.Url, headerList, endpoint.Method);
 
-            return sendRequest(request)
+            return sendRequest(request).ToObservable()
                 .SelectMany(response =>
                 {
                     return throwIfRequestFailed(request, response, headerList).ToObservable()
@@ -91,10 +91,16 @@ namespace Toggl.Ultrawave.ApiClients
                 });
         }
 
-        private IObservable<IResponse> sendRequest(IRequest request)
+        private async Task sendRequest(IRequest request)
         {
-            return apiClient.Send(request).ToObservable()
-                .Catch<IResponse, HttpRequestException>(e => throw new OfflineException(e));
+            try
+            {
+                return await apiClient.Send(request).ConfigureAwait(false);
+            }
+            catch (HttpRequestException exception)
+            {
+                throw new OfflineException(exception);
+            }        
         }
 
         private async Task throwIfRequestFailed(IRequest request, IResponse response, IEnumerable<HttpHeader> headers)
