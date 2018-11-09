@@ -57,7 +57,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly Subject<ShakeTargets> shakeSubject = new Subject<ShakeTargets>();
         private readonly Subject<bool> isShowPasswordButtonVisibleSubject = new Subject<bool>();
         private readonly BehaviorSubject<bool> isLoadingSubject = new BehaviorSubject<bool>(false);
-        private readonly BehaviorSubject<string> errorMessageSubject = new BehaviorSubject<string>("");
+        private readonly BehaviorSubject<string> errorMessageSubject = new BehaviorSubject<string>(string.Empty);
         private readonly BehaviorSubject<bool> isPasswordMaskedSubject = new BehaviorSubject<bool>(true);
         private readonly BehaviorSubject<Email> emailSubject = new BehaviorSubject<Email>(Multivac.Email.Empty);
         private readonly BehaviorSubject<Password> passwordSubject = new BehaviorSubject<Password>(Multivac.Password.Empty);
@@ -244,20 +244,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 return;
             }
 
-            if (!termsOfServiceAccepted)
-                termsOfServiceAccepted = await navigationService.Navigate<bool>(typeof(TermsOfServiceViewModel));
+            await requestAcceptanceOfTermsAndConditionsIfNeeded();
 
-            if (!termsOfServiceAccepted)
-                return;
-            
-            if (isLoadingSubject.Value) return;
+            if (!termsOfServiceAccepted || isLoadingSubject.Value) return;
 
             isLoadingSubject.OnNext(true);
-            errorMessageSubject.OnNext("");
+            errorMessageSubject.OnNext(string.Empty);
 
             signupDisposable =
                 loginManager
-                    .SignUp(emailSubject.Value, passwordSubject.Value, true, (int)countryId.Value)
+                    .SignUp(emailSubject.Value, passwordSubject.Value, termsOfServiceAccepted, (int)countryId.Value)
                     .Track(analyticsService.SignUp, AuthenticationMethod.EmailAndPassword)
                     .Subscribe(onDataSource, onError, onCompleted);
         }
@@ -288,7 +284,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     errorMessageSubject.OnNext(Resources.IncorrectEmailOrPassword);
                     break;
                 case GoogleLoginException googleEx when googleEx.LoginWasCanceled:
-                    errorMessageSubject.OnNext("");
+                    errorMessageSubject.OnNext(string.Empty);
                     break;
                 case EmailIsAlreadyUsedException _:
                     errorMessageSubject.OnNext(Resources.EmailIsAlreadyUsedError);
@@ -305,14 +301,23 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             signupDisposable = null;
         }
 
-        public void GoogleSignup()
+        public async Task GoogleSignup()
         {
-            if (isLoadingSubject.Value) return;
+            if (!countryId.HasValue)
+            {
+                shakeSubject.OnNext(ShakeTargets.Country);
+                return;
+            }
+
+            await requestAcceptanceOfTermsAndConditionsIfNeeded();
+
+            if (!termsOfServiceAccepted || isLoadingSubject.Value) return;
 
             isLoadingSubject.OnNext(true);
+            errorMessageSubject.OnNext(string.Empty);
 
             signupDisposable = loginManager
-                .SignUpWithGoogle()
+                .SignUpWithGoogle(termsOfServiceAccepted, (int)countryId.Value)
                 .Track(analyticsService.SignUp, AuthenticationMethod.Google)
                 .Subscribe(onDataSource, onError, onCompleted);
         }
@@ -349,6 +354,15 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var parameter = CredentialsParameter.With(emailSubject.Value, passwordSubject.Value);
             return navigationService.Navigate<LoginViewModel, CredentialsParameter>(parameter);
+        }
+
+        private async Task<bool> requestAcceptanceOfTermsAndConditionsIfNeeded()
+        {
+            if (termsOfServiceAccepted)
+                return true;
+
+            termsOfServiceAccepted = await navigationService.Navigate<TermsOfServiceViewModel, bool>();
+            return termsOfServiceAccepted;
         }
     }
 }

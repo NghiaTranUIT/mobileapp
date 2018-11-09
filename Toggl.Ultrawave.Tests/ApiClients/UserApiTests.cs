@@ -102,7 +102,7 @@ namespace Toggl.Ultrawave.Tests.ApiClients
         public class TheSignUpWithGoogleMethod : Base
         {
             protected override IObservable<IUser> CallEndpoint(IUserApi api)
-                => api.SignUpWithGoogle("");
+                => api.SignUpWithGoogle("", true, 237);
         }
     }
 }

@@ -92,7 +92,7 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
 
             googleSignupButton.Rx().Tap()
-                .VoidSubscribe(ViewModel.GoogleSignup)
+                .Subscribe(ViewModel.GoogleSignup)
                 .DisposedBy(DisposeBag);
 
             countrySelection.Rx().Tap()

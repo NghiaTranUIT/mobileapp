@@ -112,7 +112,7 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             GoogleSignupButton.Rx().Tap()
-                .VoidSubscribe(ViewModel.GoogleSignup)
+                .Subscribe(ViewModel.GoogleSignup)
                 .DisposedBy(DisposeBag);
 
             ShowPasswordButton.Rx().Tap()

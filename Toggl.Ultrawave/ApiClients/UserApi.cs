@@ -72,7 +72,7 @@ namespace Toggl.Ultrawave.ApiClients
                         : Observable.Throw<IUser>(badRequestException));
         }
 
-        public IObservable<IUser> SignUpWithGoogle(string googleToken)
+        public IObservable<IUser> SignUpWithGoogle(string googleToken, bool termsAccepted, int countryId)
         {
             Ensure.Argument.IsNotNull(googleToken, nameof(googleToken));
             var parameters = new GoogleSignUpParameters
@@ -81,7 +81,9 @@ namespace Toggl.Ultrawave.ApiClients
                 Workspace = new WorkspaceParameters
                 {
                     InitialPricingPlan = PricingPlans.Free
-                }
+                },
+                TermsAccepted = termsAccepted,
+                CountryId = countryId
             };
 
             var json = serializer.Serialize(parameters, SerializationReason.Post, null);
@@ -119,6 +121,11 @@ namespace Toggl.Ultrawave.ApiClients
             public string GoogleAccessToken { get; set; }
 
             public WorkspaceParameters Workspace { get; set; }
+
+            [JsonProperty("tos_accepted")]
+            public bool TermsAccepted { get; set; }
+
+            public int CountryId { get; set; }
         }
     }
 }

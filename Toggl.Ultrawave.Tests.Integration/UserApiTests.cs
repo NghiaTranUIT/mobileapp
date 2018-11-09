@@ -342,7 +342,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signingUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(null)
+                    .SignUpWithGoogle(null, true, 237)
                     .Wait();
 
                 signingUp.Should().Throw<ArgumentException>();
@@ -354,7 +354,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(string.Empty)
+                    .SignUpWithGoogle(string.Empty, true, 237)
                     .Wait();
 
                 signUp.Should().Throw<UnauthorizedException>();
@@ -367,7 +367,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(notAToken)
+                    .SignUpWithGoogle(notAToken, true, 237)
                     .Wait();
 
                 signUp.Should().Throw<ServiceUnavailableException>();
@@ -380,7 +380,7 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 Action signUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(jwt)
+                    .SignUpWithGoogle(jwt, true, 237)
                     .Wait();
 
                 signUp.Should().Throw<ServiceUnavailableException>();

@@ -86,12 +86,12 @@ namespace Toggl.Foundation.Login
                 .Do(shortcutCreator.OnLogin);
         }
 
-        public IObservable<ITogglDataSource> SignUpWithGoogle()
+        public IObservable<ITogglDataSource> SignUpWithGoogle(bool termsAccepted, int countryId)
             => database
                 .Clear()
                 .SelectMany(_ => googleService.LogOutIfNeeded())
                 .SelectMany(_ => googleService.GetAuthToken())
-                .SelectMany(signUpWithGoogle);
+                .SelectMany(authToken => signUpWithGoogle(authToken, termsAccepted, countryId));
 
         public IObservable<string> ResetPassword(Email email)
         {
@@ -159,11 +159,11 @@ namespace Toggl.Foundation.Login
         }
 
 
-        private IObservable<ITogglDataSource> signUpWithGoogle(string googleToken)
+        private IObservable<ITogglDataSource> signUpWithGoogle(string googleToken, bool termsAccepted, int countryId)
         {
-            return Observable
-                .Return(googleToken)
-                .SelectMany(apiFactory.CreateApiWith(Credentials.None).User.SignUpWithGoogle)
+            var api = apiFactory.CreateApiWith(Credentials.None);
+            return api.User
+                .SignUpWithGoogle(googleToken, termsAccepted, countryId)
                 .Select(User.Clean)
                 .SelectMany(database.User.Create)
                 .Select(dataSourceFromUser)
