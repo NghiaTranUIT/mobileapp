@@ -60,6 +60,7 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                         Description = "te2"
                     }
                 },
+                tasks: new[] { new MockTask { Id = -1, WorkspaceId = -2, Name = "task1" } },
                 workspaces: new[]
                 {
                     initialServerState.Workspaces.Single(),
@@ -82,6 +83,7 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
             var regainedAccessTag1 = serverState.Tags.Single(t => t.Name == "t1");
             var regainedAccessTag2 = serverState.Tags.Single(t => t.Name == "t2");
             var regainedAccessProject = serverState.Projects.Single(p => p.Name == "p1");
+            var regainedAccessTask = serverState.Tasks.Single(task => task.Name == "task1");
             var regainedAccessTE1 = serverState.TimeEntries.Single(te => te.Description == "te1");
             var regainedAccessTE2 = serverState.TimeEntries.Single(te => te.Description == "te2");
 
@@ -131,6 +133,16 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                         WorkspaceId = regainedAccessWorkspace.Id,
                         SyncStatus = SyncStatus.InSync,
                         ClientId = regainedAccessClient.Id
+                    }
+                },
+                tasks: new[]
+                {
+                    new MockTask
+                    {
+                        Id = regainedAccessTask.Id,
+                        WorkspaceId = regainedAccessWorkspace.Id,
+                        SyncStatus = SyncStatus.SyncNeeded,
+                        ProjectId = regainedAccessProject.Id
                     }
                 },
                 timeEntries: new[]
@@ -192,6 +204,8 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                 tag => !tag.IsInaccessible && tag.SyncStatus == SyncStatus.InSync);
             finalDatabaseState.Projects.Should().HaveCount(1).And.OnlyContain(
                 project => !project.IsInaccessible && project.SyncStatus == SyncStatus.InSync);
+            finalDatabaseState.Tasks.Should().HaveCount(1).And.OnlyContain(
+                task => !task.IsInaccessible && task.SyncStatus == SyncStatus.InSync);
             finalDatabaseState.TimeEntries.Should().HaveCount(3).And.OnlyContain(
                 timeEntry => !timeEntry.IsInaccessible && timeEntry.SyncStatus == SyncStatus.InSync);
         }
