@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using MvvmCross.UI;
@@ -8,6 +12,7 @@ using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -17,25 +22,26 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
 
         private MvxColor defaultColor;
-        private readonly SelectableColorViewModel customColor =
-            new SelectableColorViewModel(MvxColors.Transparent, false);
+        private IObservable<MvxColor> customColor;
+        private BehaviorSubject<MvxColor> selectedColor = new BehaviorSubject<MvxColor>(MvxColors.Transparent);
 
-        public float Hue { get; set; } = 0.0f;
-
-        public float Saturation { get; set; } = 0.0f;
-
-        public float Value { get; set; } = 0.375f;
+        private BehaviorSubject<float> hue { get; } = new BehaviorSubject<float>(0.0f);
+        private BehaviorSubject<float> saturation { get; } = new BehaviorSubject<float>(0.0f);
+        private BehaviorSubject<float> value { get; } = new BehaviorSubject<float>(0.375f);
 
         public bool AllowCustomColors { get; private set; }
 
-        public IMvxAsyncCommand SaveCommand { get; set; }
+        public IObservable<IEnumerable<SelectableColorViewModel>> SelectableColors { get; }
+        public IObservable<float> Hue { get; }
+        public IObservable<float> Saturation { get; }
+        public IObservable<float> Value { get; }
 
-        public IMvxAsyncCommand CloseCommand { get; set; }
-
-        public IMvxCommand<SelectableColorViewModel> SelectColorCommand { get; set; }
-
-        public MvxObservableCollection<SelectableColorViewModel> SelectableColors { get; } =
-            new MvxObservableCollection<SelectableColorViewModel>();
+        public UIAction Save { get; }
+        public UIAction Close { get; }
+        public InputAction<float> SetHue { get; }
+        public InputAction<float> SetSaturation { get; }
+        public InputAction<float> SetValue { get; }
+        public InputAction<MvxColor> SelectColor { get; }
 
         public SelectColorViewModel(IMvxNavigationService navigationService)
         {
@@ -43,9 +49,27 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             this.navigationService = navigationService;
 
-            SaveCommand = new MvxAsyncCommand(save);
-            CloseCommand = new MvxAsyncCommand(close);
-            SelectColorCommand = new MvxCommand<SelectableColorViewModel>(selectColor);
+            // Public properties
+            Hue = hue.AsObservable();
+            Saturation = saturation.AsObservable();
+            Value = value.AsObservable();
+
+            Save = UIAction.FromAsync(save);
+            Close = UIAction.FromAsync(close);
+            SetHue = InputAction<float>.FromAction(hue.OnNext);
+            SetSaturation = InputAction<float>.FromAction(saturation.OnNext);
+            SetValue = InputAction<float>.FromAction(value.OnNext);
+            SelectColor = InputAction<MvxColor>.FromAction(selectColor);
+
+            customColor = Observable
+                .CombineLatest(hue, saturation, value, Color.FromHSV)
+                .Do(selectedColor.OnNext);
+
+            var availableColors = Observable.Return(Color.DefaultProjectColors)
+                .CombineLatest(customColor, combineAllColors);
+
+            SelectableColors = availableColors
+                .CombineLatest(selectedColor, updateSelectableColors);
         }
 
         public override void Prepare(ColorParameters parameter)
@@ -53,67 +77,53 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             defaultColor = parameter.Color;
             AllowCustomColors = parameter.AllowCustomColors;
 
-            SelectableColors.AddRange(
-                Color.DefaultProjectColors.Select(color => new SelectableColorViewModel(color, color == defaultColor))
-            );
+            var noColorsSelected = Color.DefaultProjectColors.None(color => color == defaultColor);
 
-            var noColorsSelected = SelectableColors.All(color => !color.Selected);
-            if (AllowCustomColors)
+            if (noColorsSelected)
             {
-                SelectableColors.Add(customColor);
-                if (noColorsSelected)
+                if (AllowCustomColors)
                 {
-                    customColor.Selected = true;
-                    customColor.Color = defaultColor;
-
-                    (Hue, Saturation, Value) = defaultColor.GetHSV();
+                    var colorComponents = defaultColor.GetHSV();
+                    hue.OnNext(colorComponents.hue);
+                    saturation.OnNext(colorComponents.saturation);
+                    value.OnNext(colorComponents.value);
                 }
                 else
                 {
-                    customColor.Color = Color.FromHSV(Hue, Saturation, Value);
-                    
+                    selectedColor.OnNext(Color.DefaultProjectColors.First());
                 }
             }
-            else if (noColorsSelected)
+            else
             {
-                SelectableColors.First().Selected = true;
+                selectedColor.OnNext(defaultColor);
             }
         }
 
-        private void OnHueChanged()
+        private IEnumerable<MvxColor> combineAllColors(MvxColor[] defaultColors, MvxColor custom)
         {
-            updateColor();
+            if (AllowCustomColors)
+            {
+                return defaultColors.Concat(new[] { custom });
+            }
+
+            return defaultColors;
         }
 
-        private void OnSaturationChanged()
+        private void selectColor(MvxColor color)
         {
-            updateColor();
+            selectedColor.OnNext(color);
+
+            if (!AllowCustomColors)
+                save();
         }
 
-        private void OnValueChanged()
-        {
-            updateColor();
-        }
-
-        private void updateColor()
-        {
-            customColor.Color = Color.FromHSV(Hue, Saturation, Value);
-            selectColor(customColor);
-        }
-
-        private void selectColor(SelectableColorViewModel color)
-        {
-            foreach (var selectableColor in SelectableColors)
-                selectableColor.Selected = color.Color.ARGB == selectableColor.Color.ARGB;
-
-            if (AllowCustomColors) return;
-            save();
-        }
+        private IEnumerable<SelectableColorViewModel> updateSelectableColors(IEnumerable<MvxColor> availableColors, MvxColor selectedColor)
+            => availableColors.Select(color => new SelectableColorViewModel(color, color == selectedColor));
 
         private Task close()
             => navigationService.Close(this, defaultColor);
 
         private Task save()
-            => navigationService.Close(this, SelectableColors.FirstOrDefault(x => x.Selected).Color);
+            => navigationService.Close(this, selectedColor.Value);
     }
 }

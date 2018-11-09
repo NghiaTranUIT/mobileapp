@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace Toggl.Multivac.Extensions
@@ -30,13 +31,13 @@ namespace Toggl.Multivac.Extensions
             public void OnNext(T value) { }
         }
 
-        public static IDisposable Subscribe<T>(this IObservable<T> observable, Action<Exception> onError, Action onCompleted)
+        public static IDisposable SubscribeToErrorsAndCompletion<T>(this IObservable<T> observable, Action<Exception> onError, Action onCompleted)
         {
             var observer = new Observer<T>(onError, onCompleted);
             return observable.Subscribe(observer);
         }
 
-        public static IDisposable Subscribe<T>(this IObservable<T> observable, Action<Exception> onError)
+        public static IDisposable SubscribeToErrors<T>(this IObservable<T> observable, Action<Exception> onError)
         {
             var observer = new Observer<T>(onError, () => { });
             return observable.Subscribe(observer);
@@ -72,18 +73,33 @@ namespace Toggl.Multivac.Extensions
             where TValue : struct
             => observable.Where(x => x != null).Select(x => x.Value);
 
-        public static IObservable<U> Select<T, U>(this IObservable<T> observable, U u)
+        public static IObservable<U> SelectValue<T, U>(this IObservable<T> observable, U u)
             => observable.Select(_ => u);
 
         public static IObservable<Unit> SelectUnit<T>(this IObservable<T> observable)
-            => observable.Select(Unit.Default);
+            => observable.SelectValue(Unit.Default);
 
         public static IObservable<T> Debug<T>(this IObservable<T> observable, string tag = "")
-            => observable.Do(
-                x => Console.WriteLine($"OnNext {tag}: {x}"),
-                ex => Console.WriteLine($"OnError {tag}: {ex}"),
-                () => Console.WriteLine($"OnCompleted {tag}")
-        );
+        {
+            return Observable.Defer(() => Observable.Create<T>(observer =>
+                {
+                    Console.WriteLine($"Subscribed {tag}");
+
+                    var disposable = observable.Do(
+                            x => Console.WriteLine($"OnNext {tag}: {x}"),
+                            ex => Console.WriteLine($"OnError {tag}: {ex}"),
+                            () => Console.WriteLine($"OnCompleted {tag}")
+                        )
+                        .Subscribe(observer);
+
+                    return Disposable.Create(() =>
+                    {
+                        disposable.Dispose();
+                        Console.WriteLine($"Disposed {tag}");
+                    });
+                }
+            ));
+        }
 
         public static IObservable<T> DoIf<T>(this IObservable<T> observable, Predicate<T> predicate, Action<T> action)
             => observable.Do(value =>
@@ -91,6 +107,12 @@ namespace Toggl.Multivac.Extensions
                 if (predicate(value))
                     action(value);
             });
+
+        public static IObservable<T> ThrowIf<T>(
+            this IObservable<T> observable,
+            Predicate<T> predicate,
+            Exception exception)
+            => observable.DoIf(predicate, _ => throw exception);
 
         public static IObservable<bool> Invert(this IObservable<bool> observable) => observable.Select(b => !b);
 
@@ -130,15 +152,21 @@ namespace Toggl.Multivac.Extensions
         public static IObservable<T> Do<T>(this IObservable<T> observable, Action action)
             => observable.Do(_ => action());
 
-        public static void CompleteWith<T>(this IObserver<T> observer, T item) 
+        public static void CompleteWith<T>(this IObserver<T> observer, T item)
         {
             observer.OnNext(item);
             observer.OnCompleted();
         }
 
+        public static void CompleteWithUnit(this IObserver<Unit> observer)
+            => observer.CompleteWith(Unit.Default);
+
         public static IObservable<Unit> ToUnitObservable<T>(this Task<T> task)
             => Observable
             .FromAsync(async () => await task)
             .SelectUnit();
+
+        public static IObservable<string> SelectToString<T>(this IObservable<T> observable)
+            => observable.Select(item => item.ToString());
     }
 }

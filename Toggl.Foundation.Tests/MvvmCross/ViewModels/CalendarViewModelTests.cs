@@ -236,7 +236,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(true));
                 NavigationService.Navigate<SelectUserCalendarsViewModel, string[]>().Returns(new string[0]);
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 TestScheduler.Start();
                 observer.Messages.Select(message => message.Value.Value).AssertEqual(true, false);
@@ -251,7 +251,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(false));
                 NavigationService.Navigate<CalendarPermissionDeniedViewModel, Unit>().Returns(Unit.Default);
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 TestScheduler.Start();
                 observer.Messages.Select(message => message.Value.Value).AssertEqual(true, false);
@@ -267,7 +267,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var observer = TestScheduler.CreateObserver<bool>();
                 ViewModel.SettingsAreVisible.Subscribe(observer);
                 PermissionsService.CalendarPermissionGranted.Returns(Observable.Return(true));
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 TestScheduler.AdvanceBy(1);
 
@@ -368,7 +368,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task RequestsCalendarPermission()
             {
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 await PermissionsService.Received().RequestCalendarAuthorization();
             }
@@ -378,7 +378,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(false));
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 await NavigationService.Received().Navigate<CalendarPermissionDeniedViewModel, Unit>();
             }
@@ -391,7 +391,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     Observable.Return(new UserCalendar[] { new UserCalendar() })
                 );
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 await NavigationService
                     .Received()
@@ -406,7 +406,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     Observable.Return(new UserCalendar[0])
                 );
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 await NavigationService.DidNotReceive().Navigate<SelectUserCalendarsViewModel, string[]>();
             }
@@ -426,7 +426,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     Observable.Return(new UserCalendar[] { new UserCalendar() })
                 );
 
-                viewModel.GetStartedAction.Execute(Unit.Default).Wait();
+                viewModel.GetStarted.Execute(Unit.Default).Wait();
 
                 InteractorFactory.Received().SetEnabledCalendars(calendarIds).Execute();
             }
@@ -437,7 +437,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(true));
                 NavigationService.Navigate<SelectUserCalendarsViewModel, string[]>().Returns(new string[0]);
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 OnboardingStorage.Received().SetCompletedCalendarOnboarding();
             }
@@ -448,7 +448,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(false));
                 NavigationService.Navigate<CalendarPermissionDeniedViewModel, Unit>().Returns(Unit.Default);
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 OnboardingStorage.Received().SetCompletedCalendarOnboarding();
             }
@@ -458,7 +458,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(false));
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 AnalyticsService.CalendarOnboardingStarted.Received().Track();
             }
@@ -469,7 +469,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(true));
                 NavigationService.Navigate<SelectUserCalendarsViewModel, string[]>().Returns(new string[0]);
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 await PermissionsService.Received().RequestNotificationAuthorization();
             }
@@ -483,7 +483,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 NavigationService.Navigate<SelectUserCalendarsViewModel, string[]>().Returns(new string[0]);
                 PermissionsService.RequestNotificationAuthorization().Returns(Observable.Return(permissionWasGiven));
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 UserPreferences.Received().SetCalendarNotificationsEnabled(Arg.Is(permissionWasGiven));
             }
@@ -494,7 +494,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(false));
                 NavigationService.Navigate<SelectUserCalendarsViewModel, string[]>().Returns(new string[0]);
 
-                await ViewModel.GetStartedAction.Execute(Unit.Default);
+                await ViewModel.GetStarted.Execute(Unit.Default);
 
                 await PermissionsService.DidNotReceive().RequestNotificationAuthorization();
             }

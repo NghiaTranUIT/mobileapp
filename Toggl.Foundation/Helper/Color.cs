@@ -10,6 +10,7 @@ namespace Toggl.Foundation.Helper
 
         public const string NoProject = "#B5BCC0";
         public const string ClientNameColor = "#FF5E5B5B";
+
         public static bool IsValidHexColor(string hex)
         {
             if (hex == null)

@@ -30,6 +30,8 @@ using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Settings;
 using static Toggl.Foundation.Helper.Constants;
 using static Toggl.Multivac.Extensions.CommonFunctions;
+using IStopwatch = Toggl.Foundation.Diagnostics.IStopwatch;
+using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 using SelectTimeOrigin = Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 
 [assembly: MvxNavigation(typeof(StartTimeEntryViewModel), ApplicationUrls.StartTimeEntry)]
@@ -69,6 +71,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         //Properties
         public IObservable<TextFieldInfo> TextFieldInfoObservable { get; }
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
 
         private bool isRunning => !Duration.HasValue;
 
@@ -97,8 +100,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                            && shouldSuggestProjectCreation;
 
                 if (IsSuggestingTags)
-                    return Suggestions.None(c => c.Any(s => 
-                               s is TagSuggestion tS 
+                    return Suggestions.None(c => c.Any(s =>
+                               s is TagSuggestion tS
                                && tS.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
                            && CurrentQuery.IsAllowedTagByteSize();
 
@@ -283,6 +286,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .StartWith(textFieldInfo)
                 .Select(QueryInfo.ParseFieldInfo)
                 .Do(onParsedQuery)
+                .ObserveOn(schedulerProvider.BackgroundScheduler)
                 .SelectMany(autocompleteProvider.Query)
                 .Merge(queryByTypeObservable)
                 .Subscribe(onSuggestions)
@@ -358,6 +362,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             hasAnyTags = (await dataSource.Tags.GetAll()).Any();
             hasAnyProjects = (await dataSource.Projects.GetAll()).Any();
+
+            dataSource.User.Current
+                      .Subscribe(onUserChanged)
+                      .DisposedBy(disposeBag);
         }
 
         public override void ViewAppeared()
@@ -398,6 +406,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return true;
         }
 
+        private void onUserChanged(IThreadSafeUser user)
+        {
+            BeginningOfWeek = user.BeginningOfWeek;
+        }
+
         private async Task selectSuggestion(AutocompleteSuggestion suggestion)
         {
             switch (suggestion)
@@ -415,7 +428,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         analyticsService.StartEntrySelectTag.Track(ProjectTagSuggestionSource.TableCellButton);
                     }
 
-                    updateUiWith(textFieldInfo.FromQuerySymbolSuggestion(querySymbolSuggestion));
+                    queryAndUpdateUiWith(textFieldInfo.FromQuerySymbolSuggestion(querySymbolSuggestion));
                     break;
 
                 case TimeEntrySuggestion timeEntrySuggestion:
@@ -603,7 +616,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var preferences = await dataSource.Preferences.Current.FirstAsync();
 
-            var parameters = SelectTimeParameters.CreateFromOrigin(origin, StartTime, stopTime)
+            var parameters = SelectTimeParameters.CreateFromOrigin(origin, BeginningOfWeek, StartTime, stopTime)
                 .WithFormats(preferences.DateFormat, preferences.TimeOfDayFormat);
 
             var result = await navigationService

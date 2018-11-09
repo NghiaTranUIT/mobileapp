@@ -202,7 +202,7 @@ private TemporaryFileTransformation GetAndroidGoogleServicesTransformation()
 
 private TemporaryFileTransformation GetAndroidGoogleLoginTransformation()
 {
-    const string path = "Toggl.Giskard/Services/GoogleService.cs";
+    const string path = "Toggl.Giskard/Services/GoogleServiceAndroid.cs";
     var clientId = EnvironmentVariable("TOGGL_DROID_GOOGLE_SERVICES_CLIENT_ID");
 
     var filePath = GetFiles(path).Single();
@@ -520,6 +520,9 @@ private string[] GetUITestFiles() => new []
 private string[] GetIntegrationTestProjects()
     => new [] { "./Toggl.Ultrawave.Tests.Integration/Toggl.Ultrawave.Tests.Integration.csproj" };
 
+private string[] GetSyncTestProjects()
+    => new [] { "./Toggl.Foundation.Sync.Tests/Toggl.Foundation.Sync.Tests.csproj" };
+
 Setup(context => transformations.ForEach(transformation => System.IO.File.WriteAllText(transformation.Path, transformation.Temporary)));
 Teardown(context =>
 {
@@ -577,6 +580,10 @@ Task("Build.Tests.Integration")
     .IsDependentOn("Nuget")
     .Does(BuildSolution("ApiTests"));
 
+Task("Build.Tests.Sync")
+    .IsDependentOn("Nuget")
+    .Does(BuildSolution("SyncTests"));
+
 Task("Build.Tests.UI")
     .IsDependentOn("Nuget")
     .Does(BuildSolution("UITests"))
@@ -616,6 +623,11 @@ Task("Tests.Unit")
 Task("Tests.Integration")
     .IsDependentOn("Build.Tests.Integration")
     .Does(Test(GetIntegrationTestProjects()));
+
+//Integration Tests
+Task("Tests.Sync")
+    .IsDependentOn("Build.Tests.Sync")
+    .Does(Test(GetSyncTestProjects()));
 
 //UI Tests
 Task("Tests.UI")

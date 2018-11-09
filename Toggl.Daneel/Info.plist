@@ -34,7 +34,7 @@
 	<key>CFBundleName</key>
 	<string>Toggl for Devs</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.12.1</string>
+	<string>1.13.1</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -68,5 +68,7 @@
 	<string>Toggl</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Toggl needs access to your calendar in order to display its events</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

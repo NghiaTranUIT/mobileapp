@@ -68,7 +68,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task OpensAppSettings()
             {
-                await ViewModel.RequestAccessAction.Execute(Unit.Default);
+                await ViewModel.RequestAccess.Execute(Unit.Default);
 
                 PermissionsService.Received().OpenAppSettings();
             }

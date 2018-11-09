@@ -71,6 +71,8 @@ namespace Toggl.Foundation.MvvmCross.Extensions
                 builder.Add(projectSpan);
             }
 
+            builder.Add(new QueryTextSpan());
+
             return TextFieldInfo
                 .Empty(timeEntrySuggestion.WorkspaceId)
                 .ReplaceSpans(builder.ToImmutable());

@@ -52,9 +52,6 @@ namespace Toggl.Daneel.ViewSources
         public bool HasSection(int section)
             => displayedItems.Count > section;
 
-        public bool SectionContainsOnlyOneRow(int section)
-            => HasSection(section) && displayedItems[section].Count == 1;
-
         public void ChangeDisplayedCollection(ICollectionChange change)
         {
             switch (change)

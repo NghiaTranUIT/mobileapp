@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:layout_marginBottom="6dp" />
     <ImageView
-        local:MvxBind="Visibility Visibility(Selected)"
+        android:id="@+id/EditProjectColorSelectionCircle"
         android:src="@drawable/check_light"
         android:layout_gravity="center"
         android:layout_width="wrap_content"

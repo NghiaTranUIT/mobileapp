@@ -26,10 +26,9 @@ namespace Toggl.Foundation.MvvmCross
             var now = foundation.TimeService.CurrentDateTime;
             var lastUsed = foundation.OnboardingStorage.GetLastOpened();
             foundation.OnboardingStorage.SetLastOpened(now);
-            if (lastUsed == null) return foundation;
+            if (!lastUsed.HasValue) return foundation;
 
-            var lastUsedDate = DateTimeOffset.Parse(lastUsed);
-            var offset = now - lastUsedDate;
+            var offset = now - lastUsed;
             if (offset < TimeSpan.FromDays(newUserThreshold)) return foundation;
 
             foundation.OnboardingStorage.SetIsNewUser(false);
@@ -65,7 +64,7 @@ namespace Toggl.Foundation.MvvmCross
             }
 
             var loginManager =
-                new LoginManager(foundation.ApiFactory, foundation.Database, foundation.GoogleService, foundation.ShortcutCreator, foundation.AccessRestrictionStorage, foundation.AnalyticsService, foundation.PrivateSharedStorageService, createDataSource, foundation.Scheduler);
+                new LoginManager(foundation.ApiFactory, foundation.Database, foundation.GoogleService, foundation.ShortcutCreator, foundation.PrivateSharedStorageService, createDataSource);
 
             Mvx.RegisterSingleton<ILoginManager>(loginManager);
         }

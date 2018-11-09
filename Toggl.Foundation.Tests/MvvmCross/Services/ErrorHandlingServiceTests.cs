@@ -241,5 +241,38 @@ namespace Toggl.Foundation.Tests.MvvmCross.Services
                 NavigationService.DidNotReceive().Navigate<TokenResetViewModel>();
             }
         }
+
+        public sealed class TheTryHandleNoDefaultWorkspaceError : BaseErrorHandlingServiceTests
+        {
+            [Fact, LogIfTooSlow]
+            public void ReturnsTrueForNoWorkspaceException()
+            {
+                var result = ErrorHandlingService.TryHandleNoDefaultWorkspaceError(new NoDefaultWorkspaceException());
+
+                result.Should().BeTrue();
+            }
+
+            [Theory, LogIfTooSlow]
+            [InlineData(typeof(Exception))]
+            [InlineData(typeof(NoWorkspaceException))]
+            [InlineData(typeof(FormatException))]
+            [InlineData(typeof(NoRunningTimeEntryException))]
+            public void ReturnsFalseForAnyOtherException(Type exceptionType)
+            {
+                var exception = (Exception)Activator.CreateInstance(exceptionType);
+
+                var result = ErrorHandlingService.TryHandleNoDefaultWorkspaceError(exception);
+
+                result.Should().BeFalse();
+            }
+
+            [Fact, LogIfTooSlow]
+            public void RestrictsAccessForNoWorkspaceException()
+            {
+                ErrorHandlingService.TryHandleNoDefaultWorkspaceError(new NoDefaultWorkspaceException());
+
+                AccessRestrictionStorage.Received().SetNoDefaultWorkspaceStateReached(true);
+            }
+        }
     }
 }

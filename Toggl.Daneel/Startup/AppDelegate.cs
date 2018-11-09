@@ -20,6 +20,7 @@ using Toggl.Foundation.MvvmCross;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Shortcuts;
@@ -109,19 +110,19 @@ namespace Toggl.Daneel
         [Export("userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:")]
         public void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response, Action completionHandler)
         {
-            var eventId = response.Notification.Request.Content.UserInfo[NotificationService.CalendarEventIdKey] as NSString;
+            var eventId = response.Notification.Request.Content.UserInfo[NotificationServiceIos.CalendarEventIdKey] as NSString;
 
             if (response.IsCustomAction)
             {
                 switch (response.ActionIdentifier.ToString())
                 {
-                    case NotificationService.OpenAndCreateFromCalendarEvent:
+                    case NotificationServiceIos.OpenAndCreateFromCalendarEvent:
                         openAndStartTimeEntryFromCalendarEvent(eventId.ToString(), completionHandler);
                         break;
-                    case NotificationService.OpenAndNavigateToCalendar:
+                    case NotificationServiceIos.OpenAndNavigateToCalendar:
                         openAndNavigateToCalendar(completionHandler);
                         break;
-                    case NotificationService.StartTimeEntryInBackground:
+                    case NotificationServiceIos.StartTimeEntryInBackground:
                         startTimeEntryInBackground(eventId.ToString(), completionHandler);
                         break;
                 }
@@ -170,6 +171,10 @@ namespace Toggl.Daneel
                 case ShortcutType.StartTimeEntry:
                     navigationService.Navigate<MainViewModel>();
                     navigationService.Navigate<StartTimeEntryViewModel>();
+                    break;
+
+                case ShortcutType.Calendar:
+                    navigationService.Navigate<CalendarViewModel>();
                     break;
             }
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using Foundation;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using MvvmCross.UI;
@@ -166,11 +167,15 @@ namespace Toggl.Daneel.Autocomplete
         private static NSMutableAttributedString AsAttributedString(this ProjectSpan projectSpan)
         {
             var projectColor = MvxColor.ParseHexString(projectSpan.ProjectColor).ToNativeColor();
-            var projectName = new NSAttributedString(projectSpan.ProjectName.TruncatedAt(maxTextLength), new UIStringAttributes
-            {
-                Font = tokenFont,
-                ForegroundColor = projectColor
-            });
+
+            var projectNameString = projectSpan.ProjectName;
+            if (!string.IsNullOrEmpty(projectSpan.TaskName))
+                projectNameString = $"{projectNameString}: {projectSpan.TaskName}";
+
+            var projectName = new NSAttributedString(
+                projectNameString.TruncatedAt(maxTextLength),
+                new UIStringAttributes { Font = tokenFont, ForegroundColor = projectColor }
+            );
 
             var textAttachment = new ProjectTextAttachment(
                 projectName, projectColor, textVerticalOffset, regularFont.Descender

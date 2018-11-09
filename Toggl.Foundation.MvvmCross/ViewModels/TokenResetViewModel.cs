@@ -1,13 +1,17 @@
-﻿using System;
+﻿using MvvmCross.ViewModels;
+using System;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
-using MvvmCross.ViewModels;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Login;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave.Exceptions;
 
@@ -23,28 +27,30 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IUserPreferences userPreferences;
         private readonly IOnboardingStorage onboardingStorage;
         private readonly IAnalyticsService analyticsService;
+        private readonly ISchedulerProvider schedulerProvider;
+
+        private readonly BehaviorSubject<string> errorSubject = new BehaviorSubject<string>(string.Empty);
+        private readonly BehaviorSubject<Email> emailSubject = new BehaviorSubject<Email>(Multivac.Email.Empty);
+        private readonly BehaviorSubject<Password> passwordSubject = new BehaviorSubject<Password>(Multivac.Password.Empty);
+        private readonly BehaviorSubject<bool> isPasswordMaskedSubject = new BehaviorSubject<bool>(true);
 
         private bool needsSync;
 
-        public Email Email { get; private set; }
+        public IObservable<Email> Email { get; }
+        public IObservable<Password> Password { get; }
+        public IObservable<bool> IsPasswordMasked { get; }
 
-        public Password Password { get; set; }
+        public IObservable<bool> HasError { get; }
+        public IObservable<string> Error { get; }
 
-        public string Error { get; set; }
+        public IObservable<bool> IsLoading { get; }
 
-        public bool IsPasswordMasked { get; private set; } = true;
+        public IObservable<bool> NextIsEnabled { get; }
 
-        public bool NextIsEnabled => Password.IsValid && !IsLoading;
-
-        public bool HasError => !string.IsNullOrEmpty(Error);
-
-        public IMvxCommand DoneCommand { get; }
-
-        public IMvxAsyncCommand SignOutCommand { get; }
-
-        public IMvxCommand TogglePasswordVisibilityCommand { get; }
-
-        public bool IsLoading { get; private set; }
+        public UIAction Done { get; private set; }
+        public UIAction SignOut { get; private set; }
+        public UIAction TogglePasswordVisibility { get; private set; }
+        public InputAction<string> SetPassword { get; private set; }
 
         public TokenResetViewModel(
             ILoginManager loginManager,
@@ -53,7 +59,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IForkingNavigationService navigationService,
             IUserPreferences userPreferences,
             IOnboardingStorage onboardingStorage,
-            IAnalyticsService analyticsService
+            IAnalyticsService analyticsService,
+            ISchedulerProvider schedulerProvider
         )
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
@@ -63,6 +70,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(userPreferences, nameof(userPreferences));
             Ensure.Argument.IsNotNull(onboardingStorage, nameof(onboardingStorage));
             Ensure.Argument.IsNotNull(analyticsService, nameof(analyticsService));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
 
             this.dataSource = dataSource;
             this.loginManager = loginManager;
@@ -71,10 +79,42 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.userPreferences = userPreferences;
             this.onboardingStorage = onboardingStorage;
             this.analyticsService = analyticsService;
+            this.schedulerProvider = schedulerProvider;
 
-            DoneCommand = new MvxCommand(done);
-            SignOutCommand = new MvxAsyncCommand(signout);
-            TogglePasswordVisibilityCommand = new MvxCommand(togglePasswordVisibility);
+            Error = errorSubject
+                .AsDriver(schedulerProvider);
+
+            Email = emailSubject
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
+
+            IsPasswordMasked = isPasswordMaskedSubject
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
+
+            Password = passwordSubject
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
+
+            HasError = Error
+                .Select(error => !string.IsNullOrEmpty(error))
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
+
+            TogglePasswordVisibility = UIAction.FromAction(togglePasswordVisibility);
+            SetPassword = InputAction<string>.FromAction(setPassword);
+
+            Done = UIAction.FromObservable(done);
+            SignOut = UIAction.FromAsync(signout);
+
+            IsLoading = Done.Executing
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
+
+            NextIsEnabled = Password
+                .CombineLatest(Done.Executing, (password, isExecuting) => password.IsValid && !isExecuting)
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
         }
 
         public override async Task Initialize()
@@ -83,53 +123,83 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             needsSync = await dataSource.HasUnsyncedData();
             var user = await dataSource.User.Current.FirstAsync();
-            Email = user.Email;
+
+            emailSubject.OnNext(user.Email);
+        }
+
+        private void setPassword(string password)
+        {
+            passwordSubject.OnNext(Multivac.Password.From(password));
         }
 
         private void togglePasswordVisibility()
-            => IsPasswordMasked = !IsPasswordMasked;
+        {
+            isPasswordMaskedSubject.OnNext(!isPasswordMaskedSubject.Value);
+        }
+
+        private void output(string text)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(text);
+        }
 
         private async Task signout()
         {
-            var shouldLogout = !needsSync || await dialogService.Confirm(
-                Resources.AreYouSure,
-                Resources.SettingsUnsyncedMessage,
-                Resources.SettingsDialogButtonSignOut,
-                Resources.Cancel
-            );
-
-            if (!shouldLogout) return;
+            if (needsSync)
+            {
+                var userConfirmedLoggingOut = await askToLogOut();
+                if (!userConfirmedLoggingOut)
+                    return;
+            }
 
             analyticsService.Logout.Track(LogoutSource.TokenReset);
             userPreferences.Reset();
+
             await dataSource.Logout();
             await navigationService.Navigate<LoginViewModel>();
         }
 
-        private void done()
-        {
-            if (!NextIsEnabled) return;
+        private IObservable<Unit> done() =>
+            Observable.Create<Unit>(observer =>
+            {
+                if (!passwordSubject.Value.IsValid)
+                {
+                    observer.OnError(new InvalidOperationException());
+                    return Disposable.Empty;
+                }
 
-            IsLoading = true;
+                loginManager
+                    .RefreshToken(passwordSubject.Value)
+                    .Subscribe(onDataSource, error =>
+                    {
+                        onError(error);
+                        observer.OnError(error);
+                    }, observer.CompleteWithUnit);
 
-            loginManager
-                .RefreshToken(Password)
-                .Subscribe(onDataSource, onError);
-        }
+                return Disposable.Empty;
+            });
 
         private void onDataSource(ITogglDataSource newDataSource)
         {
             newDataSource.StartSyncing();
-
-            IsLoading = false;
 
             navigationService.ForkNavigate<MainTabBarViewModel, MainViewModel>();
         }
 
         private void onError(Exception ex)
         {
-            IsLoading = false;
-            Error = ex is ForbiddenException ? Resources.IncorrectPassword : Resources.GenericLoginError;
+            var error = ex is ForbiddenException
+                ? Resources.IncorrectPassword
+                : Resources.GenericLoginError;
+
+            errorSubject.OnNext(error);
         }
+
+        private IObservable<bool> askToLogOut()
+            => dialogService.Confirm(
+                Resources.AreYouSure,
+                Resources.SettingsUnsyncedMessage,
+                Resources.SettingsDialogButtonSignOut,
+                Resources.Cancel);
     }
 }

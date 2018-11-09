@@ -78,7 +78,6 @@ namespace Toggl.Foundation.Tests.MvvmCross
 
                 await Task.Run(() => AppStart.Start());
 
-                await NavigationService.Received().Navigate<OnboardingViewModel>();
                 await NavigationService.Received().Navigate<OutdatedAppViewModel>();
                 LoginManager.DidNotReceive().GetDataSourceIfLoggedIn();
             }
@@ -90,7 +89,6 @@ namespace Toggl.Foundation.Tests.MvvmCross
 
                 await Task.Run(() => AppStart.Start());
 
-                await NavigationService.Received().Navigate<OnboardingViewModel>();
                 await NavigationService.Received().Navigate<OutdatedAppViewModel>();
                 LoginManager.DidNotReceive().GetDataSourceIfLoggedIn();
             }
@@ -114,7 +112,6 @@ namespace Toggl.Foundation.Tests.MvvmCross
 
                 await Task.Run(() => AppStart.Start());
 
-                await NavigationService.Received().Navigate<OnboardingViewModel>();
                 await NavigationService.Received().Navigate<OutdatedAppViewModel>();
                 LoginManager.DidNotReceive().GetDataSourceIfLoggedIn();
             }
@@ -127,7 +124,6 @@ namespace Toggl.Foundation.Tests.MvvmCross
 
                 await Task.Run(() => AppStart.Start());
 
-                await NavigationService.Received().Navigate<OnboardingViewModel>();
                 await NavigationService.Received().Navigate<OutdatedAppViewModel>();
                 await NavigationService.DidNotReceive().Navigate<TokenResetViewModel>();
                 LoginManager.DidNotReceive().GetDataSourceIfLoggedIn();

@@ -44,6 +44,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private IDisposable tickingDisposable;
         private IDisposable confirmDisposable;
         private IDisposable preferencesDisposable;
+        private IDisposable userDisposable;
         private IStopwatch stopwatchFromCalendar;
         private IStopwatch stopwatchFromMainLog;
 
@@ -55,6 +56,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private DurationFormat durationFormat;
 
         private BehaviorSubject<bool> hasProjectSubject = new BehaviorSubject<bool>(false);
+        private BehaviorSubject<Unit> projectTaskClientSubject = new BehaviorSubject<Unit>(Unit.Default);
+       
+        [Obsolete("This observable should be converted into separate observables for project, task and client as part of RXFactor.")]
+        public IObservable<Unit> ProjectTaskOrClientChanged { get; } 
 
         public IObservable<bool> HasProject { get; }
 
@@ -126,6 +131,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public DateFormat DateFormat { get; private set; }
 
         public TimeFormat TimeFormat { get; private set; }
+
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
 
         public DateTimeOffset StartTime { get; set; }
 
@@ -253,6 +260,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             HasProject = hasProjectSubject.AsObservable();
 
+            ProjectTaskOrClientChanged = projectTaskClientSubject
+                .AsObservable();
+
             bool canExecute()
                 => !IsInaccessible;
         }
@@ -286,6 +296,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             setErrorMessage(timeEntry);
             IsInaccessible = timeEntry.IsInaccessible;
 
+            projectTaskClientSubject.OnNext(Unit.Default);
+
             onTags(timeEntry.Tags);
             foreach (var tagId in timeEntry.TagIds)
                 tagIds.Add(tagId);
@@ -295,6 +307,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             preferencesDisposable = dataSource.Preferences.Current
                 .Subscribe(onPreferencesChanged);
+
+            userDisposable = dataSource.User.Current
+                .Subscribe(onUserChanged);
 
             await updateFeaturesAvailability();
         }
@@ -367,7 +382,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .UpdateTimeEntry(dto)
                 .Execute()
                 .Do(dataSource.SyncManager.InitiatePushSync)
-                .Subscribe((Exception ex) => close(), () => close());
+                .SubscribeToErrorsAndCompletion((Exception ex) => close(), () => close());
         }
 
         public async Task<bool> CloseWithConfirmation()
@@ -430,7 +445,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.EditViewTapped.Track(tapSource);
 
             var parameters = SelectTimeParameters
-                .CreateFromOrigin(origin, StartTime, StopTime)
+                .CreateFromOrigin(origin, BeginningOfWeek, StartTime, StopTime)
                 .WithFormats(DateFormat, TimeFormat);
 
             var data = await navigationService
@@ -502,6 +517,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             if (projectId == null)
             {
                 Project = Task = Client = ProjectColor = "";
+                projectTaskClientSubject.OnNext(Unit.Default);
                 clearTagsIfNeeded(workspaceId, returnParameter.WorkspaceId);
                 workspaceId = returnParameter.WorkspaceId;
                 await updateFeaturesAvailability();
@@ -516,6 +532,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             workspaceId = project.WorkspaceId;
 
             Task = taskId.HasValue ? (await dataSource.Tasks.GetById(taskId.Value)).Name : "";
+
+            projectTaskClientSubject.OnNext(Unit.Default);
 
             await updateFeaturesAvailability();
         }
@@ -609,6 +627,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return $"{tag.UnicodeSafeSubstring(0, maxTagLength)}...";
         }
 
+        private void onUserChanged(IThreadSafeUser user)
+        {
+            BeginningOfWeek = user.BeginningOfWeek;
+        }
+
         private void onPreferencesChanged(IThreadSafePreferences preferences)
         {
             durationFormat = preferences.DurationFormat;
@@ -629,6 +652,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             confirmDisposable?.Dispose();
             tickingDisposable?.Dispose();
             preferencesDisposable?.Dispose();
+            userDisposable?.Dispose();
         }
 
         private void OnProjectChanged()

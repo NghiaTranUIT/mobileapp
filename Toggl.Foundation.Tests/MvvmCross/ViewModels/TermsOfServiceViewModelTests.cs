@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
 using Xunit;
-using System.Reactive.Linq;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -15,7 +14,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             : BaseViewModelTests<TermsOfServiceViewModel>
         {
             protected override TermsOfServiceViewModel CreateViewModel()
-                => new TermsOfServiceViewModel(BrowserService, NavigationService);
+                => new TermsOfServiceViewModel(BrowserService);
         }
 
         public sealed class TheConstructor : TermsOfServiceViewModelTest
@@ -23,14 +22,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Theory, LogIfTooSlow]
             [ConstructorData]
             public void ThrowsIfAnyOfTheArgumentsIsNull(
-                bool useBrowserService,
-                bool useNavigationService)
+                bool useBrowserService)
             {
                 var browserService = useBrowserService ? BrowserService : null;
-                var navigationService = useNavigationService ? NavigationService : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new TermsOfServiceViewModel(browserService, navigationService);
+                    () => new TermsOfServiceViewModel(browserService);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -60,28 +57,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.ViewPrivacyPolicy.Execute();
 
                 BrowserService.Received().OpenUrl(privacyPolicyUrl);
-            }
-        }
-
-        public sealed class TheCloseCommand : TermsOfServiceViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModelAndReturnsFalse()
-            {
-                await ViewModel.Close.Execute();
-
-                await NavigationService.Received().Close(ViewModel, false);
-            }
-        }
-
-        public sealed class TheAcceptCommand : TermsOfServiceViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModelAndReturnsTrue()
-            {
-                await ViewModel.Accept.Execute();
-
-                await NavigationService.Received().Close(ViewModel, true);
             }
         }
     }

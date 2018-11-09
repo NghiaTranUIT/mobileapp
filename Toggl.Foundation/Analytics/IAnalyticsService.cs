@@ -78,6 +78,8 @@ namespace Toggl.Foundation.Analytics
 
         IAnalyticsEvent LostWorkspaceAccess { get; }
 
+        IAnalyticsEvent GainWorkspaceAccess { get; }
+
         IAnalyticsEvent<string> WorkspaceSyncError { get; }
 
         IAnalyticsEvent<string> UserSyncError { get; }
@@ -111,6 +113,18 @@ namespace Toggl.Foundation.Analytics
         IAnalyticsEvent EditViewOpenedFromCalendar { get; }
 
         IAnalyticsEvent<CalendarChangeEvent> TimeEntryChangedFromCalendar { get; }
+
+        IAnalyticsEvent<int> ProjectsInaccesibleAfterCleanUp { get; }
+
+        IAnalyticsEvent<int> TagsInaccesibleAfterCleanUp { get; }
+
+        IAnalyticsEvent<int> TasksInaccesibleAfterCleanUp { get; }
+
+        IAnalyticsEvent<int> ClientsInaccesibleAfterCleanUp { get; }
+
+        IAnalyticsEvent<int> TimeEntriesInaccesibleAfterCleanUp { get; }
+
+        IAnalyticsEvent<int> WorkspacesInaccesibleAfterCleanUp { get; }
 
         void Track(string eventName, Dictionary<string, string> parameters = null);
 

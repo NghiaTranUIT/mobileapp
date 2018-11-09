@@ -50,7 +50,7 @@ namespace Toggl.Foundation.Sync.States.Pull
             => getProjectsWhichNeedsRefetching()
                 .SelectMany(projects => projects == null
                     ? Observable.Return(FinishedPersisting.Transition(fetch))
-                    : refetch(projects).Select(FetchNext.Transition(fetch)))
+                    : refetch(projects).SelectValue(FetchNext.Transition(fetch)))
                 .OnErrorReturnResult(ErrorOccured);
 
         private IObservable<IGrouping<long, IThreadSafeProject>> getProjectsWhichNeedsRefetching()

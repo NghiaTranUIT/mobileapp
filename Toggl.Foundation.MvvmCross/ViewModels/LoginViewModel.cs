@@ -249,8 +249,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             await dataSource.StartSyncing();
 
-            isLoadingSubject.OnNext(false);
-
             onboardingStorage.SetIsNewUser(false);
 
             await navigationService.ForkNavigate<MainTabBarViewModel, MainViewModel>();

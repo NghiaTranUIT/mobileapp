@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Reactive.Linq;
 using Microsoft.Reactive.Testing;
 using MvvmCross.ViewModels;
 using NSubstitute;
@@ -34,7 +36,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         protected IRemoteConfigService RemoteConfigService { get; } = Substitute.For<IRemoteConfigService>();
         protected IPasswordManagerService PasswordManagerService { get; } = Substitute.For<IPasswordManagerService>();
         protected IErrorHandlingService ErrorHandlingService { get; } = Substitute.For<IErrorHandlingService>();
-        protected ISuggestionProviderContainer SuggestionProviderContainer { get; } = Substitute.For<ISuggestionProviderContainer>();
+
+        protected ISuggestionProviderContainer SuggestionProviderContainer { get; } =
+            Substitute.For<ISuggestionProviderContainer>();
         protected IAutocompleteProvider AutocompleteProvider { get; } = Substitute.For<IAutocompleteProvider>();
         protected IAccessRestrictionStorage AccessRestrictionStorage { get; } = Substitute.For<IAccessRestrictionStorage>();
         protected IStopwatchProvider StopwatchProvider { get; } = Substitute.For<IStopwatchProvider>();

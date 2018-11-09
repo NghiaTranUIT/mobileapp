@@ -18,7 +18,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class NoWorkspaceViewModelTest : BaseViewModelTests<NoWorkspaceViewModel>
         {
             protected override NoWorkspaceViewModel CreateViewModel()
-                => new NoWorkspaceViewModel(DataSource, InteractorFactory, NavigationService, AccessRestrictionStorage);
+                => new NoWorkspaceViewModel(DataSource, InteractorFactory, NavigationService, AccessRestrictionStorage, SchedulerProvider);
         }
 
         public sealed class TheConstructor : NoWorkspaceViewModelTest
@@ -29,15 +29,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useDataSource,
                 bool useAccessRestrictionStorage,
                 bool useInteractorFactory,
-                bool useNavigationService)
+                bool useNavigationService,
+                bool useSchedulerProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var accessRestrictionStorage = useAccessRestrictionStorage ? AccessRestrictionStorage : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var navigationService = useNavigationService ? NavigationService : null;
+                var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new NoWorkspaceViewModel(dataSource, interactorFactory, navigationService, accessRestrictionStorage);
+                    () => new NoWorkspaceViewModel(dataSource, interactorFactory, navigationService, accessRestrictionStorage, schedulerProvider);
 
                 tryingToConstructWithEmptyParameters.Should().Throw<ArgumentNullException>();
             }
@@ -51,18 +53,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var workspace = Substitute.For<IThreadSafeWorkspace>();
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
 
-                await ViewModel.TryAgain();
+                await ViewModel.TryAgain.Execute();
 
-                await NavigationService.Received().Close(Arg.Is(ViewModel));
+                await NavigationService.Received().Close(Arg.Is(ViewModel), Unit.Default);
             }
 
             [Fact, LogIfTooSlow]
+
             public async Task ResetsNoWorkspaceStateWhenAnotherWorkspaceIsFetched()
             {
                 var workspace = Substitute.For<IThreadSafeWorkspace>();
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
 
-                await ViewModel.TryAgain();
+                await ViewModel.TryAgain.Execute();
 
                 AccessRestrictionStorage.Received().SetNoWorkspaceStateReached(Arg.Is(false));
             }
@@ -72,7 +75,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace>()));
 
-                await ViewModel.TryAgain();
+                await ViewModel.TryAgain.Execute();
 
                 await NavigationService.DidNotReceive().Close(Arg.Is(ViewModel));
                 AccessRestrictionStorage.DidNotReceive().SetNoWorkspaceStateReached(Arg.Any<bool>());
@@ -87,8 +90,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var workspace = Substitute.For<IThreadSafeWorkspace>();
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
 
-                await ViewModel.TryAgain();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute();
 
+                TestScheduler.Start();
                 observer.Messages.Count.Should().Be(2);
                 observer.Messages[0].Value.Value.Should().BeTrue();
                 observer.Messages[1].Value.Value.Should().BeFalse();
@@ -105,7 +109,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 user.Fullname.Returns(name);
                 DataSource.User.Current.Returns(Observable.Return(user));
 
-                await ViewModel.CreateWorkspaceWithDefaultName();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute();
 
                 await InteractorFactory.CreateDefaultWorkspace().Received().Execute();
                 //workspacesDataSource.Received().Create(Arg.Is($"{name}'s Workspace"));
@@ -118,9 +122,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.CreateDefaultWorkspace().Execute().Returns(Observable.Return(Unit.Default));
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace> { workspace }));
 
-                await ViewModel.CreateWorkspaceWithDefaultName();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute();
 
-                await NavigationService.Received().Close(Arg.Is(ViewModel));
+                await NavigationService.Received().Close(Arg.Is(ViewModel), Unit.Default);
             }
 
             [Fact, LogIfTooSlow]
@@ -130,7 +134,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.CreateDefaultWorkspace().Execute().Returns(Observable.Return(Unit.Default));
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace> { workspace }));
 
-                await ViewModel.CreateWorkspaceWithDefaultName();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute();
 
                 AccessRestrictionStorage.Received().SetNoWorkspaceStateReached(Arg.Is(false));
             }
@@ -142,8 +146,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.IsLoading.Subscribe(observer);
                 InteractorFactory.CreateDefaultWorkspace().Execute().Returns(Observable.Return(Unit.Default));
 
-                await ViewModel.CreateWorkspaceWithDefaultName();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute();
 
+                TestScheduler.Start();
                 observer.Messages.Count.Should().Be(2);
                 observer.Messages[0].Value.Value.Should().BeTrue();
                 observer.Messages[1].Value.Value.Should().BeFalse();

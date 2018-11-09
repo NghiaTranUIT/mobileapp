@@ -1,16 +1,16 @@
 ﻿using System;
 using Foundation;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding;
-using MvvmCross.Platforms.Ios.Binding.Views;
-using MvvmCross.Plugin.Color;
+using MvvmCross.Plugin.Color.Platforms.Ios;
+using Toggl.Daneel.Cells;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public partial class ColorSelectionViewCell : MvxCollectionViewCell
+    public partial class ColorSelectionViewCell : BaseCollectionViewCell<SelectableColorViewModel>
     {
+        public static readonly string Identifier = "colorSelectionViewCell";
+
         public static readonly NSString Key = new NSString(nameof(ColorSelectionViewCell));
         public static readonly UINib Nib;
 
@@ -30,22 +30,12 @@ namespace Toggl.Daneel.Views
 
             SelectedImageView.Image = SelectedImageView.Image.ImageWithRenderingMode(UIImageRenderingMode.AlwaysTemplate);
             SelectedImageView.TintColor = UIColor.White;
+        }
 
-            this.DelayBind(() =>
-            {
-                var bindingSet = this.CreateBindingSet<ColorSelectionViewCell, SelectableColorViewModel>();
-
-                bindingSet.Bind(ColorCircleView)
-                          .For(v => v.BackgroundColor)
-                          .To(vm => vm.Color)
-                          .WithConversion(new MvxNativeColorValueConverter());
-
-                bindingSet.Bind(SelectedImageView)
-                          .For(v => v.BindVisible())
-                          .To(vm => vm.Selected);
-
-                bindingSet.Apply();
-            });
+        protected override void UpdateView()
+        {
+            ColorCircleView.BackgroundColor = Item.Color.ToNativeColor();
+            SelectedImageView.Hidden = !Item.Selected;
         }
     }
 }

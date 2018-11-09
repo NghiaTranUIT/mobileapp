@@ -4,6 +4,7 @@ using MvvmCross.Platforms.Ios.Presenters.Attributes;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac.Extensions;
@@ -34,34 +35,98 @@ namespace Toggl.Daneel.ViewControllers
             LoggingOutView.Hidden = true;
             SendFeedbackSuccessView.Hidden = true;
 
-            this.Bind(ViewModel.Email, EmailLabel.Rx().Text());
-            this.Bind(ViewModel.IsSynced, SyncedView.Rx().IsVisible());
-            this.Bind(ViewModel.WorkspaceName, WorkspaceLabel.Rx().Text());
-            this.Bind(ViewModel.DurationFormat, DurationFormatLabel.Rx().Text());
-            this.Bind(ViewModel.IsRunningSync, SyncingView.Rx().IsVisible());
-            this.Bind(ViewModel.DateFormat, DateFormatLabel.Rx().Text());
-            this.Bind(ViewModel.BeginningOfWeek, BeginningOfWeekLabel.Rx().Text());
-            this.Bind(ViewModel.IsFeedbackSuccessViewShowing, SendFeedbackSuccessView.Rx().AnimatedIsVisible());
-            this.BindVoid(ViewModel.LoggingOut, () =>
-            {
-                LoggingOutView.Hidden = false;
-                SyncingView.Hidden = true;
-                SyncedView.Hidden = true;
-            });
+            ViewModel.Email
+                .Subscribe(EmailLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
 
-            this.Bind(HelpView.Rx().Tap(), ViewModel.OpenHelpView);
-            this.Bind(LogoutButton.Rx().Tap(), ViewModel.TryLogout);
-            this.Bind(AboutView.Rx().Tap(), ViewModel.OpenAboutView);
-            this.Bind(FeedbackView.Rx().Tap(), ViewModel.SubmitFeedback);
-            this.Bind(DateFormatView.Rx().Tap(), ViewModel.SelectDateFormat);
-            this.Bind(WorkspaceView.Rx().Tap(), ViewModel.PickDefaultWorkspace);
-            this.Bind(DurationFormatView.Rx().Tap(), ViewModel.SelectDurationFormat);
-            this.BindVoid(ManualModeSwitch.Rx().Changed(), ViewModel.ToggleManualMode);
-            this.Bind(BeginningOfWeekView.Rx().Tap(), ViewModel.SelectBeginningOfWeek);
-            this.Bind(CalendarSettingsView.Rx().Tap(), ViewModel.OpenCalendarSettingsAction);
-            this.BindVoid(SendFeedbackSuccessView.Rx().Tap(), ViewModel.CloseFeedbackSuccessView);
-            this.Bind(NotificationSettingsView.Rx().Tap(), ViewModel.OpenNotificationSettingsAction);
-            this.Bind(TwentyFourHourClockSwitch.Rx().Changed(), ViewModel.ToggleTwentyFourHourSettings);
+            ViewModel.IsSynced
+                .Subscribe(SyncedView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.WorkspaceName
+                .Subscribe(WorkspaceLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.DurationFormat
+                .Subscribe(DurationFormatLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsRunningSync
+                .Subscribe(SyncingView.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.DateFormat
+                .Subscribe(DateFormatLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.BeginningOfWeek
+                .Subscribe(BeginningOfWeekLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsFeedbackSuccessViewShowing
+                .Subscribe(SendFeedbackSuccessView.Rx().AnimatedIsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.LoggingOut
+                .Subscribe(_ =>
+                {
+                    LoggingOutView.Hidden = false;
+                    SyncingView.Hidden = true;
+                    SyncedView.Hidden = true;
+                })
+                .DisposedBy(DisposeBag);
+
+            HelpView.Rx().Tap()
+                .Subscribe(ViewModel.OpenHelpView)
+                .DisposedBy(DisposeBag);
+
+            LogoutButton.Rx().Tap()
+                .Subscribe(ViewModel.TryLogout)
+                .DisposedBy(DisposeBag);
+
+            AboutView.Rx().Tap()
+                .Subscribe(ViewModel.OpenAboutView)
+                .DisposedBy(DisposeBag);
+
+            FeedbackView.Rx().Tap()
+                .Subscribe(ViewModel.SubmitFeedback)
+                .DisposedBy(DisposeBag);
+
+            DateFormatView.Rx().Tap()
+                .Subscribe(ViewModel.SelectDateFormat)
+                .DisposedBy(DisposeBag);
+
+            WorkspaceView.Rx().Tap()
+                .Subscribe(ViewModel.PickDefaultWorkspace)
+                .DisposedBy(DisposeBag);
+
+            DurationFormatView.Rx().Tap()
+                .Subscribe(ViewModel.SelectDurationFormat)
+                .DisposedBy(DisposeBag);
+
+            ManualModeSwitch.Rx().Changed()
+                .VoidSubscribe(ViewModel.ToggleManualMode)
+                .DisposedBy(DisposeBag);
+
+            BeginningOfWeekView.Rx().Tap()
+                .Subscribe(ViewModel.SelectBeginningOfWeek)
+                .DisposedBy(DisposeBag);
+
+            CalendarSettingsView.Rx()
+                .BindAction(ViewModel.OpenCalendarSettings)
+                .DisposedBy(DisposeBag);
+
+            SendFeedbackSuccessView.Rx().Tap()
+                .VoidSubscribe(ViewModel.CloseFeedbackSuccessView)
+                .DisposedBy(DisposeBag);
+
+            NotificationSettingsView.Rx()
+                .BindAction(ViewModel.OpenNotificationSettings)
+                .DisposedBy(DisposeBag);
+
+            TwentyFourHourClockSwitch.Rx().Changed()
+                .Subscribe(ViewModel.ToggleTwentyFourHourSettings.Inputs)
+                .DisposedBy(DisposeBag);
 
             UIApplication.Notifications
                 .ObserveWillEnterForeground((sender, e) => startAnimations())

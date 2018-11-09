@@ -1,4 +1,5 @@
 ﻿using Android.Views;
+using Android.Widget;
 using MvvmCross.Droid.Support.V7.AppCompat;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using static Toggl.Giskard.Resource.Id;
@@ -11,6 +12,7 @@ namespace Toggl.Giskard.Activities
         private View stopTimeArea;
         private View durationArea;
         private View projectContainer;
+        private TextView projectTaskClientTextView;
 
         private void initializeViews()
         {
@@ -18,6 +20,7 @@ namespace Toggl.Giskard.Activities
             stopTimeArea = FindViewById(EditTimeRightPart);
             durationArea = FindViewById(EditDuration);
             projectContainer = FindViewById(EditTimeEntryProjectContainer);
+            projectTaskClientTextView = FindViewById<TextView>(EditProjectTaskClient);
         }
     }
 }

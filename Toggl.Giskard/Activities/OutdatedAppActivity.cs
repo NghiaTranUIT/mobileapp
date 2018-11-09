@@ -6,6 +6,7 @@ using MvvmCross.Droid.Support.V7.AppCompat;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -13,7 +14,7 @@ namespace Toggl.Giskard.Activities
     [Activity(Theme = "@style/AppTheme.OutdatedAppStatusBarColor",
               ScreenOrientation = ScreenOrientation.Portrait,
               ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed partial class OutdatedAppActivity : MvxAppCompatActivity<OutdatedAppViewModel>, IReactiveBindingHolder
+    public sealed partial class OutdatedAppActivity : MvxAppCompatActivity<OutdatedAppViewModel>
     {
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -24,8 +25,13 @@ namespace Toggl.Giskard.Activities
             OverridePendingTransition(Resource.Animation.abc_fade_in, Resource.Animation.abc_fade_out);
             initializeViews();
 
-            this.Bind(updateAppButton.Rx().Tap(), ViewModel.UpdateAppAction);
-            this.Bind(openWebsiteButton.Rx().Tap(), ViewModel.OpenWebsiteAction);
+            updateAppButton.Rx()
+                .BindAction(ViewModel.UpdateApp)
+                .DisposedBy(DisposeBag);
+
+            openWebsiteButton.Rx()
+                .BindAction(ViewModel.OpenWebsite)
+                .DisposedBy(DisposeBag);
         }
     }
 }

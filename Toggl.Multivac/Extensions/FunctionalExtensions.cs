@@ -14,6 +14,8 @@ namespace Toggl.Multivac.Extensions
 
         public static bool NotNull(object obj) => obj != null;
 
+        public static string ToString<T>(T obj) => obj.ToString();
+
         public static void DoNothing<T>(T x) { }
 
         public static T1 First<T1, T2>(T1 result, T2 _) => result;

@@ -334,7 +334,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 public async Task TracksProjectSelection()
                 {
                     ViewModel.Prepare();
-                    await ViewModel.Initialize();
+                    TestScheduler.Start();
 
                     await ViewModel.Initialize();
 
@@ -371,6 +371,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var querySpan = new QueryTextSpan("abcde #fgh", 10);
 
                     ViewModel.Prepare();
+                    TestScheduler.Start();
+
                     await ViewModel.Initialize();
                     await ViewModel.OnTextFieldInfoFromView(projectSpan);
 
@@ -386,6 +388,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var querySpan = new QueryTextSpan("abcde #fgh", 10);
 
                     ViewModel.Prepare();
+                    TestScheduler.Start();
                     await ViewModel.Initialize();
                     await ViewModel.OnTextFieldInfoFromView(projectSpan);
                     ViewModel.ToggleTagSuggestionsCommand.Execute();
@@ -407,6 +410,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     ViewModel.ToggleTagSuggestionsCommand.Execute();
 
                     await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    TestScheduler.Start();
 
                     ViewModel.SuggestCreation.Should().BeFalse();
                 }
@@ -415,6 +419,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 public async Task TracksTagSelection()
                 {
                     ViewModel.Prepare();
+                    TestScheduler.Start();
 
                     await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("abcde #fgh", 10));
 
@@ -440,6 +445,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                     ViewModel.Prepare();
                     ViewModel.Prepare(DefaultParameter);
+                    TestScheduler.Start();
                 }
 
                 [Fact, LogIfTooSlow]
@@ -489,8 +495,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 {
                     ViewModel.Prepare();
                     ViewModel.Prepare(DefaultParameter);
+                    TestScheduler.Start();
                     ViewModel.OnTextFieldInfoFromView(querySpan)
                         .GetAwaiter().GetResult();
+                    TestScheduler.Start();
                 }
 
                 [Fact, LogIfTooSlow]
@@ -722,6 +730,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void SetsTheIsSuggestingProjectsPropertyToTrueIfNotInProjectSuggestionMode()
             {
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
 
                 ViewModel.ToggleProjectSuggestionsCommand.Execute();
@@ -737,6 +746,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var chosenProject = projects.First();
                 AutocompleteProvider.Query(Arg.Any<QueryInfo>()).Returns(Observable.Return(projects));
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
                 await ViewModel.Initialize();
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(Description, Description.Length));
@@ -756,6 +766,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var chosenProject = projects.First();
                 AutocompleteProvider.Query(Arg.Any<QueryInfo>()).Returns(Observable.Return(projects));
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
                 await ViewModel.Initialize();
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(Description, Description.Length));
@@ -813,6 +824,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 string description, string expected)
             {
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(description, description.Length));
 
@@ -865,8 +877,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void SetsTheIsSuggestingTagsPropertyToTrueIfNotInTagSuggestionMode()
             {
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
-
                 ViewModel.ToggleTagSuggestionsCommand.Execute();
 
                 ViewModel.IsSuggestingTags.Should().BeTrue();
@@ -921,6 +933,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var observer = TestScheduler.CreateObserver<TextFieldInfo>();
                 viewModel.TextFieldInfoObservable.Subscribe(observer);
                 viewModel.Prepare();
+                TestScheduler.Start();
                 viewModel.Prepare(DefaultParameter);
                 await viewModel.OnTextFieldInfoFromView(
                     new ProjectSpan(ProjectId, ProjectName, ProjectColor),
@@ -1876,12 +1889,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     });
                 AutocompleteProvider.Query(Arg.Any<QueryInfo>()).Returns(suggestions);
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
 
                 await ViewModel.OnTextFieldInfoFromView(
                     new QueryTextSpan(description, description.Length),
                     new ProjectSpan(ProjectId, ProjectName, ProjectColor)
                 );
+                TestScheduler.Start();
 
                 ViewModel.Suggestions.Should().HaveCount(1);
                 ViewModel.Suggestions[0].Should().HaveCount(1);
@@ -1914,12 +1929,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var extendedText = text + "x";
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(extendedText, text.Length));
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(extendedText, 0));
                 AutocompleteProvider.ClearReceivedCalls();
 
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(extendedText, extendedText.Length));
+                TestScheduler.Start();
 
                 await AutocompleteProvider.Received().Query(Arg.Any<QueryInfo>());
             }
@@ -1930,12 +1947,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task ChangesSuggestionsWhenTheCursorMovesBeforeTheQuerySymbolAndUserStartsTyping(string text)
             {
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(text, text.Length));
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(text, 0));
                 AutocompleteProvider.ClearReceivedCalls();
 
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("x" + text, 1));
+                TestScheduler.Start();
 
                 await AutocompleteProvider.Received().Query(Arg.Is<QueryInfo>(query => query.Text.StartsWith("x")));
             }
@@ -2053,6 +2072,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task ReturnsTrueWhenSuggestingTagsAndUserHasNoTags(string query)
             {
                 ViewModel.Prepare();
+                TestScheduler.Start();
                 ViewModel.Prepare(DefaultParameter);
                 await ViewModel.Initialize();
                 await ViewModel.OnTextFieldInfoFromView(

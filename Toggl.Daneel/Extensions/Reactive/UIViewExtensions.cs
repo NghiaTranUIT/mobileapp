@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using CoreGraphics;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Reactive;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.Extensions.Reactive
@@ -20,6 +21,16 @@ namespace Toggl.Daneel.Extensions.Reactive
 
                 return Disposable.Create(() => reactive.Base.RemoveGestureRecognizer(gestureRecognizer));
             });
+
+        public static IObservable<Unit> LongPress(this IReactive<UIView> reactive)
+           => Observable.Create<Unit>(observer =>
+           {
+               var gestureRecognizer = new UILongPressGestureRecognizer(() => observer.OnNext(Unit.Default));
+               gestureRecognizer.ShouldRecognizeSimultaneously = (recognizer, otherRecognizer) => true;
+               reactive.Base.AddGestureRecognizer(gestureRecognizer);
+
+               return Disposable.Create(() => reactive.Base.RemoveGestureRecognizer(gestureRecognizer));
+           });
 
         public static Action<bool> IsVisible(this IReactive<UIView> reactive)
             => isVisible => reactive.Base.Hidden = !isVisible;
@@ -66,5 +77,13 @@ namespace Toggl.Daneel.Extensions.Reactive
                 );
             };
 
+        public static IDisposable BindAction(this IReactive<UIView> reactive, UIAction action)
+        {
+            return Observable.Using(
+                    () => action.Enabled.Subscribe(e => { reactive.Base.UserInteractionEnabled = e; }),
+                    _ => reactive.Base.Rx().Tap()
+                )
+                .Subscribe(action.Inputs);
+        }
     }
 }

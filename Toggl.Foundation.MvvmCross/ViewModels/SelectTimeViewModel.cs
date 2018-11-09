@@ -76,6 +76,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool> Is24HoursModeObservable { get; private set; }
 
+        public BeginningOfWeek BeginningOfWeek { get; private set; }
+
         public bool IsEditingDuration { get; set; }
 
         [DependsOn(nameof(StopTime))]
@@ -171,6 +173,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             StartingTabIndex = parameter.StartingTabIndex;
             IsCalendarView = parameter.ShouldStartOnCalendar;
             calendarModeSubject.OnNext(IsCalendarView);
+
+            BeginningOfWeek = parameter.BeginningOfWeek;
 
             initializeTimeConstraints();
             isViewModelPrepared = true;
