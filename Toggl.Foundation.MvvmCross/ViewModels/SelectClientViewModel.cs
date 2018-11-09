@@ -73,8 +73,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         .Where(c => c.Name.ContainsIgnoringCase(trimmedText))
                         .Select(toSelectableViewModel);
 
-                    var shouldHaveNoClient = string.IsNullOrEmpty(trimmedText);
-                    var suggestCreation = !shouldHaveNoClient
+                    var isClientFilterEmpty = string.IsNullOrEmpty(trimmedText);
+                    var suggestCreation = !isClientFilterEmpty
                                           && allClients.None(c => c.Name == trimmedText)
                                           && trimmedText.LengthInBytes() <= MaxClientNameLengthInBytes;
 
@@ -84,7 +84,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                             new SelectableClientCreationViewModel(trimmedText);
                         selectableViewModels = selectableViewModels.Prepend(creationSelectableViewModel);
                     }
-                    else if (shouldHaveNoClient)
+                    else if (isClientFilterEmpty)
                     {
                         selectableViewModels = selectableViewModels.Prepend(noClient);
                     }
