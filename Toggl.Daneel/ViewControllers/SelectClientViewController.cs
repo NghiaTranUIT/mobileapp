@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reactive;
 using System.Threading.Tasks;
+using MvvmCross.Binding.BindingContext;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
@@ -40,9 +41,11 @@ namespace Toggl.Daneel.ViewControllers
             CloseButton.Rx()
                 .BindAction(ViewModel.Close)
                 .DisposedBy(DisposeBag);
+
             SearchTextField.Rx().Text()
-                .Subscribe(ViewModel.ClientFilterText)
+                .Subscribe(ViewModel.SetFilterText.Inputs)
                 .DisposedBy(DisposeBag);
+
             tableViewSource.ClientSelected
                 .Subscribe(ViewModel.SelectClient.Inputs)
                 .DisposedBy(DisposeBag);

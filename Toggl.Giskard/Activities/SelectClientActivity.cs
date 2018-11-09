@@ -40,7 +40,7 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
 
             filterEditText.Rx().Text()
-                .Subscribe(ViewModel.ClientFilterText)
+                .Subscribe(ViewModel.SetFilterText.Inputs)
                 .DisposedBy(DisposeBag);
 
             selectClientRecyclerAdapter.ItemTapObservable

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
-using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
@@ -20,13 +18,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed class SelectClientViewModel : MvxViewModel<SelectClientParameters, long?>
     {
-        public ISubject<string> ClientFilterText { get; } = new BehaviorSubject<string>(string.Empty);
 
         public IObservable<IEnumerable<SelectableClientBaseViewModel>> Clients { get; private set; }
 
         public UIAction Close { get; }
 
         public InputAction<SelectableClientBaseViewModel> SelectClient { get; }
+
+        public InputAction<string> SetFilterText { get; }
+
+        private ISubject<string> clientFilterText = new BehaviorSubject<string>(string.Empty);
 
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
@@ -48,6 +49,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Close = UIAction.FromAsync(close);
             SelectClient = InputAction<SelectableClientBaseViewModel>.FromAsync(selectClient);
+            SetFilterText = InputAction<string>.FromAction(setText);
         }
 
         public override void Prepare(SelectClientParameters parameter)
@@ -63,7 +65,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
 
-            Clients = ClientFilterText
+            Clients = clientFilterText
                 .Select(text =>
                 {
                     var trimmedText = text.Trim();
@@ -109,6 +111,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     await navigationService.Close(this, c.Id);
                     break;
             }
+        }
+
+        private void setText(string text)
+        {
+            clientFilterText.OnNext(text ?? "");
         }
     }
 }

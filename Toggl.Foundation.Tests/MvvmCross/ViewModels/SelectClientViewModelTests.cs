@@ -235,7 +235,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Return(clients));
                 await ViewModel.Initialize();
 
-                ViewModel.ClientFilterText.OnNext("0");
+                await ViewModel.SetFilterText.Execute("0");
 
                 ViewModel.Clients.Count().Should().Equals(1);
             }
@@ -250,7 +250,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
 
                 var nonExistingClientName = "Some none existing name";
-                ViewModel.ClientFilterText.OnNext(nonExistingClientName);
+                await ViewModel.SetFilterText.Execute(nonExistingClientName);
 
                 ViewModel.Clients.First().First().Name.Should().Equals(nonExistingClientName);
                 ViewModel.Clients.First().First().Should().BeOfType<SelectableClientCreationViewModel>();
@@ -271,7 +271,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(Parameters);
 
                 await ViewModel.Initialize();
-                ViewModel.ClientFilterText.OnNext(name);
+                await ViewModel.SetFilterText.Execute(name);
 
                 var receivedClients = await ViewModel.Clients.FirstAsync();
                 receivedClients.First().Should().NotBeOfType<SelectableClientCreationViewModel>();
@@ -286,7 +286,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Return(clients));
                 await ViewModel.Initialize();
 
-                ViewModel.ClientFilterText.OnNext(clients.First().Name);
+                await ViewModel.SetFilterText.Execute(clients.First().Name);
 
                 ViewModel.Clients.First().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
