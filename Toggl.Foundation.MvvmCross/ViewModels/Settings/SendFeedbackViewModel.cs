@@ -24,9 +24,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISubject<Exception> currentErrorSubject = new BehaviorSubject<Exception>(null);
 
         // Actions
-        public UIAction CloseButtonTapped { get; }
-        public UIAction ErrorViewTapped { get; }
-        public UIAction SendButtonTapped { get; }
+        public UIAction Close { get; }
+        public UIAction DismissError { get; }
+        public UIAction Send { get; }
 
         // Inputs
         public ISubject<string> FeedbackText { get; } = new BehaviorSubject<string>(string.Empty);
@@ -61,9 +61,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IsFeedbackEmpty = isEmptyObservable.DistinctUntilChanged().AsDriver(schedulerProvider);
             SendEnabled = sendingIsEnabledObservable.DistinctUntilChanged().AsDriver(schedulerProvider);
 
-            CloseButtonTapped = UIAction.FromObservable(cancel);
-            ErrorViewTapped = UIAction.FromAction(dismissError);
-            SendButtonTapped = UIAction.FromObservable(sendFeedback, sendingIsEnabledObservable);
+            Close = UIAction.FromObservable(cancel);
+            DismissError = UIAction.FromAction(dismissError);
+            Send = UIAction.FromObservable(sendFeedback, sendingIsEnabledObservable);
 
             IsLoading = isLoadingSubject.AsDriver(false, schedulerProvider);
             Error = currentErrorSubject.AsDriver(default(Exception), schedulerProvider);

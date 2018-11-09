@@ -6,5 +6,6 @@ namespace Toggl.Multivac
     {
         IScheduler MainScheduler { get; }
         IScheduler DefaultScheduler { get; }
+        IScheduler BackgroundScheduler { get; }
     }
 }

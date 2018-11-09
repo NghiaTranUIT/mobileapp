@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -54,7 +55,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     SuggestionProviderContainer,
                     IntentDonationService,
                     AccessRestrictionStorage,
-                    SchedulerProvider);
+                    SchedulerProvider,
+                    StopwatchProvider);
 
                 vm.Prepare();
 
@@ -73,6 +75,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 RemoteConfigService
                     .RatingViewConfiguration
                     .Returns(Observable.Return(defaultRemoteConfiguration));
+
+                var provider = Substitute.For<ISuggestionProvider>();
+                provider.GetSuggestions().Returns(Observable.Empty<Suggestion>());
+                SuggestionProviderContainer.Providers.Returns(new[] { provider }.ToList().AsReadOnly());
             }
         }
 
@@ -93,7 +99,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useSuggestionProviderContainer,
                 bool useIntentDonationService,
                 bool useAccessRestrictionStorage,
-                bool useSchedulerProvider)
+                bool useSchedulerProvider,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -108,6 +115,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var accessRestrictionStorage = useAccessRestrictionStorage ? AccessRestrictionStorage : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new MainViewModel(
@@ -123,7 +131,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         suggestionProviderContainer,
                         intentDonationService,
                         accessRestrictionStorage,
-                        schedulerProvider);
+                        schedulerProvider,
+                        stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -157,7 +166,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ViewAppearing();
 
-                await NavigationService.Received().Navigate<NoWorkspaceViewModel>();
+                await NavigationService.Received().Navigate<NoWorkspaceViewModel, Unit>();
             }
 
             [Fact, LogIfTooSlow]
@@ -167,7 +176,63 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ViewAppearing();
 
-                await NavigationService.DidNotReceive().Navigate<NoWorkspaceViewModel>();
+                await NavigationService.DidNotReceive().Navigate<NoWorkspaceViewModel, Unit>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask DoesNotNavigateToNoWorkspaceViewSeveralTimes()
+            {
+                AccessRestrictionStorage.HasNoWorkspace().Returns(true);
+                var task = new TaskCompletionSource<Unit>().Task;
+                NavigationService.Navigate<NoWorkspaceViewModel, Unit>().Returns(task);
+
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+
+                await NavigationService.Received(1).Navigate<NoWorkspaceViewModel, Unit>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask NavigatesToSelectDefaultWorkspaceViewModelWhenNoDefaultWorkspaceStateIsSet()
+            {
+                AccessRestrictionStorage.HasNoWorkspace().Returns(false);
+                AccessRestrictionStorage.HasNoDefaultWorkspace().Returns(true);
+
+                ViewModel.ViewAppearing();
+                //ViewAppearing calls an async method. The delay is here to ensure that the async method completes before the assertion
+                await ThreadingTask.Delay(100);
+
+                await NavigationService.Received().Navigate<SelectDefaultWorkspaceViewModel, Unit>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask DoesNotNavigateToSelectDefaultWorkspaceViewModelWhenNoDefaultWorkspaceStateIsNotSet()
+            {
+                AccessRestrictionStorage.HasNoDefaultWorkspace().Returns(false);
+
+                ViewModel.ViewAppearing();
+
+                await NavigationService.DidNotReceive().Navigate<SelectDefaultWorkspaceViewModel, Unit>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async ThreadingTask DoesNotNavigateToSelectDefaultWorkspaceViewSeveralTimes()
+            {
+                AccessRestrictionStorage.HasNoWorkspace().Returns(false);
+                AccessRestrictionStorage.HasNoDefaultWorkspace().Returns(true);
+                var task = new TaskCompletionSource<Unit>().Task;
+                NavigationService.Navigate<SelectDefaultWorkspaceViewModel, Unit>().Returns(task);
+
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                ViewModel.ViewAppearing();
+                //ViewAppearing calls an async method. The delay is here to ensure that the async method completes before the assertion
+                await ThreadingTask.Delay(100);
+
+                await NavigationService.Received(1).Navigate<SelectDefaultWorkspaceViewModel, Unit>();
             }
         }
 
@@ -835,9 +900,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, true)
-                );
+                observer.Messages.Last().Value.Value.Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -850,9 +913,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -865,9 +926,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -880,9 +939,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowEmptyState.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
         }
 
@@ -914,9 +972,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowWelcomeBack.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -929,9 +985,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowWelcomeBack.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -944,9 +998,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowWelcomeBack.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false)
-                );
+                observer.Messages.Last().Value.Value.Should().BeFalse();
             }
         }
 
@@ -968,7 +1020,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     await InteractorFactory
                         .Received()
                         .CreateTimeEntry(Arg.Is<ITimeEntryPrototype>(
-                                te => te.Description == description 
+                                te => te.Description == description
                                    && te.WorkspaceId == defaultWorkspace.Id))
                         .Execute();
                 }

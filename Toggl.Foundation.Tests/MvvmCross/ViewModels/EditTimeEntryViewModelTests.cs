@@ -8,6 +8,7 @@ using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
 using NSubstitute;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.DTOs;
 using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
@@ -69,7 +70,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             protected override EditTimeEntryViewModel CreateViewModel()
-            => new EditTimeEntryViewModel(TimeService, DataSource, InteractorFactory, NavigationService, OnboardingStorage, DialogService, AnalyticsService);
+            => new EditTimeEntryViewModel(TimeService, DataSource, InteractorFactory, NavigationService, OnboardingStorage, DialogService, AnalyticsService, StopwatchProvider);
         }
 
         public sealed class TheConstructor : EditTimeEntryViewModelTest
@@ -83,7 +84,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useInteractorFactory,
                 bool useOnboardingStorage,
                 bool useDialogService,
-                bool useAnalyticsService)
+                bool useAnalyticsService,
+                bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -92,9 +94,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var onboardingStorage = useOnboardingStorage ? OnboardingStorage : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var analyticsService = useAnalyticsService ? AnalyticsService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new EditTimeEntryViewModel(timeService, dataSource, interactorFactory, navigationService, onboardingStorage, dialogService, analyticsService);
+                    () => new EditTimeEntryViewModel(timeService, dataSource, interactorFactory, navigationService, onboardingStorage, dialogService, analyticsService, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters.Should().Throw<ArgumentNullException>();
             }

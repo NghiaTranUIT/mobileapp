@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -49,10 +48,10 @@
                     <state key="normal" image="icClose"/>
                 </button>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fRW-HL-ddX" userLabel="Duration View">
-                    <rect key="frame" x="140.5" y="6" width="95" height="28"/>
+                    <rect key="frame" x="139" y="6" width="97" height="28"/>
                     <subviews>
                         <textField hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" text="0:00:00" textAlignment="center" adjustsFontSizeToFit="NO" minimumFontSize="14" translatesAutoresizingMaskIntoConstraints="NO" id="tdV-by-Ya6" customClass="DurationField">
-                            <rect key="frame" x="29" y="5.5" width="56" height="17"/>
+                            <rect key="frame" x="29" y="5.5" width="58" height="17"/>
                             <nil key="textColor"/>
                             <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                             <textInputTraits key="textInputTraits" keyboardType="numberPad"/>
@@ -65,7 +64,7 @@
                             </constraints>
                         </imageView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0:00" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AGP-BI-wWT" userLabel="Time Label">
-                            <rect key="frame" x="29" y="5" width="56" height="17"/>
+                            <rect key="frame" x="29" y="5.5" width="58" height="17"/>
                             <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
@@ -103,7 +102,7 @@
                         <constraint firstAttribute="height" constant="68" id="u0i-Qv-oYj"/>
                     </constraints>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences" autocorrectionType="no" spellCheckingType="no" keyboardType="twitter"/>
+                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences" autocorrectionType="yes" spellCheckingType="no" keyboardType="twitter"/>
                 </textView>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vbp-dw-DYK" userLabel="Separator">
                     <rect key="frame" x="0.0" y="111" width="375" height="1"/>
@@ -230,7 +229,7 @@
                             </userDefinedRuntimeAttributes>
                         </view>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JMu-BI-JIt" userLabel="Caret">
-                            <rect key="frame" x="52.5" y="40" width="10" height="10"/>
+                            <rect key="frame" x="52" y="40" width="10" height="10"/>
                             <color key="backgroundColor" red="0.14117647058823529" green="0.14117647058823529" blue="0.14117647058823529" alpha="1" colorSpace="calibratedRGB"/>
                             <constraints>
                                 <constraint firstAttribute="width" constant="10" id="eoe-Z5-stC"/>
@@ -267,7 +266,7 @@
                 <constraint firstItem="04s-S8-twa" firstAttribute="top" secondItem="R8W-w1-sEf" secondAttribute="bottom" id="LWu-ay-Tlz"/>
                 <constraint firstItem="dU3-s1-ELa" firstAttribute="top" secondItem="NWE-RS-Prs" secondAttribute="bottom" constant="7" id="Mbw-zb-CwF"/>
                 <constraint firstItem="MAa-jq-GXB" firstAttribute="leading" secondItem="Qyl-Yx-Tae" secondAttribute="leading" id="SKA-G6-SAk"/>
-                <constraint firstItem="Qyl-Yx-Tae" firstAttribute="bottom" secondItem="dU3-s1-ELa" secondAttribute="bottom" id="TiG-hf-iuJ"/>
+                <constraint firstAttribute="bottom" secondItem="dU3-s1-ELa" secondAttribute="bottom" id="TiG-hf-iuJ"/>
                 <constraint firstItem="dU3-s1-ELa" firstAttribute="leading" secondItem="Qyl-Yx-Tae" secondAttribute="leading" id="UXV-rQ-vsd"/>
                 <constraint firstItem="jGg-N9-yt7" firstAttribute="width" secondItem="R8W-w1-sEf" secondAttribute="width" constant="-10" id="VOZ-Fz-rlI"/>
                 <constraint firstItem="MAa-jq-GXB" firstAttribute="top" secondItem="2" secondAttribute="top" id="bZl-x7-d8h"/>

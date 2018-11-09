@@ -8,9 +8,11 @@ using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using UIKit;
 using static Toggl.Daneel.Extensions.LoginSignupViewExtensions;
 using static Toggl.Daneel.Extensions.ViewExtensions;
@@ -46,41 +48,101 @@ namespace Toggl.Daneel.ViewControllers
             UIKeyboard.Notifications.ObserveWillHide(KeyboardWillHide);
 
             //Text
-            this.Bind(ViewModel.Email, EmailTextField.Rx().TextObserver());
-            this.Bind(ViewModel.ErrorMessage, ErrorLabel.Rx().Text());
-            this.Bind(ViewModel.Password, PasswordTextField.Rx().TextObserver());
-            this.Bind(EmailTextField.Rx().Text().Select(Email.From), ViewModel.SetEmail);
-            this.Bind(PasswordTextField.Rx().Text().Select(Password.From), ViewModel.SetPassword);
-            this.Bind(ViewModel.IsLoading.Select(loginButtonTitle), LoginButton.Rx().AnimatedTitle());
+            ViewModel.Email
+                .Subscribe(EmailTextField.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.ErrorMessage
+                .Subscribe(ErrorLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Password
+                .Subscribe(PasswordTextField.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            EmailTextField.Rx().Text()
+                .Select(Email.From)
+                .Subscribe(ViewModel.SetEmail)
+                .DisposedBy(DisposeBag);
+
+            PasswordTextField.Rx().Text()
+                .Select(Password.From)
+                .Subscribe(ViewModel.SetPassword)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading.Select(loginButtonTitle)
+                .Subscribe(LoginButton.Rx().AnimatedTitle())
+                .DisposedBy(DisposeBag);
 
             //Visibility
-            this.Bind(ViewModel.HasError, ErrorLabel.Rx().AnimatedIsVisible());
-            this.Bind(ViewModel.IsLoading, ActivityIndicator.Rx().IsVisibleWithFade());
-            this.Bind(ViewModel.IsPasswordMasked.Skip(1), PasswordTextField.Rx().SecureTextEntry());
-            this.Bind(ViewModel.IsShowPasswordButtonVisible, ShowPasswordButton.Rx().IsVisible());
-            this.Bind(PasswordTextField.FirstResponder, ViewModel.SetIsShowPasswordButtonVisible);
+            ViewModel.HasError
+                .Subscribe(ErrorLabel.Rx().AnimatedIsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(ActivityIndicator.Rx().IsVisibleWithFade())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsPasswordMasked
+                .Skip(1)
+                .Subscribe(PasswordTextField.Rx().SecureTextEntry())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsShowPasswordButtonVisible
+                .Subscribe(ShowPasswordButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            PasswordTextField.FirstResponder
+                .Subscribe(ViewModel.SetIsShowPasswordButtonVisible)
+                .DisposedBy(DisposeBag);
 
             //Commands
-            this.Bind(SignupCard.Rx().Tap(), ViewModel.Signup);
-            this.BindVoid(LoginButton.Rx().Tap(), ViewModel.Login);
-            this.BindVoid(GoogleLoginButton.Rx().Tap(), ViewModel.GoogleLogin);
-            this.Bind(ForgotPasswordButton.Rx().Tap(), ViewModel.ForgotPassword);
-            this.Bind(PasswordManagerButton.Rx().Tap(), ViewModel.StartPasswordManager);
-            this.BindVoid(ShowPasswordButton.Rx().Tap(), ViewModel.TogglePasswordVisibility);
+            SignupCard.Rx().Tap()
+                .Subscribe(ViewModel.Signup)
+                .DisposedBy(DisposeBag);
+
+            LoginButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.Login)
+                .DisposedBy(DisposeBag);
+
+            GoogleLoginButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.GoogleLogin)
+                .DisposedBy(DisposeBag);
+
+            ForgotPasswordButton.Rx().Tap()
+                .Subscribe(ViewModel.ForgotPassword)
+                .DisposedBy(DisposeBag);
+
+            PasswordManagerButton.Rx().Tap()
+                .Subscribe(ViewModel.StartPasswordManager)
+                .DisposedBy(DisposeBag);
+
+            ShowPasswordButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.TogglePasswordVisibility)
+                .DisposedBy(DisposeBag);
 
             //Color
-            this.Bind(ViewModel.HasError.Select(loginButtonTintColor), LoginButton.Rx().TintColor());
-            this.Bind(ViewModel.LoginEnabled.Select(loginButtonTitleColor), LoginButton.Rx().TitleColor());
+            ViewModel.HasError
+                .Select(loginButtonTintColor)
+                .Subscribe(LoginButton.Rx().TintColor())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.LoginEnabled
+                .Select(loginButtonTitleColor)
+                .Subscribe(LoginButton.Rx().TitleColor())
+                .DisposedBy(DisposeBag);
 
             //Animation
-            this.Bind(ViewModel.Shake, shakeTargets =>
-            {
-                if (shakeTargets.HasFlag(LoginViewModel.ShakeTargets.Email))
-                    EmailTextField.Shake();
+            ViewModel.Shake
+                .Subscribe(shakeTargets =>
+                {
+                    if (shakeTargets.HasFlag(LoginViewModel.ShakeTargets.Email))
+                        EmailTextField.Shake();
 
-                if (shakeTargets.HasFlag(LoginViewModel.ShakeTargets.Password))
-                    PasswordTextField.Shake();
-            });
+                    if (shakeTargets.HasFlag(LoginViewModel.ShakeTargets.Password))
+                        PasswordTextField.Shake();
+                })
+                .DisposedBy(DisposeBag);
 
             prepareViews();
 

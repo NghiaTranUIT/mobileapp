@@ -176,6 +176,7 @@ namespace Toggl.PrimeRadiant.Realm
                 var collectionClassName = $"Realm{ultrawaveClassName}";
                 var databaseClassName = $"Foundation.Models.{ultrawaveClassName}";
                 var collectionPropName = $"{collectionClassName}s";
+                WriteLine($"            {collectionPropName}.Clear();");
                 WriteLine($"            foreach (var oneOf{propName} in entity.{propName})");
                 WriteLine( "            {");
                 WriteLine($"                var oneOfRealm{propName} = {collectionClassName}.FindOrCreate(oneOf{propName}, realm);");

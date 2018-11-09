@@ -21,8 +21,6 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         public StateResult<IFetchObservables> FinishedPersisting { get; } = new StateResult<IFetchObservables>();
 
-        public StateResult<ApiException> ErrorOccured { get; } = new StateResult<ApiException>();
-
         public PersistSingletonState(
             ISingletonDataSource<TThreadsafeInterface> dataSource,
             Func<TInterface, TThreadsafeInterface> convertToThreadsafeEntity)
@@ -40,7 +38,6 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SelectMany(entity => entity == null
                     ? Observable.Return(Unit.Default)
                     : dataSource.UpdateWithConflictResolution(convertToThreadsafeEntity(entity)).Select(_ => Unit.Default))
-                .Select(_ => FinishedPersisting.Transition(fetch))
-                .OnErrorReturnResult(ErrorOccured);
+                .Select(_ => FinishedPersisting.Transition(fetch));
     }
 }

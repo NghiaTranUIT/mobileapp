@@ -130,7 +130,8 @@ namespace Toggl.Daneel.ViewSources
 
         private bool remove(SectionedIndex index)
         {
-            if (dataSource.SectionContainsOnlyOneRow(index.Section))
+            var rowIsTheLastOneInTheSection = tableView.NumberOfRowsInSection(index.Section) == 1;
+            if (rowIsTheLastOneInTheSection)
             {
                 tableView.DeleteSections(indexSet(index.Section), UITableViewRowAnimation.Automatic);
                 return true;

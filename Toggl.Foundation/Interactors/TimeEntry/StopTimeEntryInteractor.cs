@@ -43,7 +43,7 @@ namespace Toggl.Foundation.Interactors
         }
 
         public IObservable<IThreadSafeTimeEntry> Execute()
-            => dataSource.GetAll(te => te.IsDeleted == false && te.Duration == null)
+            => dataSource.GetAll(te => te.IsDeleted == false && te.Duration == null, includeInaccessibleEntities: true)
                 .Select(timeEntries => timeEntries.SingleOrDefault() ?? throw new NoRunningTimeEntryException())
                 .SelectMany(timeEntry => timeEntry
                     .With((long)(stopTime - timeEntry.Start).TotalSeconds)

@@ -7,6 +7,7 @@ using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
@@ -23,10 +24,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     public sealed class MainTabBarViewModel : MvxViewModel
     {
         private readonly IRemoteConfigService remoteConfigService;
+        private readonly IStopwatchProvider stopwatchProvider;
 
         private readonly MainViewModel mainViewModel;
         private readonly ReportsViewModel reportsViewModel;
         private readonly CalendarViewModel calendarViewModel;
+
+        private bool hasOpenedReports = false;
 
         public IEnumerable<MvxViewModel> Tabs { get; private set; }
 
@@ -46,7 +50,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IRemoteConfigService remoteConfigService,
             ISuggestionProviderContainer suggestionProviders,
             IIntentDonationService intentDonationService,
-            IAccessRestrictionStorage accessRestrictionStorage)
+            IAccessRestrictionStorage accessRestrictionStorage,
+            IStopwatchProvider stopwatchProvider)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
@@ -66,8 +71,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
             Ensure.Argument.IsNotNull(dialogService, nameof(dialogService));
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.remoteConfigService = remoteConfigService;
+            this.stopwatchProvider = stopwatchProvider;
 
             mainViewModel = new MainViewModel(
                 dataSource,
@@ -82,7 +89,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 suggestionProviders,
                 intentDonationService,
                 accessRestrictionStorage,
-                schedulerProvider);
+                schedulerProvider,
+                stopwatchProvider);
 
             reportsViewModel = new ReportsViewModel(
                 dataSource,
@@ -92,7 +100,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 analyticsService,
                 dialogService,
                 intentDonationService,
-                schedulerProvider);
+                schedulerProvider,
+                stopwatchProvider);
 
             calendarViewModel = new CalendarViewModel(
                 dataSource,
@@ -105,7 +114,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 onboardingStorage,
                 schedulerProvider,
                 permissionsService,
-                navigationService);
+                navigationService,
+                stopwatchProvider);
         }
 
         public override async Task Initialize()
@@ -119,6 +129,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             await Tabs
                 .Select(vm => vm.Initialize())
                 .Apply(Task.WhenAll);
+        }
+
+        public void StartReportsStopwatch()
+        {
+            if (!hasOpenedReports)
+            {
+                var reportsStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenReportsViewForTheFirstTime);
+                reportsStopwatch.Start();
+                hasOpenedReports = true;
+            }
         }
 
         private IEnumerable<MvxViewModel> getViewModels(bool isCalendarEnabled)

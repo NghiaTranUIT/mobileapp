@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 // General Information about an assembly is controlled through the following 
@@ -9,3 +10,4 @@ using Xunit;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, MaxParallelThreads = 2)]
+[assembly: InternalsVisibleTo("Toggl.Foundation.Sync.Tests")]

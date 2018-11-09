@@ -987,5 +987,11 @@ namespace Toggl.Foundation {
                 return ResourceManager.GetString("InaccessibleTimeEntryErrorMessage", resourceCulture);
             }
         }
+        
+        public static string Calendar {
+            get {
+                return ResourceManager.GetString("Calendar", resourceCulture);
+            }
+        }
     }
 }

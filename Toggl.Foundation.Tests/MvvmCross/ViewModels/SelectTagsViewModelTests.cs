@@ -11,6 +11,7 @@ using NSubstitute;
 using Toggl.Foundation.Autocomplete;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
@@ -27,7 +28,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectTagsViewModelTest : BaseViewModelTests<SelectTagsViewModel>
         {
             protected override SelectTagsViewModel CreateViewModel()
-                => new SelectTagsViewModel(DataSource, NavigationService, InteractorFactory);
+                => new SelectTagsViewModel(DataSource, NavigationService, InteractorFactory, StopwatchProvider);
 
             protected Task EnsureClosesTheViewModel()
                 => NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Any<long[]>());
@@ -63,14 +64,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         {
             [Theory, LogIfTooSlow]
             [ConstructorData]
-            public void ThrowsIfAnyOfTheArgumentsIsNull(bool useDataSource, bool useNavigationService, bool useInteractorFactory)
+            public void ThrowsIfAnyOfTheArgumentsIsNull(bool useDataSource, bool useNavigationService, bool useInteractorFactory, bool useStopwatchProvider)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var navigationService = useNavigationService ? NavigationService : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new SelectTagsViewModel(dataSource, navigationService, interactorFactory);
+                    () => new SelectTagsViewModel(dataSource, navigationService, interactorFactory, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();

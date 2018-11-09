@@ -9,6 +9,7 @@ namespace Toggl.Foundation.Helper
         private static readonly Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
 
         public const string NoProject = "#B5BCC0";
+        public const string ClientNameColor = "#FF5E5B5B";
 
         public static bool IsValidHexColor(string hex)
         {

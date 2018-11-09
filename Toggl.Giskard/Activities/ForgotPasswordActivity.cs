@@ -1,15 +1,19 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using MvvmCross.Droid.Support.V7.AppCompat;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
-using MvvmCross.WeakSubscription;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
+using Toggl.Giskard.Extensions.Reactive;
+using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace Toggl.Giskard.Activities
@@ -19,11 +23,9 @@ namespace Toggl.Giskard.Activities
         ScreenOrientation = ScreenOrientation.Portrait,
         WindowSoftInputMode = SoftInput.StateVisible,
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
-    public sealed class ForgotPasswordActivity : MvxAppCompatActivity<ForgotPasswordViewModel>
+    public sealed partial class ForgotPasswordActivity : ReactiveActivity<ForgotPasswordViewModel>
     {
-        private IDisposable passwordResetSuccessfullyDisposable;
-        private IDisposable errorDisposable;
-        private EditText loginEmailEditText;
+        private Subject<Unit> closeSubject = new Subject<Unit>();
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -32,12 +34,42 @@ namespace Toggl.Giskard.Activities
             OverridePendingTransition(Resource.Animation.abc_slide_in_right, Resource.Animation.abc_fade_out);
 
             setupToolbar();
-
-            loginEmailEditText = FindViewById<EditText>(Resource.Id.LoginEmailEditText);
+            InitializeViews();
             setupInputField();
 
-            passwordResetSuccessfullyDisposable =
-                ViewModel.WeakSubscribe(() => ViewModel.PasswordResetSuccessful, showResetPasswordSuccessToast);
+            ViewModel.ErrorMessage
+                .Subscribe(errorMessage =>
+                {
+                    loginEmail.Error = errorMessage;
+                })
+                .DisposedBy(DisposeBag);
+
+            loginEmailEditText.Rx().Text()
+                .Select(Email.From)
+                .Subscribe(ViewModel.Email.OnNext)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Reset.Executing
+                .Subscribe(loadingProgressBar.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.PasswordResetSuccessful
+                .Where(success => success)
+                .VoidSubscribe(showResetPasswordSuccessToast)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.PasswordResetSuccessful
+                .Invert()
+                .Subscribe(resetPasswordButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
+
+            resetPasswordButton.Rx()
+                .BindAction(ViewModel.Reset)
+                .DisposedBy(DisposeBag);
+
+            closeSubject
+                .Subscribe(ViewModel.Close.Inputs)
+                .DisposedBy(DisposeBag);
         }
 
         public override void Finish()
@@ -52,7 +84,7 @@ namespace Toggl.Giskard.Activities
             loginEmailEditText.SetSelection(loginEmailEditText.Text?.Length ?? 0);
         }
 
-        private void showResetPasswordSuccessToast(object sender, PropertyChangedEventArgs e)
+        private void showResetPasswordSuccessToast()
         {
             loginEmailEditText.RemoveFocus();
             Toast.MakeText(this, Resource.String.ResetPasswordEmailSentMessage, ToastLength.Long).Show();
@@ -66,21 +98,16 @@ namespace Toggl.Giskard.Activities
             SupportActionBar.SetDisplayHomeAsUpEnabled(true);
             SupportActionBar.SetDisplayShowHomeEnabled(true);
             SupportActionBar.Title = GetString(Resource.String.ForgotPasswordTitle);
-
-            toolbar.NavigationClick += navigationClick;
         }
 
-        private void navigationClick(object sender, Toolbar.NavigationClickEventArgs args)
+        public override bool OnOptionsItemSelected(IMenuItem item)
         {
-            executeBackCommand();
-        }
-
-        private void executeBackCommand()
-        {
-            if (ViewModel.IsLoading) return;
-
-            loginEmailEditText.RemoveFocus();
-            ViewModel.CloseCommand.Execute();
+            if (item.ItemId == Android.Resource.Id.Home)
+            {
+                closeSubject.OnNext(Unit.Default);
+                return true;
+            }
+            return base.OnOptionsItemSelected(item);
         }
     }
 }

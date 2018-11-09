@@ -59,7 +59,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     OnboardingStorage,
                     NavigationService,
                     PrivateSharedStorageService,
-                    IntentDonationService);
+                    IntentDonationService,
+                    StopwatchProvider);
             }
 
             protected virtual void SetupObservables()
@@ -84,7 +85,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useOnboardingStorage,
                 bool useNavigationService,
                 bool usePrivateSharedStorageService,
-                bool useIntentDonationService)
+                bool useIntentDonationService,
+                bool useStopwatchProvider)
             {
                 var userAgent = useUserAgent ? UserAgent : null;
                 var dataSource = useDataSource ? DataSource : null;
@@ -99,6 +101,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var privateSharedStorageService = usePrivateSharedStorageService ? PrivateSharedStorageService : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new SettingsViewModel(
@@ -114,7 +117,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         onboardingStorage,
                         navigationService,
                         privateSharedStorageService,
-                        intentDonationService);
+                        intentDonationService,
+                        stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -450,17 +454,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheGoBackMethod : SettingsViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModel()
-            {
-                await ViewModel.GoBack();
-
-                await NavigationService.Received().Close(ViewModel);
-            }
-        }
-
         public sealed class TheToggleManualModeMethod : SettingsViewModelTest
         {
             public TheToggleManualModeMethod()
@@ -608,7 +601,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeFormat = originalValue ? TimeFormat.TwentyFourHoursFormat : TimeFormat.TwelveHoursFormat;
                 PreferencesSubject.OnNext(new MockPreferences { TimeOfDayFormat = timeFormat });
 
-                await ViewModel.ToggleUseTwentyFourHourClock();
+                await ViewModel.ToggleTwentyFourHourSettings.Execute();
 
                 await InteractorFactory
                     .Received()
@@ -625,7 +618,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var observable = Observable.Return(preferences);
                 InteractorFactory.UpdatePreferences(Arg.Any<EditPreferencesDTO>()).Execute().Returns(observable);
 
-                await ViewModel.ToggleUseTwentyFourHourClock();
+                await ViewModel.ToggleTwentyFourHourSettings.Execute();
 
                 await DataSource.SyncManager.Received().PushSync();
             }
@@ -828,7 +821,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task NavigatesToCalendarSettingsViewModel()
             {
-                await ViewModel.OpenCalendarSettingsAction.Execute(Unit.Default);
+                await ViewModel.OpenCalendarSettings.Execute(Unit.Default);
 
                 await NavigationService.Received().Navigate<CalendarSettingsViewModel>();
             }

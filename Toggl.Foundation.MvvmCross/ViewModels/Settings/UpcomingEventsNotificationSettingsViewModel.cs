@@ -23,7 +23,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
         public IList<CalendarNotificationsOption> AvailableOptions { get; }
 
         public InputAction<CalendarNotificationsOption> SelectOption { get; }
-        public UIAction Close { get; }
 
         public UpcomingEventsNotificationSettingsViewModel(
             IMvxNavigationService navigationService,
@@ -47,7 +46,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             };
 
             SelectOption = InputAction<CalendarNotificationsOption>.FromAction(onSelectOption);
-            Close = UIAction.FromAction(close);
         }
 
         public override async Task Initialize()
@@ -66,11 +64,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Settings
             if (enabled)
                 userPreferences.SetTimeSpanBeforeCalendarNotifications(option.Duration());
 
-            navigationService.Close(this, Unit.Default);
-        }
-
-        private void close()
-        {
             navigationService.Close(this, Unit.Default);
         }
     }

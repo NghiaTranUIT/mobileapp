@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
@@ -7,8 +9,10 @@ using PropertyChanged;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Login;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 using Toggl.Ultrawave.Exceptions;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
@@ -20,105 +24,87 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ILoginManager loginManager;
         private readonly IAnalyticsService analyticsService;
         private readonly IMvxNavigationService navigationService;
+        private readonly ISchedulerProvider schedulerProvider;
 
         private readonly TimeSpan delayAfterPassordReset = TimeSpan.FromSeconds(4);
 
-        public Email Email { get; set; } = Email.Empty;
+        public BehaviorSubject<Email> Email { get; } = new BehaviorSubject<Email>(Multivac.Email.Empty);
+        public IObservable<string> ErrorMessage { get; }
+        public IObservable<bool> PasswordResetSuccessful { get; }
 
-        public string ErrorMessage { get; private set; }
-
-        [DependsOn(nameof(ErrorMessage))]
-        public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-
-        public bool IsLoading { get; private set; }
-
-        public bool PasswordResetSuccessful { get; private set; }
-
-        public IMvxCommand ResetCommand { get; }
-
-        public IMvxCommand CloseCommand { get; }
+        public UIAction Reset { get; }
+        public UIAction Close { get; }
 
         public ForgotPasswordViewModel(
             ITimeService timeService,
             ILoginManager loginManager,
             IAnalyticsService analyticsService,
-            IMvxNavigationService navigationService)
+            IMvxNavigationService navigationService,
+            ISchedulerProvider schedulerProvider)
         {
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
             Ensure.Argument.IsNotNull(loginManager, nameof(loginManager));
             Ensure.Argument.IsNotNull(analyticsService, nameof(analyticsService));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
 
             this.timeService = timeService;
             this.loginManager = loginManager;
             this.analyticsService = analyticsService;
             this.navigationService = navigationService;
+            this.schedulerProvider = schedulerProvider;
 
-            ResetCommand = new MvxCommand(reset, () => Email.IsValid && !IsLoading);
-            CloseCommand = new MvxCommand(returnEmail);
+            Reset = UIAction.FromObservable(reset, Email.Select(email => email.IsValid));
+            Close = UIAction.FromAction(returnEmail, Reset.Executing.Invert());
+
+            ErrorMessage = Reset.Errors
+                .Select(toErrorString)
+                .StartWith("");
+
+            PasswordResetSuccessful = Reset.Elements
+                .Select(_ => true)
+                .StartWith(false);
         }
 
         public override void Prepare(EmailParameter parameter)
         {
-            Email = parameter.Email;
+            Email.OnNext(parameter.Email);
         }
 
-        private void reset()
+        private IObservable<Unit> reset()
         {
-            ErrorMessage = "";
-            IsLoading = true;
-            PasswordResetSuccessful = false;
-
-            loginManager
-                .ResetPassword(Email)
+            return loginManager.ResetPassword(Email.Value)
+                .ObserveOn(schedulerProvider.MainScheduler)
                 .Track(analyticsService.ResetPassword)
-                .Subscribe(onPasswordResetSuccess, onPasswordResetError);
+                .SelectUnit()
+                .Do(closeWithDelay);
         }
 
-        private void OnEmailChanged()
+        private void closeWithDelay()
         {
-            ResetCommand.RaiseCanExecuteChanged();
-        }
-
-        private void OnIsLoadingChanged()
-        {
-            ResetCommand.RaiseCanExecuteChanged();
-        }
-
-        private void onPasswordResetSuccess(string result)
-        {
-            IsLoading = false;
-            PasswordResetSuccessful = true;
-
             timeService.RunAfterDelay(delayAfterPassordReset, returnEmail);
         }
 
         private void returnEmail()
         {
-            navigationService.Close(this, EmailParameter.With(Email));
+            navigationService.Close(this, EmailParameter.With(Email.Value));
         }
 
-        private void onPasswordResetError(Exception exception)
+        private string toErrorString(Exception exception)
         {
-            IsLoading = false;
-
             switch (exception)
             {
                 case BadRequestException _:
-                    ErrorMessage = Resources.PasswordResetEmailDoesNotExistError;
-                    break;
+                    return Resources.PasswordResetEmailDoesNotExistError;
 
                 case OfflineException _:
-                    ErrorMessage = Resources.PasswordResetOfflineError;
-                    break;
+                    return Resources.PasswordResetOfflineError;
 
                 case ApiException apiException:
-                    ErrorMessage = apiException.LocalizedApiErrorMessage;
-                    break;
+                    return apiException.LocalizedApiErrorMessage;
 
                 default:
-                    ErrorMessage = Resources.PasswordResetGeneralError;
-                    break;
+                    return Resources.PasswordResetGeneralError;
             }
         }
     }

@@ -1,24 +1,29 @@
-﻿using CoreGraphics;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive.Linq;
+using CoreGraphics;
 using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding;
-using MvvmCross.Platforms.Ios.Views;
-using MvvmCross.Plugin.Visibility;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
+using Toggl.Daneel.Views;
 using Toggl.Daneel.ViewSources;
-using Toggl.Foundation.MvvmCross.Converters;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalDialogPresentation]
-    public sealed partial class SelectColorViewController : MvxViewController<SelectColorViewModel>
+    public sealed partial class SelectColorViewController : ReactiveViewController<SelectColorViewModel>
     {
         private const int customColorEnabledHeight = 365;
         private const int customColorDisabledHeight = 233;
 
+        private ColorSelectionCollectionViewSource source;
+
         public SelectColorViewController()
-            : base(nameof(SelectColorViewController), null)
+            : base(nameof(SelectColorViewController))
         {
         }
 
@@ -26,55 +31,58 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            var source = new ColorSelectionCollectionViewSource(ColorCollectionView);
-            prepareViews(source);
-
-            var bindingSet = this.CreateBindingSet<SelectColorViewController, SelectColorViewModel>();
+            prepareViews();
 
             //Collection View
-            bindingSet.Bind(source).To(vm => vm.SelectableColors);
-            bindingSet.Bind(source)
-                      .For(v => v.SelectionChangedCommand)
-                      .To(vm => vm.SelectColorCommand);
+            ColorCollectionView.RegisterNibForCell(ColorSelectionViewCell.Nib, ColorSelectionViewCell.Identifier);
+            source = new ColorSelectionCollectionViewSource(ViewModel.SelectableColors);
+            ColorCollectionView.Source = source;
+            ViewModel.SelectableColors
+                .Subscribe(replaceColors)
+                .DisposedBy(DisposeBag);
 
-            //Commands
-            bindingSet.Bind(SaveButton).To(vm => vm.SaveCommand);
-            bindingSet.Bind(CloseButton).To(vm => vm.CloseCommand);
+            source.ColorSelected
+                .Subscribe(ViewModel.SelectColor.Inputs)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(PickerView)
-                      .For(v => v.Hue)
-                      .To(vm => vm.Hue);
+            // Commands
+            SaveButton.Rx()
+                .BindAction(ViewModel.Save)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(PickerView)
-                      .For(v => v.Saturation)
-                      .To(vm => vm.Saturation);
+            CloseButton.Rx()
+                .BindAction(ViewModel.Close)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(PickerView)
-                      .For(v => v.Value)
-                      .To(vm => vm.Value);
+            // Picker view
+            PickerView.Rx().Hue()
+                .Subscribe(ViewModel.SetHue.Inputs)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(SliderBackgroundView)
-                      .For(v => v.Hue)
-                      .To(vm => vm.Hue);
-            
-            bindingSet.Bind(SliderBackgroundView)
-                      .For(v => v.Saturation)
-                      .To(vm => vm.Saturation);
 
-            bindingSet.Bind(SaveButton)
-                      .For(v => v.BindVisibility())
-                      .To(vm => vm.AllowCustomColors)
-                      .WithConversion(new MvxVisibilityValueConverter());
+            PickerView.Rx().Saturation()
+                .Subscribe(ViewModel.SetSaturation.Inputs)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(SliderView)
-                      .For(v => v.Value)
-                      .To(vm => vm.Value)
-                      .WithConversion(new ComplementValueConverter());
+            SliderView.Rx().Value()
+                .Select(v => 1 - v)
+                .Subscribe(ViewModel.SetValue.Inputs)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Apply();
+            ViewModel.Hue
+                .Subscribe(PickerView.Rx().HueObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Saturation
+                .Subscribe(PickerView.Rx().SaturationObserver())
+                .DisposedBy(DisposeBag);
+
+            ViewModel.Value
+                .Subscribe(PickerView.Rx().ValueObserver())
+                .DisposedBy(DisposeBag);
         }
 
-        private void prepareViews(ColorSelectionCollectionViewSource source)
+        private void prepareViews()
         {
             var screenWidth = UIScreen.MainScreen.Bounds.Width;
             PreferredContentSize = new CGSize
@@ -84,9 +92,7 @@ namespace Toggl.Daneel.ViewControllers
                 Height = ViewModel.AllowCustomColors ? customColorEnabledHeight : customColorDisabledHeight
             };
 
-            ColorCollectionView.Source = source;
-
-            if (!ViewModel.AllowCustomColors) 
+            if (!ViewModel.AllowCustomColors)
             {
                 SliderView.Hidden = true;
                 PickerView.Hidden = true;
@@ -102,6 +108,12 @@ namespace Toggl.Daneel.ViewControllers
             // Remove track
             SliderView.SetMinTrackImage(new UIImage(), UIControlState.Normal);
             SliderView.SetMaxTrackImage(new UIImage(), UIControlState.Normal);
+        }
+
+        private void replaceColors(IEnumerable<SelectableColorViewModel> colors)
+        {
+            source.SetNewColors(colors);
+            ColorCollectionView.ReloadData();
         }
     }
 }

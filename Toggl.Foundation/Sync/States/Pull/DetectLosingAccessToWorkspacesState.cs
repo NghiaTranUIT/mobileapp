@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reactive;
 using System.Reactive.Linq;
 using Toggl.Foundation.Analytics;
@@ -19,6 +20,8 @@ namespace Toggl.Foundation.Sync.States.Pull
         private readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource;
         private readonly IAnalyticsService analyticsService;
 
+        public StateResult<MarkWorkspacesAsInaccessibleParams> WorkspaceAccessLost { get; } = new StateResult<MarkWorkspacesAsInaccessibleParams>();
+
         public StateResult<IFetchObservables> Continue { get; } = new StateResult<IFetchObservables>();
 
         public DetectLosingAccessToWorkspacesState(IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource, IAnalyticsService analyticsService)
@@ -33,35 +36,27 @@ namespace Toggl.Foundation.Sync.States.Pull
         public IObservable<ITransition> Start(IFetchObservables fetchObservables)
             => fetchObservables.GetList<IWorkspace>()
                 .SelectMany(workspacesWhichWereNotFetched)
-                .SelectMany(markAsInaccessible)
-                .Select(Continue.Transition(fetchObservables));
+                .Select(lostWorkspaces => lostWorkspaces.Any()
+                    ? processLostWorkspaces(lostWorkspaces, fetchObservables)
+                    : Continue.Transition(fetchObservables));
 
         private IObservable<IList<IThreadSafeWorkspace>> workspacesWhichWereNotFetched(List<IWorkspace> fetchedWorkspaces)
             => allStoredWorkspaces()
                 .Where(stored => fetchedWorkspaces.None(fetched => fetched.Id == stored.Id))
-                .ToList()
-                .Do(trackLoseOfWorkspaceAccessIfNeeded);
+                .ToList();
 
         private IObservable<IThreadSafeWorkspace> allStoredWorkspaces()
             => dataSource.GetAll(ws => ws.Id > 0 && ws.IsInaccessible == false)
                          .SelectMany(CommonFunctions.Identity);
 
-        private IObservable<Unit> markAsInaccessible(IList<IThreadSafeWorkspace> workspacesToMark)
-            => Observable.Return(workspacesToMark)
-                .SelectMany(CommonFunctions.Identity)
-                .SelectMany(markAsInaccessible)
-                .ToList()
-                .Select(Unit.Default);
-
-        private IObservable<IThreadSafeWorkspace> markAsInaccessible(IThreadSafeWorkspace workspaceToMark)
-            => dataSource.Update(workspaceToMark.AsInaccessible());
-
-        private void trackLoseOfWorkspaceAccessIfNeeded(IList<IThreadSafeWorkspace> workspacesNotFetched)
+        private ITransition processLostWorkspaces(
+            IEnumerable<IThreadSafeWorkspace> workspaces,
+            IFetchObservables fetchObservables)
         {
-            if (workspacesNotFetched.Count > 0)
-            {
-                analyticsService.LostWorkspaceAccess.Track();
-            }
+            analyticsService.LostWorkspaceAccess.Track();
+            var stateParams = new MarkWorkspacesAsInaccessibleParams(workspaces, fetchObservables);
+
+            return WorkspaceAccessLost.Transition(stateParams);
         }
     }
 }

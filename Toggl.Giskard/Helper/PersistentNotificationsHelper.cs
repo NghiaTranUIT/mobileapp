@@ -20,28 +20,32 @@ namespace Toggl.Giskard.Helper
         private static int idleTimerNotificationId = 112;
         private static char dotSeparator = '\u00b7';
 
-        public static void BindRunningTimeEntry<T>(this T activity,
+        public static IDisposable BindRunningTimeEntry<T>(this T activity,
             NotificationManager notificationManager,
             IObservable<IThreadSafeTimeEntry> runningTimeEntry,
             IObservable<bool> shouldShowRunningTimeEntryNotification)
-        where T : Activity, IReactiveBindingHolder
+        where T : Activity
         {
             var runningTimeEntryNotificationSource = runningTimeEntry
                 .CombineLatest(shouldShowRunningTimeEntryNotification,
                     (te, shouldShowNotification) => shouldShowNotification ? te : null);
-            activity.Bind(runningTimeEntryNotificationSource, te => updateRunningNotification(te, activity, notificationManager));
+
+            return runningTimeEntryNotificationSource
+                .Subscribe(te => updateRunningNotification(te, activity, notificationManager));
         }
 
-        public static void BindIdleTimer<T>(this T activity,
+        public static IDisposable BindIdleTimer<T>(this T activity,
             NotificationManager notificationManager,
             IObservable<bool> isTimeEntryRunning,
             IObservable<bool> shouldShowStoppedTimeEntryNotification)
-        where T : Activity, IReactiveBindingHolder
+        where T : Activity
         {
             var idleTimerNotificationSource = isTimeEntryRunning
                 .CombineLatest(shouldShowStoppedTimeEntryNotification,
                     (isRunning, shouldShowNotification) => shouldShowNotification && !isRunning);
-            activity.Bind(idleTimerNotificationSource, shouldShow => updateIdleTimerNotification(shouldShow, activity, notificationManager));
+
+            return idleTimerNotificationSource
+                .Subscribe(shouldShow => updateIdleTimerNotification(shouldShow, activity, notificationManager));
         }
 
         private static void updateRunningNotification(IThreadSafeTimeEntry timeEntryViewModel, Activity activity, NotificationManager notificationManager)

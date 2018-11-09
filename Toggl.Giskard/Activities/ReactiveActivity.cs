@@ -12,8 +12,8 @@ using MvvmCross.Platforms.Android.Binding.Views;
 
 namespace Toggl.Giskard.Activities
 {
-    public abstract class ReactiveActivity<TViewModel> : MvxEventSourceAppCompatActivity, IMvxAndroidView, IReactiveBindingHolder
-        where TViewModel : class, IMvxViewModel 
+    public abstract class ReactiveActivity<TViewModel> : MvxEventSourceAppCompatActivity, IMvxAndroidView
+        where TViewModel : class, IMvxViewModel
     {
         public CompositeDisposable DisposeBag { get; private set; } = new CompositeDisposable();
 
@@ -31,9 +31,9 @@ namespace Toggl.Giskard.Activities
             set => DataContext = value;
         }
 
-        IMvxViewModel IMvxView.ViewModel 
-        { 
-            get => ViewModel; 
+        IMvxViewModel IMvxView.ViewModel
+        {
+            get => ViewModel;
             set => ViewModel = value as TViewModel;
         }
 

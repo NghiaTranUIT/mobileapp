@@ -66,6 +66,8 @@ namespace Toggl.Foundation.Tests.Mocks
         public MockTimeEntry(
             long id,
             IThreadSafeWorkspace workspace,
+            DateTimeOffset? start = null,
+            long? duration = null,
             IThreadSafeProject project = null,
             IThreadSafeTask task = null,
             IEnumerable<IThreadSafeTag> tags = null,
@@ -75,6 +77,8 @@ namespace Toggl.Foundation.Tests.Mocks
             Id = id;
             Workspace = workspace;
             WorkspaceId = workspace.Id;
+            Start = start ?? default(DateTimeOffset);
+            Duration = duration;
             Project = project;
             ProjectId = project?.Id;
             Task = task;

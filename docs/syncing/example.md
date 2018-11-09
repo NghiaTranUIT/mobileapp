@@ -52,4 +52,5 @@ stateMachine.Start(entryPoint.Transition());
 ---
 
 Previous topic: [Transitions configuration](transitions-configuration.md)
-This is the end of the syncing docs - you can go back to the [index](index.md).
+Next topic: [Syncing tests](tests.md)
+Go to the [Index](index.md)

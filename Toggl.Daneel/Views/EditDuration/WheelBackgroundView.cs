@@ -6,6 +6,7 @@ using MvvmCross.Plugin.Color.Platforms.Ios;
 using CoreGraphics;
 using static Toggl.Multivac.Math;
 using Foundation;
+using Toggl.Daneel.Views.EditDuration.Shapes;
 
 namespace Toggl.Daneel.Views.EditDuration
 {
@@ -59,7 +60,7 @@ namespace Toggl.Daneel.Views.EditDuration
         {
             var layer = new CALayer();
 
-            var wheel = CreateWheelLayer(wheelBackgroundColor);
+            var wheel = new Wheel(Center, Radius, SmallRadius, wheelBackgroundColor);
             var dial = createClockDial();
 
             layer.AddSublayer(wheel);

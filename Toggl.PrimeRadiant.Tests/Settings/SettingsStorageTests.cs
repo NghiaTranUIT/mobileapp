@@ -7,6 +7,7 @@ using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
 using NSubstitute;
+using Toggl.Foundation.Services;
 using Toggl.PrimeRadiant.Settings;
 using Xunit;
 using static Toggl.Multivac.Extensions.EnumerableExtensions;
@@ -28,69 +29,76 @@ namespace Toggl.PrimeRadiant.Tests.Settings
                 SettingsStorage = new SettingsStorage(Version.Parse(VersionString), Storage);
             }
 
-            private sealed class InMemoryKeyValueStorage : IKeyValueStorage
+            private sealed class InMemoryKeyValueStorage : KeyValueStorage
             {
                 private readonly Dictionary<string, bool> bools = new Dictionary<string, bool>();
                 private readonly Dictionary<string, string> strings = new Dictionary<string, string>();
                 private readonly Dictionary<string, int> ints = new Dictionary<string, int>();
-                private readonly Dictionary<string, DateTimeOffset> dates = new Dictionary<string, DateTimeOffset>();
-                private readonly Dictionary<string, TimeSpan> timeSpans = new Dictionary<string, TimeSpan>();
+                private readonly Dictionary<string, long> longs = new Dictionary<string, long>();
 
-                public bool GetBool(string key)
+                public override bool GetBool(string key)
                 {
                     bools.TryGetValue(key, out var value);
                     return value;
                 }
 
-                public string GetString(string key)
+                public override string GetString(string key)
                 {
                     strings.TryGetValue(key, out var value);
                     return value;
                 }
 
-                public DateTimeOffset? GetDateTimeOffset(string key)
-                    => dates.TryGetValue(key, out var value) ? value : (DateTimeOffset?)null;
-
-                public void SetBool(string key, bool value)
+                public override void SetBool(string key, bool value)
                 {
                     bools[key] = value;
                 }
 
-                public void SetString(string key, string value)
+                public override void SetString(string key, string value)
                 {
                     strings[key] = value;
                 }
 
-                public void SetInt(string key, int value)
+                public override void SetInt(string key, int value)
                 {
                     ints[key] = value;
                 }
 
-                public int GetInt(string key, int defaultValue)
+                public override void SetLong(string key, long value)
                 {
-                    int value;
-                    if (ints.TryGetValue(key, out value))
-                        return value;
-                    return defaultValue;
-                }
-                public void SetDateTimeOffset(string key, DateTimeOffset value)
-                {
-                    dates[key] = value;
+                    longs[key] = value;
                 }
 
-                public TimeSpan? GetTimeSpan(string key)
-                    => timeSpans.TryGetValue(key, out var value) ? value : (TimeSpan?)null;
-
-                public void SetTimeSpan(string key, TimeSpan timeSpan)
+                public override int GetInt(string key, int defaultValue)
                 {
-                    timeSpans[key] = timeSpan;
+                    return ints.TryGetValue(key, out var value) ? value : defaultValue;
                 }
 
-                public void Remove(string key)
+                public override long GetLong(string key, long defaultValue)
                 {
+                    return longs.TryGetValue(key, out var value) ? value : defaultValue;
                 }
 
-                public void RemoveAllWithPrefix(string prefix)
+                public override void Remove(string key)
+                {
+                    if (bools.Remove(key))
+                    {
+                        return;
+                    }
+
+                    if (strings.Remove(key))
+                    {
+                        return;
+                    }
+
+                    if (ints.Remove(key))
+                    {
+                        return;
+                    }
+
+                    longs.Remove(key);
+                }
+
+                public override void RemoveAllWithPrefix(string prefix)
                 {
                     var keys = bools.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal));
                     foreach (var key in keys)
@@ -182,7 +190,7 @@ namespace Toggl.PrimeRadiant.Tests.Settings
             {
                 SettingsStorage.SetLastOpened(date);
 
-                SettingsStorage.GetLastOpened().Should().Be(date.ToString());
+                SettingsStorage.GetLastOpened().Should().Be(date);
             }
         }
 

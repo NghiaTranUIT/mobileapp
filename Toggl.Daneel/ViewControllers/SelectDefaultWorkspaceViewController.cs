@@ -45,7 +45,7 @@ namespace Toggl.Daneel.ViewControllers
 
         private async Task onWorkspaceTapped(SelectableWorkspaceViewModel workspace)
         {
-            await ViewModel.SelectWorkspaceAction.Execute(workspace);
+            await ViewModel.SelectWorkspace.Execute(workspace);
         }
 
         private void setDialogSize()

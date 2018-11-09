@@ -35,7 +35,7 @@ namespace Toggl.Foundation.Sync.States.CleanUp
                 .Where(project => project != null)
                 .ToList()
                 .SelectMany(projectsDataSource.DeleteAll)
-                .Select(FinishedDeleting.Transition());
+                .SelectValue(FinishedDeleting.Transition());
 
         private IObservable<IThreadSafeProject> notReferencedByAnyTimeEntryOrNull(IThreadSafeProject project)
             => timeEntriesDataSource.GetAll(timeEntry => timeEntry.ProjectId == project.Id)

@@ -1,13 +1,16 @@
+using System;
 using System.Reactive.Linq;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Multivac;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -30,22 +33,58 @@ namespace Toggl.Giskard.Activities
             passwordEditText.Text = ViewModel.Password.FirstAsync().GetAwaiter().GetResult();
 
             //Text
-            this.Bind(ViewModel.ErrorMessage, errorTextView.Rx().TextObserver());
-            this.Bind(emailEditText.Rx().Text().Select(Email.From), ViewModel.SetEmail);
-            this.Bind(passwordEditText.Rx().Text().Select(Password.From), ViewModel.SetPassword);
-            this.Bind(ViewModel.IsLoading.Select(loginButtonTitle), loginButton.Rx().TextObserver());
+            ViewModel.ErrorMessage
+                .Subscribe(errorTextView.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
+
+            emailEditText.Rx().Text()
+                .Select(Email.From)
+                .Subscribe(ViewModel.SetEmail)
+                .DisposedBy(DisposeBag);
+
+            passwordEditText.Rx().Text()
+                .Select(Password.From)
+                .Subscribe(ViewModel.SetPassword)
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Select(loginButtonTitle)
+                .Subscribe(loginButton.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
             //Visibility
-            this.Bind(ViewModel.HasError, errorTextView.Rx().IsVisible(useGone: false));
-            this.Bind(ViewModel.IsLoading, progressBar.Rx().IsVisible(useGone: false));
-            this.Bind(ViewModel.LoginEnabled, loginButton.Rx().Enabled());
+            ViewModel.HasError
+                .Subscribe(errorTextView.Rx().IsVisible(useGone: false))
+                .DisposedBy(DisposeBag);
+
+            ViewModel.IsLoading
+                .Subscribe(progressBar.Rx().IsVisible(useGone: false))
+                .DisposedBy(DisposeBag);
+
+            ViewModel.LoginEnabled
+                .Subscribe(loginButton.Rx().Enabled())
+                .DisposedBy(DisposeBag);
 
             //Commands
-            this.Bind(signupCard.Rx().Tap(), ViewModel.Signup);
-            this.BindVoid(loginButton.Rx().Tap(), ViewModel.Login);
-            this.BindVoid(passwordEditText.Rx().EditorActionSent(), ViewModel.Login);
-            this.BindVoid(googleLoginButton.Rx().Tap(), ViewModel.GoogleLogin);
-            this.Bind(forgotPasswordView.Rx().Tap(), ViewModel.ForgotPassword);
+            signupCard.Rx().Tap()
+                .Subscribe(ViewModel.Signup)
+                .DisposedBy(DisposeBag);
+
+            loginButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.Login)
+                .DisposedBy(DisposeBag);
+
+            passwordEditText.Rx().EditorActionSent()
+                .VoidSubscribe(ViewModel.Login)
+                .DisposedBy(DisposeBag);
+
+            googleLoginButton.Rx().Tap()
+                .VoidSubscribe(ViewModel.GoogleLogin)
+                .DisposedBy(DisposeBag);
+
+            forgotPasswordView.Rx().Tap()
+                .Subscribe(ViewModel.ForgotPassword)
+                .DisposedBy(DisposeBag);
 
             string loginButtonTitle(bool isLoading)
                 => isLoading ? "" : Resources.GetString(Resource.String.Login);

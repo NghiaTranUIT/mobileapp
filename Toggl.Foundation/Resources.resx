@@ -490,6 +490,9 @@ account is not set up</value>
         <value>Discard message?</value>
     </data>
     <data name="InaccessibleTimeEntryErrorMessage">
-        <value>This time entry belongs to a workspace that you don't have access to anymore and it can't by synced.</value>
+        <value>This time entry belongs to a workspace that you don't have access to anymore and it can't be synced. Move it to a different workspace by changing the project or delete it.</value>
+    </data>
+    <data name="Calendar">
+        <value>Calendar</value>
     </data>
 </root>

@@ -4,19 +4,19 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
-using Android.Widget;
 using MvvmCross.Droid.Support.V4;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
-using Toggl.Foundation.MvvmCross.Reactive;
+using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.Fragments
 {
     [MvxDialogFragmentPresentation(AddToBackStack = true)]
-    public sealed partial class TermsOfServiceFragment : MvxDialogFragment<TermsOfServiceViewModel>, IReactiveBindingHolder
+    public sealed partial class TermsOfServiceFragment : MvxDialogFragment<TermsOfServiceViewModel>
     {
         public CompositeDisposable DisposeBag { get; } = new CompositeDisposable();
 
@@ -38,9 +38,17 @@ namespace Toggl.Giskard.Fragments
 
         private void bindViews()
         {
-            this.Bind(privacyPolicyTextView.Rx().Tap(), ViewModel.ViewPrivacyPolicy);
-            this.Bind(termsOfServiceTextView.Rx().Tap(), ViewModel.ViewTermsOfService);
-            this.Bind(acceptButton.Rx().Tap(), ViewModel.Accept);
+            privacyPolicyTextView.Rx()
+                .BindAction(ViewModel.ViewPrivacyPolicy)
+                .DisposedBy(DisposeBag);
+
+            termsOfServiceTextView.Rx()
+                .BindAction(ViewModel.ViewTermsOfService)
+                .DisposedBy(DisposeBag);
+
+            acceptButton.Rx()
+                .BindAction(ViewModel.Close(true))
+                .DisposedBy(DisposeBag);
         }
 
         public override void OnResume()
@@ -52,7 +60,7 @@ namespace Toggl.Giskard.Fragments
 
         public override void OnCancel(IDialogInterface dialog)
         {
-            ViewModel.Close.Execute();
+            ViewModel.Close(false).Execute();
         }
     }
 }
