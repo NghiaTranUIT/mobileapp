@@ -262,6 +262,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [InlineData("\n")]
             [InlineData("               ")]
             [InlineData("      \t  \n     ")]
+            [InlineData(null)]
             public async Task DoesNotSuggestCreatingClientsWhenTheDescriptionConsistsOfOnlyWhiteCharacters(string name)
             {
                 var clients = GenerateClientList();
