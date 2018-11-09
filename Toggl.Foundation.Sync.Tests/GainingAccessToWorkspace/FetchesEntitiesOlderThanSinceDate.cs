@@ -21,45 +21,58 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
         protected override ServerState ArrangeServerState(ServerState initialServerState)
             => initialServerState.With(
                 clients: new[] { new MockClient { Id = -1, WorkspaceId = -2, Name = "c1" } },
-                tags: new[] {
+                tags: new[] 
+                {
                     new MockTag { Id = -1, WorkspaceId = -2, Name = "t1" },
                     new MockTag { Id = -2, WorkspaceId = -2, Name = "t2" }
                 },
-                projects: new[] { 
-                    new MockProject { 
+                projects: new[] 
+                { 
+                    new MockProject 
+                    { 
                         Id = -1,
                         WorkspaceId = -2,
                         ClientId = -1,
                         Name = "p1",
                         Color = Helper.Color.DefaultProjectColors[0],
-                        Active = true } },
-                timeEntries: new[] {
-                    new MockTimeEntry { 
+                        Active = true 
+                    }
+                },
+                timeEntries: new[]
+                {
+                    new MockTimeEntry 
+                    { 
                         Id = -1,
                         Start = DateTimeOffset.Now - TimeSpan.FromDays(2),
                         Duration = 10 * 60,
                         WorkspaceId = -2,
                         ProjectId = -1,
                         TagIds = new long[] { -1, -2 },
-                        Description = "te1" },
-                    new MockTimeEntry { 
+                        Description = "te1" 
+                    },
+                    new MockTimeEntry 
+                    { 
                         Id = -2,
                         Start = DateTimeOffset.Now - TimeSpan.FromDays(1),
                         Duration = 10 * 60,
                         WorkspaceId = -2,
                         ProjectId = -1,
                         TagIds = new long[] { -1 },
-                        Description = "te2" }
+                        Description = "te2"
+                    }
                 },
-                workspaces: new[] {
+                workspaces: new[] 
+                {
                     initialServerState.Workspaces.Single(),
                     new MockWorkspace { Id = -2, Name = "ws2" }
                 },
-                pricingPlans: New<IDictionary<long, PricingPlans>>.Value(
+                pricingPlans: New<IDictionary<long, PricingPlans>>.Value
+                (
                     new Dictionary<long, PricingPlans>
                     {
                         [-2] = PricingPlans.StarterAnnual
-                    })
+                    }
+                )
             );
 
         protected override DatabaseState ArrangeDatabaseState(ServerState serverState)
@@ -79,10 +92,12 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                 workspaces: new[]
                 {
                     defaultWorkspace.ToSyncable(),
-                    new MockWorkspace {
+                    new MockWorkspace 
+                    {
                         Id = regainedAccessWorkspace.Id,
                         Name = "ws2", IsInaccessible = true,
-                        SyncStatus = SyncStatus.SyncNeeded }
+                        SyncStatus = SyncStatus.SyncNeeded
+                    }
                 },
                 clients: new[]
                 {
@@ -95,23 +110,28 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                 },
                 projects: new[]
                 {
-                    new MockProject {
+                    new MockProject 
+                    {
                         Id = regainedAccessProject.Id,
                         WorkspaceId = regainedAccessWorkspace.Id,
                         SyncStatus = SyncStatus.InSync,
-                        ClientId = regainedAccessClient.Id }
+                        ClientId = regainedAccessClient.Id
+                    }
                 },
                 timeEntries: new[]
                 {
-                    new MockTimeEntry {
+                    new MockTimeEntry 
+                    {
                         Id = regainedAccessTE1.Id,
                         Start = DateTimeOffset.Now - TimeSpan.FromDays(2),
                         Duration = 10 * 60,
                         WorkspaceId = regainedAccessWorkspace.Id,
                         ProjectId = regainedAccessProject.Id,
                         TagIds = new long[] { regainedAccessTag1.Id },
-                        SyncStatus = SyncStatus.InSync },
-                    new MockTimeEntry {
+                        SyncStatus = SyncStatus.InSync
+                    },
+                    new MockTimeEntry 
+                    {
                         Id = regainedAccessTE2.Id,
                         Start = DateTimeOffset.Now - TimeSpan.FromDays(1),
                         Duration = 10 * 60,
@@ -119,15 +139,17 @@ namespace Toggl.Foundation.Sync.Tests.GainingAccessToWorkspace
                         ProjectId = regainedAccessProject.Id,
                         TagIds = new long[] { regainedAccessTag1.Id },
                         SyncStatus = SyncStatus.SyncFailed,
-                },
-                    new MockTimeEntry {
+                    },
+                    new MockTimeEntry 
+                    {
                         Id = -5,
                         Start = DateTimeOffset.Now - TimeSpan.FromDays(1),
                         Duration = 10 * 60,
                         WorkspaceId = regainedAccessWorkspace.Id,
                         ProjectId = regainedAccessProject.Id,
                         TagIds = new long[] { regainedAccessTag2.Id },
-                        SyncStatus = SyncStatus.SyncNeeded }
+                        SyncStatus = SyncStatus.SyncNeeded
+                    }
                 },
                 sinceParameters: new Dictionary<Type, DateTimeOffset?>
                 {
