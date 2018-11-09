@@ -21,7 +21,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectClientViewModelTest : BaseViewModelTests<SelectClientViewModel>
         {
             protected SelectClientParameters Parameters { get; }
-                = SelectClientParameters.WithIds(10);
+                = SelectClientParameters.WithIds(10, null);
 
             protected override SelectClientViewModel CreateViewModel()
                => new SelectClientViewModel(InteractorFactory, NavigationService, SchedulerProvider);
@@ -87,6 +87,44 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Clients.First().First().Name.Should().Be(Resources.NoClient);
                 ViewModel.Clients.First().First().Should().BeOfType<SelectableClientViewModel>();
             }
+
+            [Fact, LogIfTooSlow]
+            public async Task SetsNoClientAsSelectedIfTheParameterDoesNotSpecifyTheCurrentClient()
+            {
+                var clients = GenerateClientList();
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                ViewModel.Prepare(Parameters);
+
+                await ViewModel.Initialize();
+
+                ViewModel.Clients.First().Single(c => c.Selected).Name.Should().Be(Resources.NoClient);
+            }
+
+            [Theory, LogIfTooSlow]
+            [InlineData(1)]
+            [InlineData(2)]
+            [InlineData(3)]
+            [InlineData(4)]
+            [InlineData(5)]
+            [InlineData(6)]
+            [InlineData(7)]
+            [InlineData(8)]
+            [InlineData(9)]
+            public async Task SetsTheAppropriateClientAsTheCurrentlySelectedOne(int id)
+            {
+                var parameter = SelectClientParameters.WithIds(10, id);
+                var clients = GenerateClientList();
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                ViewModel.Prepare(parameter);
+
+                await ViewModel.Initialize();
+
+                ViewModel.Clients.First().Single(c => c.Selected).Name.Should().Be(id.ToString());
+            }
         }
 
         public sealed class TheCloseAction : SelectClientViewModelTest
@@ -116,7 +154,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
         public sealed class TheSelectClientAction : SelectClientViewModelTest
         {
-            private readonly SelectableClientViewModel client = new SelectableClientViewModel(9, "Client A");
+            private readonly SelectableClientViewModel client = new SelectableClientViewModel(9, "Client A", false);
 
             public TheSelectClientAction()
             {

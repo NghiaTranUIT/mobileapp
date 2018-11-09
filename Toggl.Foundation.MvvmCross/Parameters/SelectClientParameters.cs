@@ -1,13 +1,18 @@
-﻿namespace Toggl.Foundation.MvvmCross.Parameters
+﻿using System;
+
+namespace Toggl.Foundation.MvvmCross.Parameters
 {
     public sealed class SelectClientParameters
     {
         public long WorkspaceId { get; set; }
 
-        public static SelectClientParameters WithIds(long workspaceId)
+        public long SelectedClientId { get; set; }
+
+        public static SelectClientParameters WithIds(long workspaceId, long? selectedClientId)
             => new SelectClientParameters
             {
                 WorkspaceId = workspaceId,
+                SelectedClientId = selectedClientId ?? 0
             };
     }
 }

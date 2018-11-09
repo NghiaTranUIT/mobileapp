@@ -32,7 +32,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IMvxNavigationService navigationService;
         private readonly ISchedulerProvider schedulerProvider;
         private long workspaceId;
-        private SelectableClientViewModel noClient = new SelectableClientViewModel(0, Resources.NoClient);
+        private long selectedClientId;
+        private SelectableClientViewModel noClient;
 
         public SelectClientViewModel(
             IInteractorFactory interactorFactory,
@@ -52,6 +53,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public override void Prepare(SelectClientParameters parameter)
         {
             workspaceId = parameter.WorkspaceId;
+            selectedClientId = parameter.SelectedClientId;
+            noClient = new SelectableClientViewModel(0, Resources.NoClient, selectedClientId == 0);
         }
 
         public override async Task Initialize()
@@ -87,7 +90,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         }
 
         private SelectableClientBaseViewModel toSelectableViewModel(IThreadSafeClient client)
-            => new SelectableClientViewModel(client.Id, client.Name);
+            => new SelectableClientViewModel(client.Id, client.Name, client.Id == selectedClientId);
 
         private Task close()
             => navigationService.Close(this, null);

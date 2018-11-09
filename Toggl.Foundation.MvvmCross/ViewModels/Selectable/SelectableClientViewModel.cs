@@ -5,11 +5,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     public abstract class SelectableClientBaseViewModel
     {
         public string Name { get; set; }
+        public bool Selected { get; set; }
 
-        public SelectableClientBaseViewModel(string name)
+        public SelectableClientBaseViewModel(string name, bool selected)
         {
             Ensure.Argument.IsNotNullOrWhiteSpaceString(name, nameof(name));
             Name = name;
+            Selected = selected;
         }
 
         public override string ToString() => Name;
@@ -19,10 +21,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     {
         public long Id { get; }
 
-        public bool Selected { get; set; }
-
-        public SelectableClientViewModel(long id, string name)
-            : base(name)
+        public SelectableClientViewModel(long id, string name, bool selected)
+            : base(name, selected)
         {
             Ensure.Argument.IsNotNull(Id, nameof(Id));
             Id = id;
@@ -31,7 +31,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
     public sealed class SelectableClientCreationViewModel : SelectableClientBaseViewModel
     {
-        public SelectableClientCreationViewModel(string name) : base(name)
+        public SelectableClientCreationViewModel(string name)
+            : base(name, false)
         {
         }
     }
