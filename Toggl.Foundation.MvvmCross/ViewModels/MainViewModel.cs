@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
@@ -36,95 +36,64 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed class MainViewModel : MvxViewModel
     {
-        // Outputs
-        public ObservableGroupedOrderedCollection<TimeEntryViewModel> TimeEntries => TimeEntriesViewModel.TimeEntries;
-        public IObservable<bool> LogEmpty { get; }
-        public IObservable<int> TimeEntriesCount { get; }
-        public IObservable<SyncProgress> SyncProgressState { get; private set; }
-        public IObservable<bool> ShouldShowEmptyState { get; private set; }
-        public IObservable<bool> ShouldShowWelcomeBack { get; private set; }
-        public IObservable<IThreadSafeTimeEntry> CurrentRunningTimeEntry { get; private set; }
-        public IObservable<bool> ShouldShowRunningTimeEntryNotification { get; private set; }
-        public IObservable<bool> ShouldShowStoppedTimeEntryNotification { get; private set; }
-        public IObservable<Unit> ShouldReloadTimeEntryLog { get; private set; }
-
-        public TimeSpan CurrentTimeEntryElapsedTime { get; private set; } = TimeSpan.Zero;
-        public DurationFormat CurrentTimeEntryElapsedTimeFormat { get; } = DurationFormat.Improved;
-        public long? CurrentTimeEntryId { get; private set; }
-        public string CurrentTimeEntryDescription { get; private set; }
-        public string CurrentTimeEntryProject { get; private set; }
-        public string CurrentTimeEntryProjectColor { get; private set; }
-        public string CurrentTimeEntryTask { get; private set; }
-        public string CurrentTimeEntryClient { get; private set; }
-
-        public IObservable<bool> CurrentTimeEntryHasDescription { get; private set; }
-
-        public IObservable<bool> IsTimeEntryRunning { get; private set; }
-
-        public bool IsAddDescriptionLabelVisible =>
-            string.IsNullOrEmpty(CurrentTimeEntryDescription)
-            && string.IsNullOrEmpty(CurrentTimeEntryProject);
-
-
-        public int NumberOfSyncFailures { get; private set; }
-        public bool IsInManualMode { get; set; } = false;
-
-        public SuggestionsViewModel SuggestionsViewModel { get; }
-        public RatingViewModel RatingViewModel { get; }
-        public IOnboardingStorage OnboardingStorage => onboardingStorage;
-
-        public new IMvxNavigationService NavigationService => navigationService;
-
-        public IMvxAsyncCommand StartTimeEntryCommand { get; }
-        public IMvxAsyncCommand AlternativeStartTimeEntryCommand { get; }
-        public IMvxAsyncCommand<TimeEntryStopOrigin> StopTimeEntryCommand { get; }
-        public IMvxAsyncCommand OpenSettingsCommand { get; }
-        public IMvxAsyncCommand OpenReportsCommand { get; }
-        public IMvxAsyncCommand OpenSyncFailuresCommand { get; }
-        public IMvxCommand ToggleManualMode { get; }
-
-        // Inputs
-        public UIAction Refresh { get; }
-        public InputAction<TimeEntryViewModel> DeleteTimeEntry { get; }
-        public InputAction<TimeEntryViewModel> SelectTimeEntry { get; }
-        public InputAction<TimeEntryViewModel> ContinueTimeEntry { get; }
-
-        // Private
         private const int ratingViewTimeout = 5;
 
-        public ITimeService TimeService { get; }
-        public ISchedulerProvider SchedulerProvider { get; }
+        private bool isEditViewOpen;
+        private string urlNavigationAction;
+        private bool noWorkspaceViewPresented;
+        private bool hasStopButtonEverBeenUsed;
+        private bool noDefaultWorkspaceViewPresented;
+        private object isEditViewOpenLock = new object();
 
         private readonly ITogglDataSource dataSource;
         private readonly IUserPreferences userPreferences;
         private readonly IAnalyticsService analyticsService;
         private readonly IOnboardingStorage onboardingStorage;
         private readonly IInteractorFactory interactorFactory;
+        private readonly IStopwatchProvider stopwatchProvider;
         private readonly IMvxNavigationService navigationService;
         private readonly IIntentDonationService intentDonationService;
         private readonly IAccessRestrictionStorage accessRestrictionStorage;
-        private readonly IStopwatchProvider stopwatchProvider;
 
-        private CompositeDisposable disposeBag = new CompositeDisposable();
+        private readonly RatingViewExperiment ratingViewExperiment;
+        private readonly CompositeDisposable disposeBag = new CompositeDisposable();
 
-        private RatingViewExperiment ratingViewExperiment;
+        public IObservable<bool> LogEmpty { get; }
+        public IObservable<int> TimeEntriesCount { get; }
+        public IObservable<bool> IsInManualMode { get; private set; }
+        public IObservable<string> ElapsedTime { get; private set; }
+        public IObservable<bool> IsTimeEntryRunning { get; private set; }
+        public IObservable<int> NumberOfSyncFailures { get; private set; }
+        public IObservable<bool> ShouldShowEmptyState { get; private set; }
+        public IObservable<bool> ShouldShowWelcomeBack { get; private set; }
+        public IObservable<Unit> ShouldReloadTimeEntryLog { get; private set; }
+        public IObservable<SyncProgress> SyncProgressState { get; private set; }
+        public IObservable<bool> ShouldShowRunningTimeEntryNotification { get; private set; }
+        public IObservable<bool> ShouldShowStoppedTimeEntryNotification { get; private set; }
+        public IObservable<IThreadSafeTimeEntry> CurrentRunningTimeEntry { get; private set; }
 
-        private bool isStopButtonEnabled = false;
-        private string urlNavigationAction;
-        private bool hasStopButtonEverBeenUsed;
-        private bool isEditViewOpen = false;
-        private object isEditViewOpenLock = new object();
+        public ObservableGroupedOrderedCollection<TimeEntryViewModel> TimeEntries => TimeEntriesViewModel.TimeEntries;
 
-        private bool noWorkspaceViewPresented;
-        private bool noDefaultWorkspaceViewPresented;
+        public RatingViewModel RatingViewModel { get; }
+        public SuggestionsViewModel SuggestionsViewModel { get; }
+        public IOnboardingStorage OnboardingStorage => onboardingStorage;
 
-        private DateTimeOffset? currentTimeEntryStart;
+        public new IMvxNavigationService NavigationService => navigationService;
+
+        public UIAction Refresh { get; private set; }
+        public UIAction OpenReports { get; private set; }
+        public UIAction OpenSettings { get; private set; }
+        public UIAction OpenSyncFailures { get; private set; }
+        public InputAction<bool> StartTimeEntry { get; private set; }
+        public InputAction<long> SelectTimeEntry { get; private set; }
+        public InputAction<TimeEntryStopOrigin> StopTimeEntry { get; private set; }
+        public InputAction<TimeEntryViewModel> DeleteTimeEntry { get; private set; }
+        public InputAction<TimeEntryViewModel> ContinueTimeEntry { get; private set; }
+
+        public ITimeService TimeService { get; }
+        public ISchedulerProvider SchedulerProvider { get; }
 
         public TimeEntriesViewModel TimeEntriesViewModel { get; }
-
-        // Deprecated properties
-        [Obsolete("Use SelectTimeEntry RxAction instead")]
-        public IMvxAsyncCommand EditTimeEntryCommand { get; }
 
         public MainViewModel(
             ITogglDataSource dataSource,
@@ -150,12 +119,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(onboardingStorage, nameof(onboardingStorage));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
+            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
             Ensure.Argument.IsNotNull(remoteConfigService, nameof(remoteConfigService));
             Ensure.Argument.IsNotNull(suggestionProviders, nameof(suggestionProviders));
             Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
-            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(accessRestrictionStorage, nameof(accessRestrictionStorage));
-            Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
 
             this.dataSource = dataSource;
             this.userPreferences = userPreferences;
@@ -178,19 +147,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             TimeEntriesCount = TimeEntriesViewModel.Count.AsDriver(SchedulerProvider);
 
             ratingViewExperiment = new RatingViewExperiment(timeService, dataSource, onboardingStorage, remoteConfigService);
-
-            OpenSettingsCommand = new MvxAsyncCommand(openSettings);
-            OpenReportsCommand = new MvxAsyncCommand(openReports);
-            OpenSyncFailuresCommand = new MvxAsyncCommand(openSyncFailures);
-            EditTimeEntryCommand = new MvxAsyncCommand(editTimeEntry, canExecuteEditTimeEntryCommand);
-            StopTimeEntryCommand = new MvxAsyncCommand<TimeEntryStopOrigin>(stopTimeEntry, _ => isStopButtonEnabled);
-            StartTimeEntryCommand = new MvxAsyncCommand(startTimeEntry, () => CurrentTimeEntryId.HasValue == false);
-            AlternativeStartTimeEntryCommand = new MvxAsyncCommand(alternativeStartTimeEntry, () => CurrentTimeEntryId.HasValue == false);
-
-            Refresh = UIAction.FromAsync(refresh);
-            DeleteTimeEntry = InputAction<TimeEntryViewModel>.FromObservable(deleteTimeEntry);
-            SelectTimeEntry = InputAction<TimeEntryViewModel>.FromAsync(timeEntrySelected);
-            ContinueTimeEntry = InputAction<TimeEntryViewModel>.FromObservable(continueTimeEntry);
         }
 
         public void Init(string action, string description)
@@ -245,6 +201,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DistinctUntilChanged()
                 .AsDriver(SchedulerProvider);
 
+            IsInManualMode = userPreferences
+                .IsManualModeEnabledObservable
+                .AsDriver(SchedulerProvider);
+
             ShouldShowRunningTimeEntryNotification = userPreferences.AreRunningTimerNotificationsEnabledObservable;
             ShouldShowStoppedTimeEntryNotification = userPreferences.AreStoppedTimerNotificationsEnabledObservable;
 
@@ -253,31 +213,42 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .CurrentlyRunningTimeEntry
                 .AsDriver(SchedulerProvider);
 
-            CurrentTimeEntryHasDescription = CurrentRunningTimeEntry
-                .Select(te => !string.IsNullOrWhiteSpace(te?.Description))
-                .DistinctUntilChanged();
-
             IsTimeEntryRunning = CurrentRunningTimeEntry
                 .Select(te => te != null)
-                .DistinctUntilChanged();
+                .DistinctUntilChanged()
+                .AsDriver(SchedulerProvider);
 
-            TimeService
+            var durationObservable = dataSource
+                .Preferences
+                .Current
+                .Select(preferences => preferences.DurationFormat);
+
+            ElapsedTime = TimeService
                 .CurrentDateTimeObservable
-                .Where(_ => currentTimeEntryStart != null)
-                .Subscribe(currentTime => CurrentTimeEntryElapsedTime = currentTime - currentTimeEntryStart.Value)
-                .DisposedBy(disposeBag);
+                .CombineLatest(CurrentRunningTimeEntry, (now, te) => (now - te?.Start) ?? TimeSpan.Zero)
+                .CombineLatest(durationObservable, (duration, format) => duration.ToFormattedString(format))
+                .AsDriver(SchedulerProvider);
 
-            interactorFactory
+            NumberOfSyncFailures = interactorFactory
                 .GetItemsThatFailedToSync()
                 .Execute()
                 .Select(i => i.Count())
-                .Subscribe(n => NumberOfSyncFailures = n)
-                .DisposedBy(disposeBag);
+                .AsDriver(SchedulerProvider);
 
             ShouldReloadTimeEntryLog = Observable.Merge(
                 TimeService.MidnightObservable.SelectUnit(),
                 TimeService.SignificantTimeChangeObservable.SelectUnit())
                 .AsDriver(SchedulerProvider);
+
+            Refresh = UIAction.FromAsync(refresh);
+            OpenReports = UIAction.FromAsync(openReports);
+            OpenSettings = UIAction.FromAsync(openSettings);
+            OpenSyncFailures = UIAction.FromAsync(openSyncFailures);
+            SelectTimeEntry = InputAction<long>.FromAsync(timeEntrySelected);
+            DeleteTimeEntry = InputAction<TimeEntryViewModel>.FromObservable(deleteTimeEntry);
+            ContinueTimeEntry = InputAction<TimeEntryViewModel>.FromObservable(continueTimeEntry);
+            StartTimeEntry = InputAction<bool>.FromAsync(startTimeEntry, IsTimeEntryRunning.Invert());
+            StopTimeEntry = InputAction<TimeEntryStopOrigin>.FromAsync(stopTimeEntry, IsTimeEntryRunning);
 
             switch (urlNavigationAction)
             {
@@ -298,12 +269,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             onboardingStorage.StopButtonWasTappedBefore
                              .Subscribe(hasBeen => hasStopButtonEverBeenUsed = hasBeen)
                              .DisposedBy(disposeBag);
-
-            dataSource
-                .TimeEntries
-                .CurrentlyRunningTimeEntry
-                .Subscribe(setRunningEntry)
-                .DisposedBy(disposeBag);
 
             interactorFactory
                 .GetDefaultWorkspace()
@@ -385,7 +350,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             base.ViewAppearing();
 
-            IsInManualMode = userPreferences.IsManualModeEnabled;
             handleNoWorkspaceState()
                 .ContinueWith(_ => handleNoDefaultWorkspaceState());
         }
@@ -410,27 +374,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             }
         }
 
-        private void setRunningEntry(IThreadSafeTimeEntry timeEntry)
-        {
-            CurrentTimeEntryId = timeEntry?.Id;
-            currentTimeEntryStart = timeEntry?.Start;
-            CurrentTimeEntryDescription = timeEntry?.Description ?? "";
-            CurrentTimeEntryElapsedTime = TimeService.CurrentDateTime - currentTimeEntryStart ?? TimeSpan.Zero;
-
-            CurrentTimeEntryTask = timeEntry?.Task?.Name ?? "";
-            CurrentTimeEntryProject = timeEntry?.Project?.DisplayName() ?? "";
-            CurrentTimeEntryProjectColor = timeEntry?.Project?.DisplayColor() ?? "";
-            CurrentTimeEntryClient = timeEntry?.Project?.Client?.Name ?? "";
-
-            isStopButtonEnabled = timeEntry != null;
-
-            StopTimeEntryCommand.RaiseCanExecuteChanged();
-            StartTimeEntryCommand.RaiseCanExecuteChanged();
-            EditTimeEntryCommand.RaiseCanExecuteChanged();
-
-            RaisePropertyChanged(nameof(IsTimeEntryRunning));
-        }
-
         private Task openSettings()
         {
             var settingsStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenSettingsView);
@@ -448,14 +391,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private Task openSyncFailures()
             => navigate<SyncFailuresViewModel>();
 
-        private Task startTimeEntry()
-            => startTimeEntry(IsInManualMode);
-
-        private Task alternativeStartTimeEntry()
-            => startTimeEntry(!IsInManualMode);
-
-        private Task startTimeEntry(bool initializeInManualMode)
+        private Task startTimeEntry(bool useDefaultMode)
         {
+            var initializeInManualMode = useDefaultMode == userPreferences.IsManualModeEnabled;
+
             OnboardingStorage.StartButtonWasTapped();
             var startTimeEntryStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenStartView);
             startTimeEntryStopwatch.Start();
@@ -475,21 +414,31 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return interactorFactory
                 .ContinueTimeEntry(timeEntry)
                 .Execute()
-                .Do( _ => onboardingStorage.SetTimeEntryContinued())
+                .Do(_ => onboardingStorage.SetTimeEntryContinued())
                 .SelectUnit();
         }
 
-        private async Task timeEntrySelected(TimeEntryViewModel timeEntry)
+        private async Task timeEntrySelected(long timeEntryId)
         {
             if (isEditViewOpen)
                 return;
 
             onboardingStorage.TimeEntryWasTapped();
 
+            lock (isEditViewOpenLock)
+            {
+                isEditViewOpen = true;
+            }
+
             var editTimeEntryStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.EditTimeEntryFromMainLog);
             editTimeEntryStopwatch.Start();
 
-            await navigate<EditTimeEntryViewModel, long>(timeEntry.Id);
+            await navigate<EditTimeEntryViewModel, long>(timeEntryId);
+
+            lock (isEditViewOpenLock)
+            {
+                isEditViewOpen = false;
+            }
         }
 
         private async Task refresh()
@@ -502,7 +451,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return interactorFactory
                 .DeleteTimeEntry(timeEntry.Id)
                 .Execute()
-                .Do( _ => {
+                .Do(_ =>
+                {
                     analyticsService.DeleteTimeEntry.Track();
                     dataSource.SyncManager.PushSync();
                 });
@@ -512,45 +462,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             OnboardingStorage.StopButtonWasTapped();
 
-            isStopButtonEnabled = false;
-            StopTimeEntryCommand.RaiseCanExecuteChanged();
-
             await interactorFactory
                 .StopTimeEntry(TimeService.CurrentDateTime, origin)
                 .Execute()
                 .Do(_ => intentDonationService.DonateStopCurrentTimeEntry())
                 .Do(dataSource.SyncManager.InitiatePushSync);
-
-            CurrentTimeEntryElapsedTime = TimeSpan.Zero;
-        }
-
-        private async Task editTimeEntry()
-        {
-            lock (isEditViewOpenLock)
-            {
-                isEditViewOpen = true;
-            }
-
-            var editTimeEntryStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.EditTimeEntryFromMainLog);
-            editTimeEntryStopwatch.Start();
-
-            await navigate<EditTimeEntryViewModel, long>(CurrentTimeEntryId.Value);
-
-            lock (isEditViewOpenLock)
-            {
-                isEditViewOpen = false;
-            }
-        }
-
-        private bool canExecuteEditTimeEntryCommand()
-        {
-            lock (isEditViewOpenLock)
-            {
-                if (isEditViewOpen)
-                    return false;
-            }
-
-            return CurrentTimeEntryId.HasValue;
         }
 
         private Task navigate<TModel, TParameters>(TParameters value)

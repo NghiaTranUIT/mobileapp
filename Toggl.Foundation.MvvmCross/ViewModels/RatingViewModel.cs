@@ -8,7 +8,6 @@ using MvvmCross.ViewModels;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.MvvmCross.Extensions;
-using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.ViewModels.Hints;
 using Toggl.Foundation.Services;
 using Toggl.Multivac;
@@ -39,11 +38,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool?> Impression { get; }
 
-        public IObservable<string> CtaTitle { get; }
+        public IObservable<string> CallToActionTitle { get; }
 
-        public IObservable<string> CtaDescription { get; }
+        public IObservable<string> CallToActionDescription { get; }
 
-        public IObservable<string> CtaButtonTitle { get; }
+        public IObservable<string> CallToActionButtonTitle { get; }
 
         public IObservable<bool> IsFeedbackSuccessViewShowing { get; }
 
@@ -74,16 +73,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Impression = impressionSubject.AsDriver(this.schedulerProvider);
 
-            CtaTitle = impressionSubject
-                .Select(ctaTitle)
+            CallToActionTitle = impressionSubject
+                .Select(callToActionTitle)
                 .AsDriver(this.schedulerProvider);
 
-            CtaDescription = impressionSubject
-                .Select(ctaDescription)
+            CallToActionDescription = impressionSubject
+                .Select(callToActionDescription)
                 .AsDriver(this.schedulerProvider);
 
-            CtaButtonTitle = impressionSubject
-                .Select(ctaButtonTitle)
+            CallToActionButtonTitle = impressionSubject
+                .Select(callToActionButtonTitle)
                 .AsDriver(this.schedulerProvider);
 
             IsFeedbackSuccessViewShowing = isFeedbackSuccessViewShowing.AsDriver(this.schedulerProvider);
@@ -113,34 +112,34 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             }
         }
 
-        private string ctaTitle(bool? impressionIsPositive)
+        private string callToActionTitle(bool? impressionIsPositive)
         {
             if (impressionIsPositive == null)
                 return string.Empty;
 
             return impressionIsPositive.Value
-                   ? Resources.RatingViewPositiveCTATitle
-                   : Resources.RatingViewNegativeCTATitle;
+                   ? Resources.RatingViewPositiveCallToActionTitle
+                   : Resources.RatingViewNegativeCallToActionTitle;
         }
 
-        private string ctaDescription(bool? impressionIsPositive)
+        private string callToActionDescription(bool? impressionIsPositive)
         {
             if (impressionIsPositive == null)
                 return string.Empty;
 
             return impressionIsPositive.Value
-                   ? Resources.RatingViewPositiveCTADescription
-                   : Resources.RatingViewNegativeCTADescription;
+                   ? Resources.RatingViewPositiveCallToActionDescription
+                   : Resources.RatingViewNegativeCallToActionDescription;
         }
 
-        private string ctaButtonTitle(bool? impressionIsPositive)
+        private string callToActionButtonTitle(bool? impressionIsPositive)
         {
             if (impressionIsPositive == null)
                 return string.Empty;
 
             return impressionIsPositive.Value
-                   ? Resources.RatingViewPositiveCTAButtonTitle
-                   : Resources.RatingViewNegativeCTAButtonTitle;
+                   ? Resources.RatingViewPositiveCallToActionButtonTitle
+                   : Resources.RatingViewNegativeCallToActionButtonTitle;
         }
 
         public async Task PerformMainAction()

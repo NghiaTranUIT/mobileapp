@@ -30,6 +30,8 @@ using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Settings;
 using static Toggl.Foundation.Helper.Constants;
 using static Toggl.Multivac.Extensions.CommonFunctions;
+using IStopwatch = Toggl.Foundation.Diagnostics.IStopwatch;
+using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 using SelectTimeOrigin = Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 
 [assembly: MvxNavigation(typeof(StartTimeEntryViewModel), ApplicationUrls.StartTimeEntry)]
@@ -98,8 +100,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                            && shouldSuggestProjectCreation;
 
                 if (IsSuggestingTags)
-                    return Suggestions.None(c => c.Any(s => 
-                               s is TagSuggestion tS 
+                    return Suggestions.None(c => c.Any(s =>
+                               s is TagSuggestion tS
                                && tS.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
                            && CurrentQuery.IsAllowedTagByteSize();
 
@@ -284,6 +286,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .StartWith(textFieldInfo)
                 .Select(QueryInfo.ParseFieldInfo)
                 .Do(onParsedQuery)
+                .ObserveOn(schedulerProvider.BackgroundScheduler)
                 .SelectMany(autocompleteProvider.Query)
                 .Merge(queryByTypeObservable)
                 .Subscribe(onSuggestions)
@@ -403,7 +406,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return true;
         }
 
-        private void onUserChanged(IThreadSafeUser user) 
+        private void onUserChanged(IThreadSafeUser user)
         {
             BeginningOfWeek = user.BeginningOfWeek;
         }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
@@ -14,6 +16,7 @@ using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.Helper;
 using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
+using TimeEntryExtensions = Toggl.Giskard.Extensions.TimeEntryExtensions;
 
 namespace Toggl.Giskard.Activities
 {
@@ -90,6 +93,22 @@ namespace Toggl.Giskard.Activities
             durationArea.Rx().Tap()
                 .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(Duration))
                 .DisposedBy(DisposeBag);
+
+            ViewModel.ProjectTaskOrClientChanged
+                     .WithLatestFrom(ViewModel.HasProject, (_, hasProject) => hasProject)
+                     .Subscribe(onProjectTaskOrClientChanged)
+                     .DisposedBy(DisposeBag);
+        }
+
+        private void onProjectTaskOrClientChanged(bool hasProject)
+        {
+            projectTaskClientTextView.TextFormatted = 
+                TimeEntryExtensions.ToProjectTaskClient(
+                    hasProject,
+                    ViewModel.Project,
+                    ViewModel.ProjectColor,
+                    ViewModel.Task,
+                    ViewModel.Client);
         }
 
         public override bool OnKeyDown(Keycode keyCode, KeyEvent e)

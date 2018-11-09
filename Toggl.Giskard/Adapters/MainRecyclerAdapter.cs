@@ -12,17 +12,18 @@ using Toggl.Giskard.Extensions;
 using Toggl.Giskard.ViewHolders;
 using Toggl.Multivac.Extensions;
 using Toggl.Foundation;
+using Toggl.Giskard.ViewHelpers;
 
 namespace Toggl.Giskard.Adapters
 {
-    public class MainRecyclerAdapter : ReactiveSectionedRecyclerAdapter<TimeEntryViewModel, MainLogCellViewHolder, MainLogSectionViewHolder>
+    public class MainRecyclerAdapter : ReactiveSectionedRecyclerAdapter<TimeEntryViewModel, TimeEntryViewData, TimeEntryCollectionViewModel, MainLogCellViewHolder, MainLogSectionViewHolder>
     {
         public const int SuggestionViewType = 2;
 
         private readonly ITimeService timeService;
 
         public IObservable<TimeEntryViewModel> TimeEntryTaps
-            => timeEntryTappedSubject.AsObservable();
+            => timeEntryTappedSubject.Select(item => item.TimeEntryViewModel).AsObservable();
 
         public IObservable<TimeEntryViewModel> ContinueTimeEntrySubject
             => continueTimeEntrySubject.AsObservable();
@@ -34,7 +35,7 @@ namespace Toggl.Giskard.Adapters
 
         public IStopwatchProvider StopwatchProvider { get; set; }
 
-        private Subject<TimeEntryViewModel> timeEntryTappedSubject = new Subject<TimeEntryViewModel>();
+        private Subject<TimeEntryViewData> timeEntryTappedSubject = new Subject<TimeEntryViewData>();
         private Subject<TimeEntryViewModel> continueTimeEntrySubject = new Subject<TimeEntryViewModel>();
         private Subject<TimeEntryViewModel> deleteTimeEntrySubject = new Subject<TimeEntryViewModel>();
 
@@ -146,6 +147,12 @@ namespace Toggl.Giskard.Adapters
 
         protected override long IdForSection(IReadOnlyList<TimeEntryViewModel> section)
             => section.First().StartTime.Date.GetHashCode();
+
+        protected override TimeEntryViewData Wrap(TimeEntryViewModel item)
+            => new TimeEntryViewData(item);
+
+        protected override TimeEntryCollectionViewModel Wrap(IReadOnlyList<TimeEntryViewModel> section)
+            => new TimeEntryCollectionViewModel(section);
 
         protected override bool AreItemContentsTheSame(TimeEntryViewModel item1, TimeEntryViewModel item2)
             => item1 == item2;

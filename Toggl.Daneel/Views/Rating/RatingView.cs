@@ -58,11 +58,11 @@ namespace Toggl.Daneel
 
         private void updateBindings()
         {
-            DataContext.CtaTitle
+            DataContext.CallToActionTitle
                 .Subscribe(CtaTitle.Rx().Text())
                 .DisposedBy(DisposeBag);
 
-            DataContext.CtaButtonTitle
+            DataContext.CallToActionButtonTitle
                 .Subscribe(CtaButton.Rx().Title())
                 .DisposedBy(DisposeBag);
 
@@ -71,7 +71,7 @@ namespace Toggl.Daneel
                 .Subscribe(CtaView.Rx().IsVisibleWithFade())
                 .DisposedBy(DisposeBag);
 
-            DataContext.CtaDescription.Select(attributedDescription)
+            DataContext.CallToActionDescription.Select(attributedDescription)
                 .Subscribe(CtaDescription.Rx().AttributedText())
                 .DisposedBy(DisposeBag);
 

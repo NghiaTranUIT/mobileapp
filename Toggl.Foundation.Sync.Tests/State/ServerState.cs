@@ -3,6 +3,7 @@ using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Toggl.Multivac.Models;
 using Toggl.Ultrawave.Helpers;
+using System.Linq;
 
 namespace Toggl.Foundation.Sync.Tests.State
 {
@@ -17,6 +18,18 @@ namespace Toggl.Foundation.Sync.Tests.State
         public ISet<ITimeEntry> TimeEntries { get; }
         public ISet<IWorkspace> Workspaces { get; }
         public IDictionary<long, PricingPlans> PricingPlans { get; }
+
+        public IWorkspace DefaultWorkspace
+        {
+            get
+            {
+                if (!User.DefaultWorkspaceId.HasValue)
+                    return null;
+
+                var defaultWorkspaceId = User.DefaultWorkspaceId.Value;
+                return Workspaces.SingleOrDefault(workspace => workspace.Id == defaultWorkspaceId);
+            }
+        }
 
         public ServerState(
             IUser user,

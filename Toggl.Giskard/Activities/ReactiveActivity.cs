@@ -2,13 +2,12 @@
 using Android.Content;
 using Android.OS;
 using MvvmCross.Binding.BindingContext;
-using MvvmCross.Views;
 using MvvmCross.Droid.Support.V7.AppCompat.EventSource;
-using Toggl.Foundation.MvvmCross.ViewModels;
-using MvvmCross.ViewModels;
-using MvvmCross.Platforms.Android.Views;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
-using MvvmCross.Platforms.Android.Binding.Views;
+using MvvmCross.Platforms.Android.Views;
+using MvvmCross.ViewModels;
+using MvvmCross.Views;
+using Toggl.Foundation.MvvmCross.ViewModels;
 
 namespace Toggl.Giskard.Activities
 {
@@ -79,11 +78,6 @@ namespace Toggl.Giskard.Activities
         {
             base.OnStop();
             ViewModel?.ViewDisappeared();
-        }
-
-        protected override void AttachBaseContext(Context @base)
-        {
-            base.AttachBaseContext(MvxContextWrapper.Wrap(@base, this));
         }
 
         public void MvxInternalStartActivityForResult(Intent intent, int requestCode)

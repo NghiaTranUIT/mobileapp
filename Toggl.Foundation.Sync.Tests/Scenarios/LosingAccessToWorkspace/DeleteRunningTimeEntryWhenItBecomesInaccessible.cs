@@ -7,12 +7,12 @@ using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.PrimeRadiant;
 
-namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
+namespace Toggl.Foundation.Sync.Tests.Scenarios.LosingAccessToWorkspace
 {
     public sealed class DeleteRunningTimeEntryWhenItBecomesInaccessible
     {
         public sealed class DeletesSyncedRunningTimeEntryWhenItBecomesInaccessible
-            : BaseComplexSyncTest
+            : ComplexSyncTest
         {
             protected override ServerState ArrangeServerState(ServerState initialServerState)
                 => initialServerState;
@@ -20,11 +20,10 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
             protected override DatabaseState ArrangeDatabaseState(ServerState serverState)
                 => new DatabaseState(
                     user: serverState.User.ToSyncable(),
-                    workspaces: new[]
+                    workspaces: serverState.Workspaces.ToSyncable().Concat(new[]
                     {
-                        serverState.Workspaces.Single().ToSyncable(),
                         new MockWorkspace { Id = 1, SyncStatus = SyncStatus.InSync, IsInaccessible = false }
-                    },
+                    }),
                     timeEntries: new[]
                     {
                         new MockTimeEntry
@@ -45,7 +44,7 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
         }
 
         public sealed class DoesNotDeleteUnsyncedTimeEntryWhenItBecomesInaccessible
-            : BaseComplexSyncTest
+            : ComplexSyncTest
         {
             protected override ServerState ArrangeServerState(ServerState initialServerState)
                 => initialServerState;
@@ -53,11 +52,10 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
             protected override DatabaseState ArrangeDatabaseState(ServerState serverState)
                 => new DatabaseState(
                     user: serverState.User.ToSyncable(),
-                    workspaces: new[]
+                    workspaces: serverState.Workspaces.ToSyncable().Concat(new[]
                     {
-                        serverState.Workspaces.Single().ToSyncable(),
                         new MockWorkspace { Id = 1, SyncStatus = SyncStatus.InSync, IsInaccessible = false }
-                    },
+                    }),
                     timeEntries: new[]
                     {
                         new MockTimeEntry
@@ -78,7 +76,7 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
         }
 
         public sealed class DoesNotDeleteSyncedRunningTimeEntryWhenADifferentWorkspaceBecomesInaccessible
-            : BaseComplexSyncTest
+            : ComplexSyncTest
         {
             protected override ServerState ArrangeServerState(ServerState initialServerState)
                 => initialServerState;
@@ -86,17 +84,16 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
             protected override DatabaseState ArrangeDatabaseState(ServerState serverState)
                 => new DatabaseState(
                     user: serverState.User.ToSyncable(),
-                    workspaces: new[]
+                    workspaces: serverState.Workspaces.ToSyncable().Concat(new[]
                     {
-                        serverState.Workspaces.Single().ToSyncable(),
                         new MockWorkspace { Id = 1, SyncStatus = SyncStatus.InSync, IsInaccessible = false }
-                    },
+                    }),
                     timeEntries: new[]
                     {
                         new MockTimeEntry
                         {
                             Id = 2,
-                            WorkspaceId = serverState.Workspaces.Single().Id,
+                            WorkspaceId = serverState.DefaultWorkspace.Id,
                             Start = DateTimeOffset.Now.AddHours(-1),
                             Duration = null,
                             SyncStatus = SyncStatus.InSync

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FsCheck.Xunit;
@@ -137,28 +138,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
             }
-
-            [Fact, LogIfTooSlow]
-            public void IsNotInManualModeByDefault()
-            {
-                ViewModel.IsInManualMode.Should().Be(false);
-            }
         }
 
         public sealed class TheViewAppearingMethod : MainViewModelTest
         {
-            [Theory, LogIfTooSlow]
-            [InlineData(true)]
-            [InlineData(false)]
-            public void InitializesTheIsInManualModePropertyAccordingToUsersPreferences(bool isEnabled)
-            {
-                UserPreferences.IsManualModeEnabled.Returns(isEnabled);
-
-                ViewModel.ViewAppearing();
-
-                ViewModel.IsInManualMode.Should().Be(isEnabled);
-            }
-
             [Fact, LogIfTooSlow]
             public async ThreadingTask NavigatesToNoWorkspaceViewModelWhenNoWorkspaceStateIsSet()
             {
@@ -202,7 +185,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.ViewAppearing();
                 //ViewAppearing calls an async method. The delay is here to ensure that the async method completes before the assertion
-                await ThreadingTask.Delay(100);
+                await ThreadingTask.Delay(200);
 
                 await NavigationService.Received().Navigate<SelectDefaultWorkspaceViewModel, Unit>();
             }
@@ -230,47 +213,53 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ViewAppearing();
                 ViewModel.ViewAppearing();
                 //ViewAppearing calls an async method. The delay is here to ensure that the async method completes before the assertion
-                await ThreadingTask.Delay(100);
+                await ThreadingTask.Delay(200);
 
                 await NavigationService.Received(1).Navigate<SelectDefaultWorkspaceViewModel, Unit>();
             }
         }
 
-        public abstract class BaseStartTimeEntryTest : MainViewModelTest
+        public sealed class TheStartTimeEntryAction : MainViewModelTest
         {
-            private readonly bool flipManualModeChecks;
+            private readonly ISubject<IThreadSafeTimeEntry> subject = new Subject<IThreadSafeTimeEntry>();
 
-            protected abstract ThreadingTask CallCommand();
-
-            protected BaseStartTimeEntryTest(bool flipManualModeChecks)
+            public TheStartTimeEntryAction()
             {
-                this.flipManualModeChecks = flipManualModeChecks;
+                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(subject);
                 TimeService.CurrentDateTime.Returns(DateTimeOffset.Now);
+                ViewModel.Initialize().GetAwaiter().GetResult();
+
+                subject.OnNext(null);
+                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
             }
 
             [Theory, LogIfTooSlow]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async ThreadingTask NavigatesToTheStartTimeEntryViewModel(bool isInManualMode)
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(false, false)]
+            public async ThreadingTask NavigatesToTheStartTimeEntryViewModel(bool isInManualMode, bool useDefaultMode)
             {
-                ViewModel.IsInManualMode = isInManualMode;
+                UserPreferences.IsManualModeEnabled.Returns(isInManualMode);
 
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
                 await NavigationService.Received()
                    .Navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(Arg.Any<StartTimeEntryParameters>());
             }
 
             [Theory, LogIfTooSlow]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async ThreadingTask PassesTheAppropriatePlaceholderToTheStartTimeEntryViewModel(bool isInManualMode)
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(false, false)]
+            public async ThreadingTask PassesTheAppropriatePlaceholderToTheStartTimeEntryViewModel(bool isInManualMode, bool useDefaultMode)
             {
-                ViewModel.IsInManualMode = isInManualMode;
+                UserPreferences.IsManualModeEnabled.Returns(isInManualMode);
 
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
-                var expected = isInManualMode ^ flipManualModeChecks
+                var expected = isInManualMode == useDefaultMode
                     ? Resources.ManualTimeEntryPlaceholder
                     : Resources.StartTimeEntryPlaceholder;
                 NavigationService.Received().Navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(
@@ -279,15 +268,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Theory, LogIfTooSlow]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async ThreadingTask PassesTheAppropriateDurationToTheStartTimeEntryViewModel(bool isInManualMode)
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(false, false)]
+            public async ThreadingTask PassesTheAppropriateDurationToTheStartTimeEntryViewModel(bool isInManualMode, bool useDefaultMode)
             {
-                ViewModel.IsInManualMode = isInManualMode;
+                UserPreferences.IsManualModeEnabled.Returns(isInManualMode);
 
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
-                var expected = isInManualMode ^ flipManualModeChecks
+                var expected = isInManualMode == useDefaultMode
                     ? TimeSpan.FromMinutes(DefaultTimeEntryDurationForManualModeInMinutes)
                     : (TimeSpan?)null;
                 await NavigationService.Received().Navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(
@@ -296,17 +287,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Theory, LogIfTooSlow]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async ThreadingTask PassesTheAppropriateStartTimeToTheStartTimeEntryViewModel(bool isInManualMode)
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(false, false)]
+            public async ThreadingTask PassesTheAppropriateStartTimeToTheStartTimeEntryViewModel(bool isInManualMode, bool useDefaultMode)
             {
                 var date = DateTimeOffset.Now;
                 TimeService.CurrentDateTime.Returns(date);
-                ViewModel.IsInManualMode = isInManualMode;
+                UserPreferences.IsManualModeEnabled.Returns(isInManualMode);
 
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
-                var expected = isInManualMode ^ flipManualModeChecks
+                var expected = isInManualMode == useDefaultMode
                     ? date.Subtract(TimeSpan.FromMinutes(DefaultTimeEntryDurationForManualModeInMinutes))
                     : date;
                 await NavigationService.Received().Navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(
@@ -314,70 +307,63 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 );
             }
 
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask CannotBeExecutedWhenThereIsARunningTimeEntry()
+            [Theory, LogIfTooSlow]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void CannotBeExecutedWhenThereIsARunningTimeEntry(bool useDefaultMode)
             {
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                var observable = Observable.Return(timeEntry);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                ViewModel.Initialize().Wait();
+                var timeEntry = new MockTimeEntry();
+                subject.OnNext(timeEntry);
+                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
 
-                await CallCommand();
+                Action tryingToExecuteWhenThereIsARunningTimeEntry = 
+                    () => ViewModel.StartTimeEntry.Execute(useDefaultMode).Wait();
 
-                await NavigationService.DidNotReceive()
-                    .Navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(Arg.Any<StartTimeEntryParameters>());
+                tryingToExecuteWhenThereIsARunningTimeEntry.Should().Throw<RxActionNotEnabledException>();
             }
 
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask MarksTheActionButtonTappedForOnboardingPurposes()
+            [Theory, LogIfTooSlow]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async ThreadingTask MarksTheActionButtonTappedForOnboardingPurposes(bool useDefaultMode)
             {
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
                 OnboardingStorage.Received().StartButtonWasTapped();
             }
 
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask MarksTheActionNavigatedAwayBeforeStopButtonForOnboardingPurposes()
+            [Theory, LogIfTooSlow]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async ThreadingTask MarksTheActionNavigatedAwayBeforeStopButtonForOnboardingPurposes(bool useDefaultMode)
             {
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(false));
-                ViewModel.Initialize().Wait();
+                await ViewModel.Initialize();
+                subject.OnNext(null);
+                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
 
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
                 OnboardingStorage.DidNotReceive().SetNavigatedAwayFromMainViewAfterStopButton();
             }
 
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask MarksTheActionNavigatedAwayAfterStopButtonForOnboardingPurposes()
+            [Theory, LogIfTooSlow]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async ThreadingTask MarksTheActionNavigatedAwayAfterStopButtonForOnboardingPurposes(bool useDefaultMode)
             {
                 var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
                 var observable = Observable.Return<IThreadSafeTimeEntry>(null);
                 DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(true));
-                ViewModel.Initialize().Wait();
+                await ViewModel.Initialize();
+                subject.OnNext(null);
+                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
 
-                await CallCommand();
+                await ViewModel.StartTimeEntry.Execute(useDefaultMode);
 
                 OnboardingStorage.Received().SetNavigatedAwayFromMainViewAfterStopButton();
             }
-        }
-
-        public sealed class TheStartTimeEntryCommand : BaseStartTimeEntryTest
-        {
-            public TheStartTimeEntryCommand()
-                : base(false) { }
-
-            protected override ThreadingTask CallCommand()
-                => ViewModel.StartTimeEntryCommand.ExecuteAsync();
-        }
-
-        public sealed class TheAlternativeStartTimeEntryCommand : BaseStartTimeEntryTest
-        {
-            public TheAlternativeStartTimeEntryCommand()
-                : base(true) { }
-
-            protected override ThreadingTask CallCommand()
-                => ViewModel.AlternativeStartTimeEntryCommand.ExecuteAsync();
         }
 
         public sealed class TheOpenSettingsCommand : MainViewModelTest
@@ -385,7 +371,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async ThreadingTask NavigatesToTheSettingsViewModel()
             {
-                await ViewModel.OpenSettingsCommand.ExecuteAsync();
+                ViewModel.Initialize().Wait();
+
+                await ViewModel.OpenSettings.Execute();
 
                 await NavigationService.Received().Navigate<SettingsViewModel>();
             }
@@ -396,7 +384,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(false));
                 ViewModel.Initialize().Wait();
 
-                await ViewModel.OpenSettingsCommand.ExecuteAsync();
+                await ViewModel.OpenSettings.Execute();
 
                 OnboardingStorage.DidNotReceive().SetNavigatedAwayFromMainViewAfterStopButton();
             }
@@ -407,7 +395,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(true));
                 ViewModel.Initialize().Wait();
 
-                await ViewModel.OpenSettingsCommand.ExecuteAsync();
+                await ViewModel.OpenSettings.Execute();
 
                 OnboardingStorage.Received().SetNavigatedAwayFromMainViewAfterStopButton();
             }
@@ -423,8 +411,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 workspace.Id.Returns(workspaceId);
                 InteractorFactory.GetDefaultWorkspace().Execute().Returns(Observable.Return(workspace));
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(false));
+                ViewModel.Initialize().Wait();
 
-                await ViewModel.OpenReportsCommand.ExecuteAsync();
+                await ViewModel.OpenReports.Execute();
 
                 await NavigationService.Received().Navigate<ReportsViewModel>();
             }
@@ -439,7 +428,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(false));
                 ViewModel.Initialize().Wait();
 
-                await ViewModel.OpenReportsCommand.ExecuteAsync();
+                await ViewModel.OpenReports.Execute();
 
                 OnboardingStorage.DidNotReceive().SetNavigatedAwayFromMainViewAfterStopButton();
             }
@@ -454,7 +443,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(true));
                 ViewModel.Initialize().Wait();
 
-                await ViewModel.OpenReportsCommand.ExecuteAsync();
+                await ViewModel.OpenReports.Execute();
 
                 OnboardingStorage.Received().SetNavigatedAwayFromMainViewAfterStopButton();
             }
@@ -463,24 +452,25 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheOpenSyncFailuresCommand : MainViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public async ThreadingTask NavigatesToTheSettingsViewModel()
+            public async ThreadingTask NavigatesToTheSyncFailuresViewModel()
             {
-                await ViewModel.OpenSyncFailuresCommand.ExecuteAsync();
+                ViewModel.Initialize().Wait();
+
+                await ViewModel.OpenSyncFailures.Execute();
 
                 await NavigationService.Received().Navigate<SyncFailuresViewModel>();
             }
         }
 
-        public class TheStopTimeEntryCommand : MainViewModelTest
+        public class TheStopTimeEntryAction : MainViewModelTest
         {
             private ISubject<IThreadSafeTimeEntry> subject;
 
-            public TheStopTimeEntryCommand()
+            public TheStopTimeEntryAction()
             {
                 var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
                 subject = new BehaviorSubject<IThreadSafeTimeEntry>(timeEntry);
-                var observable = subject.AsObservable();
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
+                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(subject);
 
                 ViewModel.Initialize().Wait();
                 TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
@@ -492,23 +482,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var date = DateTimeOffset.UtcNow;
                 TimeService.CurrentDateTime.Returns(date);
 
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Deeplink);
+                await ViewModel.StopTimeEntry.Execute(TimeEntryStopOrigin.Deeplink);
 
                 await InteractorFactory.Received().StopTimeEntry(date, TimeEntryStopOrigin.Deeplink).Execute();
             }
 
             [Fact, LogIfTooSlow]
-            public async ThreadingTask SetsTheElapsedTimeToZero()
-            {
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(Arg.Any<TimeEntryStopOrigin>());
-
-                ViewModel.CurrentTimeEntryElapsedTime.Should().Be(TimeSpan.Zero);
-            }
-
-            [Fact, LogIfTooSlow]
             public async ThreadingTask InitiatesPushSync()
             {
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(Arg.Any<TimeEntryStopOrigin>());
+                await ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>());
 
                 await DataSource.SyncManager.Received().PushSync();
             }
@@ -516,7 +498,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async ThreadingTask MarksTheActionForOnboardingPurposes()
             {
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(Arg.Any<TimeEntryStopOrigin>());
+                await ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>());
 
                 OnboardingStorage.Received().StopButtonWasTapped();
             }
@@ -529,31 +511,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Throw<IThreadSafeTimeEntry>(new Exception()));
 
-                Action stopTimeEntry = () => ViewModel.StopTimeEntryCommand.ExecuteAsync(Arg.Any<TimeEntryStopOrigin>()).Wait();
+                Action stopTimeEntry = () => ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>()).Wait();
 
                 stopTimeEntry.Should().Throw<Exception>();
                 await DataSource.SyncManager.DidNotReceive().PushSync();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask CannotBeExecutedTwiceInARowInFastSuccession()
-            {
-                var taskA = ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
-                var taskB = ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
-
-                ThreadingTask.WaitAll(taskA, taskB);
-
-                await InteractorFactory.Received(1).StopTimeEntry(Arg.Any<DateTimeOffset>(), Arg.Any<TimeEntryStopOrigin>()).Execute();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask CannotBeExecutedTwiceInARow()
-            {
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
-                subject.OnNext(null);
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
-
-                await InteractorFactory.Received(1).StopTimeEntry(Arg.Any<DateTimeOffset>(), Arg.Any<TimeEntryStopOrigin>()).Execute();
             }
 
             [Fact, LogIfTooSlow]
@@ -562,22 +523,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 subject.OnNext(null);
                 TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
 
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
+                Func<ThreadingTask> tryingToStopWhenThereAreNoEntriesRunning = async () =>
+                   await ViewModel.StopTimeEntry.Execute(TimeEntryStopOrigin.Manual);
 
+                tryingToStopWhenThereAreNoEntriesRunning.Should().Throw<RxActionNotEnabledException>();
                 await InteractorFactory.DidNotReceive().StopTimeEntry(Arg.Any<DateTimeOffset>(), Arg.Any<TimeEntryStopOrigin>()).Execute();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask CanBeExecutedForTheSecondTimeIfAnotherTimeEntryIsStartedInTheMeantime()
-            {
-                var secondTimeEntry = Substitute.For<IThreadSafeTimeEntry>();
-
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
-                subject.OnNext(secondTimeEntry);
-                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(TimeEntryStopOrigin.Manual);
-
-                await InteractorFactory.Received(2).StopTimeEntry(Arg.Any<DateTimeOffset>(), Arg.Any<TimeEntryStopOrigin>()).Execute();
             }
 
             [Fact, LogIfTooSlow]
@@ -585,222 +535,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var secondTimeEntry = Substitute.For<IThreadSafeTimeEntry>();
 
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(Arg.Any<TimeEntryStopOrigin>());
+                await ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>());
                 subject.OnNext(secondTimeEntry);
                 TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
-                await ViewModel.StopTimeEntryCommand.ExecuteAsync(Arg.Any<TimeEntryStopOrigin>());
+                await ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>());
 
                 IntentDonationService.Received().DonateStopCurrentTimeEntry();
             }
-        }
-
-        public sealed class TheEditTimeEntryCommand : MainViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask NavigatesToTheEditTimeEntryViewModel()
-            {
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                var observable = Observable.Return(timeEntry);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                ViewModel.Initialize().Wait();
-
-                await ViewModel.EditTimeEntryCommand.ExecuteAsync();
-
-                await NavigationService.Received()
-                    .Navigate<EditTimeEntryViewModel, long>(Arg.Any<long>());
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask NavigatesToTheEditViewOnlyOnceOnMultipleTaps()
-            {
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                var observable = Observable.Return(timeEntry);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                await ViewModel.Initialize();
-                var tcs = new TaskCompletionSource<bool>();
-                var blockingTask = new ThreadingTask(async () => await tcs.Task);
-                NavigationService
-                    .Navigate<EditTimeEntryViewModel, long>(Arg.Any<long>())
-                    .Returns(blockingTask);
-
-                Enumerable.Range(0, 10).Do(_ => ViewModel.EditTimeEntryCommand.ExecuteAsync());
-
-                await NavigationService.Received(1)
-                    .Navigate<EditTimeEntryViewModel, long>(Arg.Any<long>());
-            }
-
-            [Property]
-            public void PassesTheCurrentDateToTheStartTimeEntryViewModel(long id)
-            {
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                timeEntry.Id.Returns(id);
-                var observable = Observable.Return(timeEntry);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                ViewModel.Initialize().Wait();
-
-                ViewModel.EditTimeEntryCommand.ExecuteAsync().Wait();
-
-                NavigationService.Received()
-                    .Navigate<EditTimeEntryViewModel, long>(Arg.Is(id)).Wait();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask CannotBeExecutedWhenThereIsNoRunningTimeEntry()
-            {
-                var observable = Observable.Return<IThreadSafeTimeEntry>(null);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                ViewModel.Initialize().Wait();
-
-                ViewModel.EditTimeEntryCommand.ExecuteAsync().Wait();
-
-                await NavigationService.DidNotReceive()
-                    .Navigate<EditTimeEntryViewModel, long>(Arg.Any<long>());
-            }
-
-            [Fact, LogIfTooSlow]
-            public void MarksTheActionBeforeStopButtonForOnboardingPurposes()
-            {
-                const long timeEntryId = 100;
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                timeEntry.Id.Returns(timeEntryId);
-                var observable = Observable.Return(timeEntry);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(false));
-                ViewModel.Initialize().Wait();
-
-                ViewModel.EditTimeEntryCommand.ExecuteAsync().Wait();
-
-                OnboardingStorage.DidNotReceive().SetNavigatedAwayFromMainViewAfterStopButton();
-            }
-
-            [Fact, LogIfTooSlow]
-            public void MarksTheActionAfterStopButtonForOnboardingPurposes()
-            {
-                const long timeEntryId = 100;
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                timeEntry.Id.Returns(timeEntryId);
-                var observable = Observable.Return(timeEntry);
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(observable);
-                OnboardingStorage.StopButtonWasTappedBefore.Returns(Observable.Return(true));
-                ViewModel.Initialize().Wait();
-
-                ViewModel.EditTimeEntryCommand.ExecuteAsync().Wait();
-
-                OnboardingStorage.Received().SetNavigatedAwayFromMainViewAfterStopButton();
-            }
-        }
-
-        public abstract class CurrentTimeEntrypropertyTest<T> : MainViewModelTest
-        {
-            private readonly BehaviorSubject<IThreadSafeTimeEntry> currentTimeEntrySubject
-                = new BehaviorSubject<IThreadSafeTimeEntry>(null);
-
-            protected abstract T ActualValue { get; }
-            protected abstract T ExpectedValue { get; }
-            protected abstract T ExpectedEmptyValue { get; }
-
-            protected long TimeEntryId = 13;
-            protected string Description = "Something";
-            protected string Project = "Some project";
-            protected string Task = "Some task";
-            protected string Client = "Some client";
-            protected string ProjectColor = "0000AF";
-            protected bool Active = true;
-            protected DateTimeOffset StartTime = new DateTimeOffset(2018, 01, 02, 03, 04, 05, TimeSpan.Zero);
-            protected DateTimeOffset Now = new DateTimeOffset(2018, 01, 02, 06, 04, 05, TimeSpan.Zero);
-
-            private async ThreadingTask prepare()
-            {
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                timeEntry.Id.Returns(TimeEntryId);
-                timeEntry.Description.Returns(Description);
-                timeEntry.Project.Name.Returns(Project);
-                timeEntry.Project.Color.Returns(ProjectColor);
-                timeEntry.Project.Active.Returns(Active);
-                timeEntry.Task.Name.Returns(Task);
-                timeEntry.Project.Client.Name.Returns(Client);
-                timeEntry.Start.Returns(StartTime);
-
-                TimeService.CurrentDateTime.Returns(Now);
-
-                DataSource.TimeEntries.CurrentlyRunningTimeEntry.Returns(currentTimeEntrySubject.AsObservable());
-
-                await ViewModel.Initialize();
-                currentTimeEntrySubject.OnNext(timeEntry);
-                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask IsSet()
-            {
-                await prepare();
-
-                ActualValue.Should().Be(ExpectedValue);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async ThreadingTask IsUnset()
-            {
-                await prepare();
-                currentTimeEntrySubject.OnNext(null);
-                TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
-
-                ActualValue.Should().Be(ExpectedEmptyValue);
-            }
-        }
-
-        public sealed class TheCurrentTimeEntryIdProperty : CurrentTimeEntrypropertyTest<long?>
-        {
-            protected override long? ActualValue => ViewModel.CurrentTimeEntryId;
-
-            protected override long? ExpectedValue => TimeEntryId;
-
-            protected override long? ExpectedEmptyValue => null;
-        }
-
-        public sealed class TheCurrentTimeEntryDescriptionProperty : CurrentTimeEntrypropertyTest<string>
-        {
-            protected override string ActualValue => ViewModel.CurrentTimeEntryDescription;
-
-            protected override string ExpectedValue => Description;
-
-            protected override string ExpectedEmptyValue => "";
-        }
-
-        public sealed class TheCurrentTimeEntryProjectProperty : CurrentTimeEntrypropertyTest<string>
-        {
-            protected override string ActualValue => ViewModel.CurrentTimeEntryProject;
-
-            protected override string ExpectedValue => Project;
-
-            protected override string ExpectedEmptyValue => "";
-        }
-
-        public sealed class TheCurrentTimeEntryProjectColorProperty : CurrentTimeEntrypropertyTest<string>
-        {
-            protected override string ActualValue => ViewModel.CurrentTimeEntryProjectColor;
-
-            protected override string ExpectedValue => ProjectColor;
-
-            protected override string ExpectedEmptyValue => "";
-        }
-
-        public sealed class TheCurrentTimeEntryTaskProperty : CurrentTimeEntrypropertyTest<string>
-        {
-            protected override string ActualValue => ViewModel.CurrentTimeEntryTask;
-
-            protected override string ExpectedValue => Task;
-
-            protected override string ExpectedEmptyValue => "";
-        }
-
-        public sealed class TheCurrentTimeEntryClientProperty : CurrentTimeEntrypropertyTest<string>
-        {
-            protected override string ActualValue => ViewModel.CurrentTimeEntryClient;
-
-            protected override string ExpectedValue => Client;
-
-            protected override string ExpectedEmptyValue => "";
         }
 
         public sealed class TheNumberOfSyncFailuresProperty : MainViewModelTest
@@ -814,37 +555,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     new MockTag { Name = "Tag2", SyncStatus = SyncStatus.SyncFailed, LastSyncErrorMessage = "Error1" },
                     new MockProject { Name = "Project", SyncStatus = SyncStatus.SyncFailed, LastSyncErrorMessage = "Error2" }
                 };
-
                 var items = syncables.Select(i => new SyncFailureItem(i));
-
                 var interactor = Substitute.For<IInteractor<IObservable<IEnumerable<SyncFailureItem>>>>();
                 interactor.Execute().Returns(Observable.Return(items));
                 InteractorFactory.GetItemsThatFailedToSync().Returns(interactor);
-
                 await ViewModel.Initialize();
 
-                ViewModel.NumberOfSyncFailures.Should().Be(3);
-            }
-        }
+                var observer = TestScheduler.CreateObserver<int>();
+                ViewModel.NumberOfSyncFailures.Subscribe(observer);
+                TestScheduler.AdvanceBy(50);
 
-        public sealed class TheCurrentTimeEntryElapsedTimeProperty : CurrentTimeEntrypropertyTest<TimeSpan>
-        {
-            protected override TimeSpan ActualValue => ViewModel.CurrentTimeEntryElapsedTime;
-
-            protected override TimeSpan ExpectedValue => Now - StartTime;
-
-            protected override TimeSpan ExpectedEmptyValue => TimeSpan.Zero;
-        }
-
-        public sealed class TheIsWelcomeProperty : MainViewModelTest
-        {
-            private IThreadSafeTimeEntry createTimeEntry(int id)
-            {
-                var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
-                timeEntry.Id.Returns(id);
-                timeEntry.Start.Returns(DateTimeOffset.Now);
-                timeEntry.Duration.Returns(100);
-                return timeEntry;
+                observer.Messages
+                    .Last(m => m.Value.Kind == System.Reactive.NotificationKind.OnNext).Value.Value
+                    .Should()
+                    .Be(syncables.Length);
             }
         }
 

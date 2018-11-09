@@ -10,9 +10,9 @@ using Toggl.Foundation.Sync.Tests.State;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.PrimeRadiant;
 
-namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
+namespace Toggl.Foundation.Sync.Tests.Scenarios.LosingAccessToWorkspace
 {
-    public class InaccessibleEntitiesOutOfSyncAreNotDeletedInCleanUpLoop : BaseComplexSyncTest
+    public sealed class InaccessibleEntitiesOutOfSyncAreNotDeletedInCleanUpLoop : ComplexSyncTest
     {
         protected override ServerState ArrangeServerState(ServerState initialServerState)
             => initialServerState;
@@ -21,12 +21,11 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
             => new DatabaseState(
                 user: serverState.User.ToSyncable(),
                 preferences: serverState.Preferences.ToSyncable(),
-                workspaces: new[]
+                workspaces: serverState.Workspaces.ToSyncable().Concat(new[]
                 {
-                    serverState.Workspaces.Single().ToSyncable(),
                     new MockWorkspace { Id = 1, Name = "Workspace 1", IsInaccessible = true, SyncStatus = SyncStatus.InSync },
                     new MockWorkspace { Id = 2, Name = "Workspace 2", IsInaccessible = true, SyncStatus = SyncStatus.InSync }
-                },
+                }),
                 clients: new[]
                 {
                     new MockClient { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.SyncNeeded },
@@ -65,18 +64,16 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
 
         protected override void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState)
         {
-            if (!finalServerState.User.DefaultWorkspaceId.HasValue)
+            if (finalServerState.DefaultWorkspace == null)
                 throw new NoDefaultWorkspaceException();
-
-            var defaultWorkspaceId = finalServerState.User.DefaultWorkspaceId.Value;
 
             finalServerState.Workspaces.Should().HaveCount(1)
                 .And
-                .Contain(ws => ws.Id == defaultWorkspaceId);
+                .Contain(ws => ws.Id == finalServerState.DefaultWorkspace.Id);
 
             finalDatabaseState.Workspaces.Should().HaveCount(3)
                 .And
-                .Contain(ws => ws.Id == defaultWorkspaceId && ws.SyncStatus == SyncStatus.InSync && !ws.IsInaccessible)
+                .Contain(ws => ws.Id == finalServerState.DefaultWorkspace.Id && ws.SyncStatus == SyncStatus.InSync && !ws.IsInaccessible)
                 .And
                 .Contain(ws => ws.Id == 1 && ws.SyncStatus == SyncStatus.InSync && ws.IsInaccessible)
                 .And

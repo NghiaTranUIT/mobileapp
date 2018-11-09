@@ -147,28 +147,20 @@
                     android:layout_below="@id/EditErrorContainer"
                     android:layout_toRightOf="@id/EditTimeEntryColumnAnchor" />
                 <TextView
-                    android:id="@+id/EditProject"
-                    local:MvxBind="Text Project; TextColor RGBA(ProjectColor); Visibility Visibility(Project)"
+                    android:id="@+id/EditProjectTaskClient"
                     tools:text="Superday"
+                    android:ellipsize="end"
+                    android:scrollHorizontally="true"
+                    android:textColor="@android:color/black"
                     android:textSize="15sp"
+                    android:maxLines="1"
                     android:gravity="center_vertical"
                     android:fontFamily="sans-serif-medium"
+                    android:layout_marginRight="16dp"
                     android:layout_height="48dp"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_alignTop="@id/EditProjectIcon"
                     android:layout_toRightOf="@id/EditProjectIcon" />
-                <TextView
-                    android:id="@+id/EditTask"
-                    local:MvxBind="Text Client; Visibility Visibility(Project)"
-                    android:textSize="15sp"
-                    tools:text="Close stuff here task"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/defaultEditText"
-                    android:layout_height="48dp"
-                    android:layout_marginLeft="4dp"
-                    android:layout_width="wrap_content"
-                    android:layout_toRightOf="@id/EditProject"
-                    android:layout_alignTop="@id/EditProjectIcon" />
             </LinearLayout>
             <View
                 android:background="@color/separator"

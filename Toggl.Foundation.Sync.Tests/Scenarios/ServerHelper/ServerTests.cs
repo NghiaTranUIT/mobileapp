@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Toggl.Foundation.Sync.Tests.Extensions;
+using Toggl.Foundation.Sync.Tests.Helpers;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
@@ -12,7 +13,7 @@ using Toggl.Ultrawave.Helpers;
 using Toggl.Ultrawave.Tests.Integration;
 using Xunit;
 
-namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
+namespace Toggl.Foundation.Sync.Tests.Scenarios.ServerHelper
 {
     public sealed class ServerTests
     {
@@ -117,7 +118,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         public async Task WorksWithPaidFeatures()
         {
             var server = await Server.Factory.Create();
-            var workspace = server.InitialServerState.Workspaces.Single();
+            var workspace = server.InitialServerState.DefaultWorkspace;
             var arrangedState = server.InitialServerState.With(
                 projects: new[] { new MockProject { Color = "#abcdef", WorkspaceId = workspace.Id } },
                 pricingPlans: New<IDictionary<long, PricingPlans>>.Value(
@@ -173,7 +174,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
 
             finalServerState.Workspaces.Should().HaveCount(1);
             finalServerState.Workspaces.Single().Id.Should().NotBe(
-                server.InitialServerState.Workspaces.Single().Id);
+                server.InitialServerState.DefaultWorkspace.Id);
             finalServerState.Workspaces.Single().Name.Should().Be(
                 arrangedState.Workspaces.Single().Name);
         }

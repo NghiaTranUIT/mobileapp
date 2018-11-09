@@ -7,11 +7,12 @@ using Android.Widget;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.MvvmCross.Transformations;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Giskard.ViewHelpers;
 using Toggl.Multivac.Extensions;
 
 namespace Toggl.Giskard.ViewHolders
 {
-    public class MainLogSectionViewHolder : BaseRecyclerViewHolder<IReadOnlyList<TimeEntryViewModel>>
+    public class MainLogSectionViewHolder : BaseRecyclerViewHolder<TimeEntryCollectionViewModel>
     {
         private TextView mainLogHeaderTitle;
         private TextView mainLogHeaderDuration;
@@ -34,14 +35,8 @@ namespace Toggl.Giskard.ViewHolders
 
         protected override void UpdateView()
         {
-            if (Item.Count == 0)
-                return;
-
-            var firstItem = Item.First();
-            mainLogHeaderTitle.Text = DateToTitleString.Convert(firstItem.StartTime, Now);
-
-            var totalDuration = Item.Sum(vm => vm.Duration);
-            mainLogHeaderDuration.Text = totalDuration.ToFormattedString(firstItem.DurationFormat);
+            mainLogHeaderTitle.Text = Item.DurationText;
+            mainLogHeaderDuration.Text = Item.HeaderDate(Now);
         }
     }
 }

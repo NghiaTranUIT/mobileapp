@@ -2,7 +2,6 @@
 <android.support.design.widget.CoordinatorLayout xmlns:local="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/MainCoordinatorLayout"
-    android:background="@color/lightGray"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <android.support.v4.widget.SwipeRefreshLayout
@@ -22,10 +21,9 @@
         layout="@layout/MainRunningTimeEntry" />
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/MainPlayButton"
-        local:MvxBind="Click StartTimeEntryCommand; LongClick AlternativeStartTimeEntryCommand; DrawableId ManualModeEnabledDrawable(IsInManualMode)"
         local:elevation="4dp"
-        android:src="@drawable/play_white"
         local:backgroundTint="@color/playButtonGreen"
+        android:src="@drawable/play_white"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_marginRight="16dp"
@@ -45,8 +43,7 @@
             android:layout_gravity="start"
             android:layout_width="wrap_content" />
         <ImageView
-            android:id="@+id/ToolbarSettingsImageView"    
-            local:MvxBind="Click OpenSettingsCommand"
+            android:id="@+id/ToolbarSettingsImageView"
             android:clickable="true"
             android:paddingTop="16dp"
             android:paddingLeft="8dp"
@@ -58,7 +55,6 @@
             android:layout_gravity="end" />
         <ImageView
             android:id="@+id/ToolbarReportsImageView"
-            local:MvxBind="Click OpenReportsCommand"
             android:clickable="true"
             android:paddingTop="16dp"
             android:paddingLeft="16dp"

@@ -62,8 +62,8 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             var pricingPlans = state.PricingPlans;
 
             // do not push the default workspace twice
-            var defaultWorkspace = state.Workspaces.SingleOrDefault(ws => ws.Id == InitialServerState.Workspaces.Single().Id);
-            var workspaces = state.Workspaces.Where(ws => ws.Id != InitialServerState.Workspaces.Single().Id).ToList();
+            var defaultWorkspace = state.DefaultWorkspace;
+            var workspaces = state.Workspaces.Where(ws => ws.Id != InitialServerState.DefaultWorkspace.Id).ToList();
 
             if (defaultWorkspace != null)
             {
@@ -113,8 +113,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             {
                 try
                 {
-                    var initialDefaultWorkspace = InitialServerState.Workspaces.Single();
-                    await WorkspaceHelper.Delete(user, initialDefaultWorkspace.Id);
+                    await WorkspaceHelper.Delete(user, InitialServerState.DefaultWorkspace.Id);
                 }
                 catch (ApiException exception)
                 {

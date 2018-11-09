@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
@@ -22,6 +24,9 @@ namespace Toggl.Foundation.Sync.Tests.Extensions
                 LogoUrl = workspace.LogoUrl,
                 Name = workspace.Name,
             };
+
+        public static IEnumerable<IThreadSafeWorkspace> ToSyncable(this IEnumerable<IWorkspace> workspaces)
+            => workspaces.Select(workspace => workspace.ToSyncable());
 
         public static IWorkspace With(
             this IWorkspace workspace,

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using Foundation;
-using MvvmCross.Navigation;
-using MvvmCross.ViewModels;
 using MvvmCross;
+using MvvmCross.Navigation;
+using MvvmCross.Platforms.Ios.Core;
+using MvvmCross.Platforms.Ios.Presenters;
 using MvvmCross.Plugin;
+using MvvmCross.ViewModels;
 using Toggl.Daneel.Presentation;
 using Toggl.Daneel.Services;
 using Toggl.Foundation;
@@ -19,13 +21,8 @@ using Toggl.PrimeRadiant.Realm;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave;
 using Toggl.Ultrawave.Network;
-using MvvmCross.Platforms.Ios.Core;
-using MvvmCross.Platforms.Ios.Presenters;
-using System.Collections.Generic;
-using System.Reflection;
 using ColorPlugin = MvvmCross.Plugin.Color.Platforms.Ios.Plugin;
 using VisibilityPlugin = MvvmCross.Plugin.Visibility.Platforms.Ios.Plugin;
-using Toggl.Multivac.Extensions;
 
 namespace Toggl.Daneel
 {
@@ -59,12 +56,6 @@ namespace Toggl.Daneel
             Mvx.RegisterSingleton<IForkingNavigationService>(navigationService);
             Mvx.RegisterSingleton<IMvxNavigationService>(navigationService);
             return navigationService;
-        }
-
-        public override IEnumerable<Assembly> GetPluginAssemblies()
-        {
-            yield return typeof(ColorPlugin).Assembly;
-            yield return typeof(VisibilityPlugin).Assembly;
         }
 
         protected override void InitializeApp(IMvxPluginManager pluginManager, IMvxApplication app)
@@ -145,6 +136,26 @@ namespace Toggl.Daneel
             foundation.RevokeNewUserIfNeeded().Initialize();
 
             base.InitializeApp(pluginManager, app);
+        }
+
+        // Skip the sluggish and reflection-based manager and load our plugins by hand
+        protected override IMvxPluginManager InitializePluginFramework()
+        {
+            LoadPlugins(null);
+            return null;
+        }
+
+        public override void LoadPlugins(IMvxPluginManager pluginManager)
+        {
+            new ColorPlugin().Load();
+            new VisibilityPlugin().Load();
+        }
+
+        protected override void PerformBootstrapActions()
+        {
+            // This method uses reflection to find classes that inherit from
+            // IMvxBootstrapAction, creates instances of these classes and then
+            // calls their Run method. We can skip it since we don't have such classes.
         }
     }
 }

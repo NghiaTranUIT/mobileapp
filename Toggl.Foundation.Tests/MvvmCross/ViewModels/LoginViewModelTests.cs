@@ -199,22 +199,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 }
 
                 [Fact, LogIfTooSlow]
-                public void SetsIsLoadingToFalse()
-                {
-                    var observer = TestScheduler.CreateObserver<bool>();
-                    ViewModel.IsLoading.Subscribe(observer);
-
-                    ViewModel.Login();
-
-                    TestScheduler.Start();
-                    observer.Messages.AssertEqual(
-                        ReactiveTest.OnNext(1, false),
-                        ReactiveTest.OnNext(2, true),
-                        ReactiveTest.OnNext(3, false)
-                    );
-                }
-
-                [Fact, LogIfTooSlow]
                 public void NavigatesToTheTimeEntriesViewModel()
                 {
                     ViewModel.Login();
@@ -234,8 +218,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 public void SavesTheTimeOfLastLogin(DateTimeOffset now)
                 {
                     TimeService.CurrentDateTime.Returns(now);
+                    var viewModel = CreateViewModel();
+                    viewModel.SetEmail(ValidEmail);
+                    viewModel.SetPassword(ValidPassword);
 
-                    ViewModel.Login();
+                    viewModel.Login();
 
                     LastTimeUsageStorage.Received().SetLogin(Arg.Is(now));
                 }
@@ -387,24 +374,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact, LogIfTooSlow]
-            public void StopsTheViewModelLoadStateWhenItCompletes()
-            {
-                var observer = TestScheduler.CreateObserver<bool>();
-                ViewModel.IsLoading.Subscribe(observer);
-                LoginManager.LoginWithGoogle()
-                    .Returns(Observable.Return(Substitute.For<ITogglDataSource>()));
-
-                ViewModel.GoogleLogin();
-
-                TestScheduler.Start();
-                observer.Messages.AssertEqual(
-                    ReactiveTest.OnNext(1, false),
-                    ReactiveTest.OnNext(2, true),
-                    ReactiveTest.OnNext(3, false)
-                );
-            }
-
-            [Fact, LogIfTooSlow]
             public void TracksGoogleLoginEvent()
             {
                 LoginManager.LoginWithGoogle()
@@ -466,8 +435,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TimeService.CurrentDateTime.Returns(now);
                 LoginManager.LoginWithGoogle()
                     .Returns(Observable.Return(Substitute.For<ITogglDataSource>()));
+                var viewModel = CreateViewModel();
 
-                ViewModel.GoogleLogin();
+                viewModel.GoogleLogin();
 
                 LastTimeUsageStorage.Received().SetLogin(Arg.Is(now));
             }

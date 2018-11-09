@@ -6,18 +6,15 @@ using System.Threading;
 using CoreGraphics;
 using Foundation;
 using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding;
 using MvvmCross.Plugin.Color.Platforms.Ios;
-using MvvmCross.Plugin.Visibility;
-using Toggl.Daneel.Combiners;
+using Toggl.Daneel.ExtensionKit;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.Suggestions;
 using Toggl.Daneel.Views;
 using Toggl.Daneel.ViewSources;
-using Toggl.Foundation.MvvmCross.Combiners;
-using Toggl.Foundation.MvvmCross.Converters;
+using Toggl.Foundation.Analytics;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Onboarding.MainView;
@@ -28,10 +25,6 @@ using Toggl.PrimeRadiant.Onboarding;
 using Toggl.PrimeRadiant.Settings;
 using UIKit;
 using static Toggl.Foundation.MvvmCross.Helper.Animation;
-using Toggl.Daneel.ExtensionKit;
-using Toggl.Daneel.ExtensionKit.Analytics;
-using Toggl.Multivac;
-using MvvmCross;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -93,20 +86,6 @@ namespace Toggl.Daneel.ViewControllers
             prepareOnboarding();
             setupTableViewHeader();
 
-            var visibilityConverter = new MvxVisibilityValueConverter();
-            var projectTaskClientCombiner = new ProjectTaskClientValueCombiner(
-                CurrentTimeEntryProjectTaskClientLabel.Font.CapHeight,
-                Color.Main.CurrentTimeEntryClientColor.ToNativeColor(),
-                true
-            );
-            var startTimeEntryButtonManualModeIconConverter = new BoolToConstantValueConverter<UIImage>(
-                UIImage.FromBundle("manualIcon"),
-                UIImage.FromBundle("playIcon")
-            );
-            var durationCombiner = new DurationValueCombiner();
-
-            var bindingSet = this.CreateBindingSet<MainViewController, MainViewModel>();
-
             // Table view
             tableViewSource = new TimeEntriesLogViewSource(
                 ViewModel.TimeEntries,
@@ -144,6 +123,7 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             tableViewSource.ItemSelected
+                .Select(te => te.Id)
                 .Subscribe(ViewModel.SelectTimeEntry.Inputs)
                 .DisposedBy(DisposeBag);
 
@@ -152,17 +132,11 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             tableViewSource.SwipeToContinue
-                .VoidSubscribe(() =>
-                {
-                    swipeRightStep.Dismiss();
-                })
+                .VoidSubscribe(swipeRightStep.Dismiss)
                 .DisposedBy(disposeBag);
 
             tableViewSource.SwipeToDelete
-                .VoidSubscribe(() =>
-                {
-                    swipeLeftStep.Dismiss();
-                })
+                .VoidSubscribe(swipeLeftStep.Dismiss)
                 .DisposedBy(disposeBag);
 
             // Refresh Control
@@ -172,20 +146,18 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
             TimeEntriesLogTableView.CustomRefreshControl = refreshControl;
 
-            //Commands
-            bindingSet.Bind(settingsButton).To(vm => vm.OpenSettingsCommand);
-            bindingSet.Bind(StopTimeEntryButton).To(vm => vm.StopTimeEntryCommand);
-            bindingSet.Bind(StartTimeEntryButton).To(vm => vm.StartTimeEntryCommand);
-            bindingSet.Bind(EditTimeEntryButton).To(vm => vm.EditTimeEntryCommand);
-            bindingSet.Bind(syncFailuresButton).To(vm => vm.OpenSyncFailuresCommand);
+            //Actions
+            settingsButton.Rx().BindAction(ViewModel.OpenSettings);
+            syncFailuresButton.Rx().BindAction(ViewModel.OpenSyncFailures);
+            StopTimeEntryButton.Rx().BindAction(ViewModel.StopTimeEntry, _ => TimeEntryStopOrigin.Manual);
 
-            bindingSet.Bind(CurrentTimeEntryCard)
-                      .For(v => v.BindTap())
-                      .To(vm => vm.EditTimeEntryCommand);
+            StartTimeEntryButton.Rx().BindAction(ViewModel.StartTimeEntry, _ => true);
+            StartTimeEntryButton.Rx().BindAction(ViewModel.StartTimeEntry, _ => false, ButtonEventType.LongPress);
 
-            bindingSet.Bind(StartTimeEntryButton)
-                      .For(v => v.BindLongPress())
-                      .To(vm => vm.AlternativeStartTimeEntryCommand);
+            CurrentTimeEntryCard.Rx().Tap()
+                .WithLatestFrom(ViewModel.CurrentRunningTimeEntry, (_, te) => te.Id)
+                .Subscribe(ViewModel.SelectTimeEntry.Inputs)
+                .DisposedBy(DisposeBag);
 
             //Visibility
             var shouldWelcomeBack = ViewModel.ShouldShowWelcomeBack;
@@ -213,34 +185,35 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             //Text
-            bindingSet.Bind(CurrentTimeEntryDescriptionLabel).To(vm => vm.CurrentTimeEntryDescription);
+            ViewModel.CurrentRunningTimeEntry
+                .Select(te => te?.Description)
+                .Subscribe(CurrentTimeEntryDescriptionLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(CurrentTimeEntryElapsedTimeLabel)
-                      .ByCombining(durationCombiner,
-                          vm => vm.CurrentTimeEntryElapsedTime,
-                          vm => vm.CurrentTimeEntryElapsedTimeFormat);
+            ViewModel.ElapsedTime
+                .Subscribe(CurrentTimeEntryElapsedTimeLabel.Rx().Text())
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(CurrentTimeEntryProjectTaskClientLabel)
-                      .For(v => v.AttributedText)
-                      .ByCombining(projectTaskClientCombiner,
-                                   v => v.CurrentTimeEntryProject,
-                                   v => v.CurrentTimeEntryTask,
-                                   v => v.CurrentTimeEntryClient,
-                                   v => v.CurrentTimeEntryProjectColor);
+            var capHeight = CurrentTimeEntryProjectTaskClientLabel.Font.CapHeight;
+            var clientColor = Color.Main.CurrentTimeEntryClientColor.ToNativeColor();
+            ViewModel.CurrentRunningTimeEntry
+                .Select(te => te?.ToFormattedTimeEntryString(capHeight, clientColor, shouldColorProject: true))
+                .Subscribe(CurrentTimeEntryProjectTaskClientLabel.Rx().AttributedText())
+                .DisposedBy(DisposeBag);
 
             //The start button
-            bindingSet.Bind(StartTimeEntryButton)
-                      .For(v => v.BindImage())
-                      .To(vm => vm.IsInManualMode)
-                      .WithConversion(startTimeEntryButtonManualModeIconConverter);
+            var trackModeImage = UIImage.FromBundle("playIcon");
+            var manualModeImage = UIImage.FromBundle("manualIcon");
+            ViewModel.IsInManualMode
+                .Select(isInManualMode => isInManualMode ? manualModeImage : trackModeImage)
+                .Subscribe(image => StartTimeEntryButton.SetImage(image, UIControlState.Normal))
+                .DisposedBy(DisposeBag);
 
             //The sync failures button
-            bindingSet.Bind(syncFailuresButton)
-                .For(v => v.BindVisibility())
-                .To(vm => vm.NumberOfSyncFailures)
-                .WithConversion(visibilityConverter);
-
-            bindingSet.Apply();
+            ViewModel.NumberOfSyncFailures
+                .Select(numberOfSyncFailures => numberOfSyncFailures > 0)
+                .Subscribe(syncFailuresButton.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
             ViewModel.RatingViewModel.IsFeedbackSuccessViewShowing
                 .Subscribe(SendFeedbackSuccessView.Rx().AnimatedIsVisible())
@@ -391,13 +364,11 @@ namespace Toggl.Daneel.ViewControllers
             viewInitialized = true;
 
             ViewModel.IsTimeEntryRunning
-                .ObserveOn(SynchronizationContext.Current)
                 .Where(visible => visible)
                 .VoidSubscribe(showTimeEntryCard)
                 .DisposedBy(disposeBag);
 
             ViewModel.IsTimeEntryRunning
-                .ObserveOn(SynchronizationContext.Current)
                 .Where(visible => !visible)
                 .VoidSubscribe(hideTimeEntryCard)
                 .DisposedBy(disposeBag);
@@ -461,7 +432,12 @@ namespace Toggl.Daneel.ViewControllers
             View.BackgroundColor = Color.Main.BackgroundColor.ToNativeColor();
 
             // Open edit view for the currently running time entry by swiping up
-            var swipeUpRunningCardGesture = new UISwipeGestureRecognizer(() => ViewModel.EditTimeEntryCommand.Execute());
+            var swipeUpRunningCardGesture = new UISwipeGestureRecognizer(async () =>
+            {
+                var currentlyRunningTimeEntry = await ViewModel.CurrentRunningTimeEntry.FirstAsync();
+                if (currentlyRunningTimeEntry == null) return;
+                await ViewModel.SelectTimeEntry.Execute(currentlyRunningTimeEntry.Id);
+            });
             swipeUpRunningCardGesture.Direction = UISwipeGestureRecognizerDirection.Up;
             CurrentTimeEntryCard.AddGestureRecognizer(swipeUpRunningCardGesture);
         }

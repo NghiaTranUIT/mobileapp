@@ -1,4 +1,5 @@
-using System.Reactive.Linq;
+﻿using System.Reactive.Linq;
+using MvvmCross.Plugin;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.Login;
 using Toggl.Foundation.MvvmCross.Services;
@@ -14,6 +15,10 @@ namespace Toggl.Foundation.MvvmCross
         public override void Initialize()
         {
             RegisterCustomAppStart<AppStart<TFirstViewModelWhenNotLoggedIn>>();
+        }
+
+        public override void LoadPlugins(IMvxPluginManager pluginManager)
+        {
         }
     }
 

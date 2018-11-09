@@ -12,6 +12,7 @@
         <item name="android:statusBarColor">#2C2C2C</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowBackground">@color/lightGray</item>
     </style>
 
     <style name="AppTheme.BlueStatusBar">
