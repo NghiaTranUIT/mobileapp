@@ -17,8 +17,6 @@ namespace Toggl.Giskard.Services
         {
             var packageName = context.PackageName;
 
-            packageName = "com.toggl.giskard";
-
             try
             {
                 var uriString = $"market://details?id={packageName}";
