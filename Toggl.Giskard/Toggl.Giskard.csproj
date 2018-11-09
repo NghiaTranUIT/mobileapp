@@ -498,7 +498,7 @@
     <None Include="FodyWeavers.xml" />
     <AndroidResource Include="Resources\color\BlueTextColor.xml" />
     <AndroidResource Include="Resources\layout\AboutActivity.axml" />
-    <AndroidResource Include="Resources\layout\SelectClientCreationActivityCell.axml">
+    <AndroidResource Include="Resources\layout\EntityCreationActivityCell.axml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
     </AndroidResource>
