@@ -28,7 +28,7 @@ namespace Toggl.Giskard.ViewHolders
         protected override void UpdateView()
         {
             nameTextView.Text = Item.Name;
-            selectedImageView.Visibility = ViewStates.Gone;
+            selectedImageView.Visibility = Item.Selected ? ViewStates.Visible : ViewStates.Gone;
         }
     }
 }
