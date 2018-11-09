@@ -27,7 +27,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                => new SelectClientViewModel(InteractorFactory, NavigationService, SchedulerProvider);
 
             protected List<IThreadSafeClient> GenerateClientList() =>
-                Enumerable.Range(-5, 5).Select(i =>
+                Enumerable.Range(1, 10).Select(i =>
                 {
                     var client = Substitute.For<IThreadSafeClient>();
                     client.Id.Returns(i);
@@ -268,11 +268,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
                     .Execute()
                     .Returns(Observable.Return(clients));
-                await ViewModel.Initialize();
+                ViewModel.Prepare(Parameters);
 
+                await ViewModel.Initialize();
                 ViewModel.ClientFilterText.OnNext(name);
 
-                ViewModel.Clients.First().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
+                var receivedClients = await ViewModel.Clients.FirstAsync();
+                receivedClients.First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
 
             [Fact, LogIfTooSlow]
