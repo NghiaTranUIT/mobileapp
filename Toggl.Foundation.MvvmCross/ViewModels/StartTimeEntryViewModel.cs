@@ -425,7 +425,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         analyticsService.StartEntrySelectTag.Track(ProjectTagSuggestionSource.TableCellButton);
                     }
 
-                    updateUiWith(textFieldInfo.FromQuerySymbolSuggestion(querySymbolSuggestion));
+                    queryAndUpdateUiWith(textFieldInfo.FromQuerySymbolSuggestion(querySymbolSuggestion));
                     break;
 
                 case TimeEntrySuggestion timeEntrySuggestion:

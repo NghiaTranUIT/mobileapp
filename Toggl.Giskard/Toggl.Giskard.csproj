@@ -491,6 +491,7 @@
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.ViewBinds.cs">
       <DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
     </Compile>
+    <Compile Include="Extensions\TimeEntryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />

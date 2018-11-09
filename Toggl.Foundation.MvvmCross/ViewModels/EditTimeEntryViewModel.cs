@@ -56,6 +56,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private DurationFormat durationFormat;
 
         private BehaviorSubject<bool> hasProjectSubject = new BehaviorSubject<bool>(false);
+        private BehaviorSubject<Unit> projectTaskClientSubject = new BehaviorSubject<Unit>(Unit.Default);
+       
+        [Obsolete("This observable should be converted into separate observables for project, task and client as part of RXFactor.")]
+        public IObservable<Unit> ProjectTaskOrClientChanged { get; } 
 
         public IObservable<bool> HasProject { get; }
 
@@ -256,6 +260,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             HasProject = hasProjectSubject.AsObservable();
 
+            ProjectTaskOrClientChanged = projectTaskClientSubject
+                .AsObservable();
+
             bool canExecute()
                 => !IsInaccessible;
         }
@@ -288,6 +295,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             workspaceId = timeEntry.WorkspaceId;
             setErrorMessage(timeEntry);
             IsInaccessible = timeEntry.IsInaccessible;
+
+            projectTaskClientSubject.OnNext(Unit.Default);
 
             onTags(timeEntry.Tags);
             foreach (var tagId in timeEntry.TagIds)
@@ -508,6 +517,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             if (projectId == null)
             {
                 Project = Task = Client = ProjectColor = "";
+                projectTaskClientSubject.OnNext(Unit.Default);
                 clearTagsIfNeeded(workspaceId, returnParameter.WorkspaceId);
                 workspaceId = returnParameter.WorkspaceId;
                 await updateFeaturesAvailability();
@@ -522,6 +532,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             workspaceId = project.WorkspaceId;
 
             Task = taskId.HasValue ? (await dataSource.Tasks.GetById(taskId.Value)).Name : "";
+
+            projectTaskClientSubject.OnNext(Unit.Default);
 
             await updateFeaturesAvailability();
         }
