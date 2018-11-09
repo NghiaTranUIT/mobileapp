@@ -1,5 +1,3 @@
-using System.Net;
-using System.Net.Http;
 using Toggl.Ultrawave.Network;
 
 namespace Toggl.Ultrawave.Tests.Integration.Helper
@@ -8,9 +6,8 @@ namespace Toggl.Ultrawave.Tests.Integration.Helper
     {
         public static ITogglApi TogglApiWith(Credentials credentials)
         {
-            var httpHandler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
             var apiConfiguration = configurationFor(credentials);
-            var apiClient = Ultrawave.TogglApiFactory.CreateDefaultApiClient(apiConfiguration.UserAgent, httpHandler);
+            var apiClient = Ultrawave.TogglApiFactory.CreateDefaultApiClient(apiConfiguration.UserAgent);
             var retryingApiClient = new RetryingApiClient(apiClient);
 
             return new TogglApi(apiConfiguration, retryingApiClient);

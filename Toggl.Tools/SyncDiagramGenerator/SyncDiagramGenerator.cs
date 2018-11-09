@@ -197,7 +197,8 @@ namespace SyncDiagramGenerator
                 Substitute.For<ITimeService>(),
                 Substitute.For<IAnalyticsService>(),
                 entryPoints,
-                Substitute.For<IObservable<Unit>>()
+                Substitute.For<IObservable<Unit>>(),
+                Substitute.For<ISyncStateQueue>()
             );
         }
     }

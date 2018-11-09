@@ -26,8 +26,6 @@ namespace Toggl.Foundation.Sync.States.Pull
 
         public StateResult<IFetchObservables> FinishedPersisting { get; } = new StateResult<IFetchObservables>();
 
-        public StateResult<ApiException> ErrorOccured { get; } = new StateResult<ApiException>();
-
         public CreateArchivedProjectPlaceholdersState(
             IDataSource<IThreadSafeProject, IDatabaseProject> dataSource,
             IAnalyticsService analyticsService)
@@ -48,8 +46,7 @@ namespace Toggl.Foundation.Sync.States.Pull
                 .SelectMany(createProjectPlaceholder)
                 .Count()
                 .Track(analyticsService.ProjectPlaceholdersCreated)
-                .Select(FinishedPersisting.Transition(fetch))
-                .OnErrorReturnResult(ErrorOccured);
+                .SelectValue(FinishedPersisting.Transition(fetch));
 
         private IObservable<bool> hasUnknownProject(ITimeEntry timeEntry)
             => timeEntry.ProjectId.HasValue

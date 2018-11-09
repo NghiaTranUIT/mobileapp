@@ -15,29 +15,22 @@ namespace Toggl.Foundation.Sync.States.Pull
     public class PersistNewWorkspacesState : ISyncState<IEnumerable<IWorkspace>>
     {
         private readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource;
-        private readonly ISinceParameterRepository sinceParameterRepository;
 
         public StateResult FinishedPersisting { get; } = new StateResult();
 
-        public PersistNewWorkspacesState(
-            IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource,
-            ISinceParameterRepository sinceParameterRepository)
+        public PersistNewWorkspacesState(IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource)
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
-            Ensure.Argument.IsNotNull(sinceParameterRepository, nameof(sinceParameterRepository));
-
             this.dataSource = dataSource;
-            this.sinceParameterRepository = sinceParameterRepository;
         }
 
         public IObservable<ITransition> Start(IEnumerable<IWorkspace> workspaces)
             => Observable.Return(workspaces)
-                .Do(sinceParameterRepository.Reset)
                 .SelectMany(CommonFunctions.Identity)
                 .Select(Workspace.Clean)
                 .SelectMany(createOrUpdate)
                 .ToList()
-                .Select(FinishedPersisting.Transition());
+                .SelectValue(FinishedPersisting.Transition());
 
         private IObservable<IThreadSafeWorkspace> createOrUpdate(IThreadSafeWorkspace workspace)
             => dataSource

@@ -22,33 +22,51 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
                 workspaces: new[]
                 {
                     serverState.Workspaces.Single().ToSyncable(),
-                    new MockWorkspace { Id = 1, Name = "Workspace 1", SyncStatus = SyncStatus.InSync },
-                    new MockWorkspace { Id = 2, Name = "Workspace 2", SyncStatus = SyncStatus.InSync }
+                    new MockWorkspace { Id = 1, Name = "Workspace 1", SyncStatus = SyncStatus.SyncNeeded },
+                    new MockWorkspace { Id = 2, Name = "Workspace 2", SyncStatus = SyncStatus.SyncNeeded }
                 },
                 clients: new[]
                 {
-                    new MockClient { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.InSync },
-                    new MockClient { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.InSync }
+                    new MockClient { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.SyncNeeded },
+                    new MockClient { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.SyncNeeded }
                 },
                 tags: new[]
                 {
-                    new MockTag { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.InSync },
-                    new MockTag { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.InSync }
+                    new MockTag { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.SyncNeeded },
+                    new MockTag { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.SyncNeeded }
                 },
                 projects: new[]
                 {
-                    new MockProject { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.InSync, ClientId = 1 },
-                    new MockProject { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.InSync, ClientId = 2 }
+                    new MockProject { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.SyncNeeded, ClientId = 1 },
+                    new MockProject { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.SyncNeeded, ClientId = 2 }
                 },
                 tasks: new[]
                 {
-                    new MockTask { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.InSync, ProjectId = 1 },
-                    new MockTask { Id = 1, WorkspaceId = 2, SyncStatus = SyncStatus.InSync, ProjectId = 2 }
+                    new MockTask { Id = 1, WorkspaceId = 1, SyncStatus = SyncStatus.SyncNeeded, ProjectId = 1 },
+                    new MockTask { Id = 2, WorkspaceId = 2, SyncStatus = SyncStatus.SyncNeeded, ProjectId = 2 }
                 },
                 timeEntries: new[]
                 {
-                    new MockTimeEntry { Id = 1, Start = DateTimeOffset.Now - TimeSpan.FromDays(2), Duration = 10 * 60, WorkspaceId = 1, ProjectId = 1, TagIds = new long[] { 1 }, SyncStatus = SyncStatus.InSync },
-                    new MockTimeEntry { Id = 2, Start = DateTimeOffset.Now - TimeSpan.FromDays(1), Duration = 10 * 60, WorkspaceId = 2, ProjectId = 2, TagIds = new long[] { 2 }, SyncStatus = SyncStatus.InSync }
+                    new MockTimeEntry
+                    {
+                        Id = 1,
+                        Start = DateTimeOffset.Now - TimeSpan.FromDays(2),
+                        Duration = 10 * 60,
+                        WorkspaceId = 1,
+                        ProjectId = 1,
+                        TagIds = new long[] { 1 },
+                        SyncStatus = SyncStatus.SyncNeeded
+                    },
+                    new MockTimeEntry
+                    {
+                        Id = 2,
+                        Start = DateTimeOffset.Now - TimeSpan.FromDays(1),
+                        Duration = 10 * 60,
+                        WorkspaceId = 2,
+                        ProjectId = 2,
+                        TagIds = new long[] { 2 },
+                        SyncStatus = SyncStatus.SyncNeeded
+                    }
                 });
 
         protected override void AssertFinalState(AppServices services, ServerState finalServerState, DatabaseState finalDatabaseState)
@@ -66,9 +84,9 @@ namespace Toggl.Foundation.Sync.Tests.LosingAccessToWorkspace
                 .And
                 .Contain(ws => ws.Id == defaultWorkspaceId && ws.SyncStatus == SyncStatus.InSync && !ws.IsInaccessible)
                 .And
-                .Contain(ws => ws.Id == 1 && ws.SyncStatus == SyncStatus.InSync && ws.IsInaccessible)
+                .Contain(ws => ws.Id == 1 && ws.IsInaccessible)
                 .And
-                .Contain(ws => ws.Id == 2 && ws.SyncStatus == SyncStatus.InSync && ws.IsInaccessible);
+                .Contain(ws => ws.Id == 2 && ws.IsInaccessible);
 
             finalDatabaseState.Clients.Should().HaveCount(2).And.OnlyContain(client => client.IsInaccessible);
             finalDatabaseState.Tags.Should().HaveCount(2).And.OnlyContain(tag => tag.IsInaccessible);

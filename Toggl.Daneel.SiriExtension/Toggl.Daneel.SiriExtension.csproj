@@ -49,7 +49,7 @@
     <IOSDebuggerPort>17594</IOSDebuggerPort>
     <MtouchLink>SdkOnly</MtouchLink>
     <MtouchArch>ARM64</MtouchArch>
-    <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
+    <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
     <MtouchVerbosity>
     </MtouchVerbosity>
   </PropertyGroup>

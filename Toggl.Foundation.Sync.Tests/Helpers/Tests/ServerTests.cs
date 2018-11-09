@@ -132,6 +132,36 @@ namespace Toggl.Foundation.Sync.Tests.Helpers.Tests
         }
 
         [Fact, LogTestInfo]
+        public async Task ActivatesPricingPlanForNewlyCreatedWorkspace()
+        {
+            var newWorkspaceTemporaryId = -1L;
+            var server = await Server.Factory.Create();
+            var arrangedState = server.InitialServerState.With(
+                workspaces: new[]
+                {
+                    server.InitialServerState.Workspaces.Single(),
+                    new MockWorkspace { Id = newWorkspaceTemporaryId, Name = "New Workspace" }
+                },
+                projects: new[]
+                {
+                    new MockProject { Id = -1, Name = "Project", Color = "#abcdef", WorkspaceId = newWorkspaceTemporaryId, Active = true }
+                },
+                tasks: new[]
+                {
+                    new MockTask { Id = -1, Name = "Task", WorkspaceId = newWorkspaceTemporaryId, ProjectId = -1 }
+                },
+                pricingPlans: New<IDictionary<long, PricingPlans>>.Value(
+                    new Dictionary<long, PricingPlans>
+                    {
+                        [newWorkspaceTemporaryId] = PricingPlans.StarterAnnual
+                    }));
+
+            Func<Task> pushingProjectWithCustomColor = () => server.Push(arrangedState);
+
+            pushingProjectWithCustomColor.Should().NotThrow();
+        }
+
+        [Fact, LogTestInfo]
         public async Task ReplacesDefaultWorkspaceWithADifferentOne()
         {
             var server = await Server.Factory.Create();

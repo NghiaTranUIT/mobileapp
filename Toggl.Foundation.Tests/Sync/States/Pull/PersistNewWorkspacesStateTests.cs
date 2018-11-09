@@ -22,19 +22,15 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
         private readonly IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace> dataSource =
             Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>();
 
-        private readonly ISinceParameterRepository sinceParameterRepository = Substitute.For<ISinceParameterRepository>();
-
         [Theory, LogIfTooSlow]
         [ConstructorData]
-        public void ThrowsIfAnyOfTheArgumentsIsNull(bool useDataSource, bool useSinceParameterRepository)
+        public void ThrowsIfAnyOfTheArgumentsIsNull(bool useDataSource)
         {
             var dataSource = useDataSource
                 ? Substitute.For<IDataSource<IThreadSafeWorkspace, IDatabaseWorkspace>>()
                 : null;
-            var sinceParameterRepository =
-                useSinceParameterRepository ? Substitute.For<ISinceParameterRepository>() : null;
 
-            Action tryingToConstructWithNulls = () => new PersistNewWorkspacesState(dataSource, sinceParameterRepository);
+            Action tryingToConstructWithNulls = () => new PersistNewWorkspacesState(dataSource);
 
             tryingToConstructWithNulls.Should().Throw<ArgumentNullException>();
         }
@@ -53,7 +49,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 new MockWorkspace { Id = 3 },
             };
 
-            var state = new PersistNewWorkspacesState(dataSource, sinceParameterRepository);
+            var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
             dataSource.Received(2).Create(Arg.Any<IThreadSafeWorkspace>());
@@ -75,7 +71,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 new MockWorkspace { Id = 2 }
             };
 
-            var state = new PersistNewWorkspacesState(dataSource, sinceParameterRepository);
+            var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
             dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(arg => arg.Id == 2));
@@ -97,7 +93,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 new MockWorkspace { Id = 4 },
             };
 
-            var state = new PersistNewWorkspacesState(dataSource, sinceParameterRepository);
+            var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
             dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2));
@@ -122,34 +118,11 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
                 new MockWorkspace { Id = 3 }
             };
 
-            var state = new PersistNewWorkspacesState(dataSource, sinceParameterRepository);
+            var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
             dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(workspace => !workspace.IsInaccessible));
             dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => !workspace.IsInaccessible));
-        }
-
-        [Fact, LogIfTooSlow]
-        public async Task ResetsSinceParameterRepositoryBeforePersisting()
-        {
-            prepareDatabase(new[]
-            {
-                new MockWorkspace { Id = 1 },
-            });
-
-            var newWorkspaces = new[]
-            {
-                new MockWorkspace { Id = 2 }
-            };
-
-            var state = new PersistNewWorkspacesState(dataSource, sinceParameterRepository);
-            await state.Start(newWorkspaces);
-
-            Received.InOrder(() =>
-            {
-                sinceParameterRepository.Reset();
-                dataSource.Create(Arg.Any<IThreadSafeWorkspace>());
-            });
         }
 
         private void prepareDatabase(IEnumerable<IThreadSafeWorkspace> workspaces)

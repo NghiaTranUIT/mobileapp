@@ -31,6 +31,6 @@ namespace Toggl.Foundation.Sync.States.CleanUp
                 .GetAll(ws => ws.IsInaccessible, includeInaccessibleEntities: true)
                 .Select(data => data.Count())
                 .Track(analyticsService.WorkspacesInaccesibleAfterCleanUp)
-                .Select(Continue.Transition());
+                .SelectValue(Continue.Transition());
     }
 }

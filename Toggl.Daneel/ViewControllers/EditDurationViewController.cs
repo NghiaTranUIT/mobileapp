@@ -207,8 +207,8 @@ namespace Toggl.Daneel.ViewControllers
             // Interaction observables for analytics
 
             var editingStart = Observable.Merge(
-                StartView.Rx().Tap().Select(true),
-                EndView.Rx().Tap().Select(false)
+                StartView.Rx().Tap().SelectValue(true),
+                EndView.Rx().Tap().SelectValue(false)
             );
 
             var dateComponentChanged = DatePicker.Rx().DateComponent()
@@ -223,7 +223,7 @@ namespace Toggl.Daneel.ViewControllers
 
             var durationInputChanged = Observable
                 .FromEventPattern(e => DurationInput.DurationChanged += e, e => DurationInput.DurationChanged -= e)
-                .Select(EditTimeSource.NumpadDuration);
+                .SelectValue(EditTimeSource.NumpadDuration);
 
             Observable.Merge(
                     dateComponentChanged,

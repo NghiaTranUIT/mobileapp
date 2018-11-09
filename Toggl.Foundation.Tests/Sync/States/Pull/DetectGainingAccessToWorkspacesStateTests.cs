@@ -30,8 +30,8 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             protected readonly IAnalyticsService AnalyticsService =
                 Substitute.For<IAnalyticsService>();
 
-            protected readonly IInteractor<IObservable<bool>> HasFinsihedSyncBeforeInteractor =
-                Substitute.For<IInteractor<IObservable<bool>>>();
+            protected readonly Func<IInteractor<IObservable<bool>>> HasFinsihedSyncBeforeInteractor =
+                Substitute.For<Func<IInteractor<IObservable<bool>>>>();
 
             protected readonly IFetchObservables FetchObservables = Substitute.For<IFetchObservables>();
 
@@ -76,7 +76,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             public WhenFirstSyncHasNotFinishedBefore()
             {
-                HasFinsihedSyncBeforeInteractor.Execute().Returns(Observable.Return(false));
+                HasFinsihedSyncBeforeInteractor().Execute().Returns(Observable.Return(false));
                 state = new DetectGainingAccessToWorkspacesState(DataSource, AnalyticsService, HasFinsihedSyncBeforeInteractor);
             }
 
@@ -118,7 +118,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             public WhenNoNewWorkspacesAreDetected()
             {
-                HasFinsihedSyncBeforeInteractor.Execute().Returns(Observable.Return(true));
+                HasFinsihedSyncBeforeInteractor().Execute().Returns(Observable.Return(true));
                 state = new DetectGainingAccessToWorkspacesState(DataSource, AnalyticsService, HasFinsihedSyncBeforeInteractor);
             }
 
@@ -168,7 +168,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             public WhenNewWorkspacesAreDetected()
             {
-                HasFinsihedSyncBeforeInteractor.Execute().Returns(Observable.Return(true));
+                HasFinsihedSyncBeforeInteractor().Execute().Returns(Observable.Return(true));
                 state = new DetectGainingAccessToWorkspacesState(DataSource, AnalyticsService, HasFinsihedSyncBeforeInteractor);
             }
 

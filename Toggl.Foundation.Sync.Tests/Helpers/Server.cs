@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Exceptions;
@@ -56,6 +59,7 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             var tags = (IEnumerable<ITag>)state.Tags;
             var tasks = (IEnumerable<ITask>)state.Tasks;
             var timeEntries = (IEnumerable<ITimeEntry>)state.TimeEntries;
+            var pricingPlans = state.PricingPlans;
 
             // do not push the default workspace twice
             var defaultWorkspace = state.Workspaces.SingleOrDefault(ws => ws.Id == InitialServerState.Workspaces.Single().Id);
@@ -94,6 +98,11 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
                                     timeEntries = timeEntries.Select(timeEntry => timeEntry.WorkspaceId == workspace.Id
                                         ? timeEntry.With(workspaceId: serverWorkspace.Id)
                                         : timeEntry);
+                                    pricingPlans = pricingPlans.ToDictionary(
+                                        keyValuePair => keyValuePair.Key == workspace.Id
+                                            ? serverWorkspace.Id
+                                            : keyValuePair.Key,
+                                        keyValuePair => keyValuePair.Value);
                                 }
                             }))
                     .Merge();
@@ -114,11 +123,11 @@ namespace Toggl.Foundation.Sync.Tests.Helpers
             }
 
             // activate pricing plans
-            if (state.PricingPlans.Any())
+            if (pricingPlans.Any())
             {
                 var pricingPlanActivator = new SubscriptionPlanActivator();
 
-                await state.PricingPlans
+                await pricingPlans
                     .Where(keyValuePair => keyValuePair.Value != PricingPlans.Free)
                     .Select(keyValuePair =>
                         pricingPlanActivator.EnsureWorkspaceIsOnPlan(user, keyValuePair.Key, keyValuePair.Value))
