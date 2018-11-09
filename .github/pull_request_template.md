@@ -23,5 +23,12 @@ Closes #
 ## Review hints
 <!-- Give pointers to help reviewers validate the changes, give a list of things that should be tested, show before/after screenshots, etc. -->
 
+## Tests
+<!-- If your PR touches API, schedule and add a link to Bitrise for 'Tests.Integration' -->
+Integration tests: <!-- link --> - do not merge this branch unless these tests are passing.
+
+<!-- If your PR touches syncing, schedule and add a link to Bitrise for 'Tests.Sync' -->
+Syncing tests: <!-- link --> - do not merge this branch unless these tests are passing.
+
 ## :squid: Permissions
 <!-- Is anybody else allowed to merge this? If so, who? -->
