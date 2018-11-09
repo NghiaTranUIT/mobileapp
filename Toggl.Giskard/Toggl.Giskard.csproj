@@ -492,10 +492,10 @@
     <Compile Include="ViewHolders\SelectDefaultWorkspaceViewHolder.cs" />
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.cs" />
     <Compile Include="Fragments\SelectDefaultWorkspaceFragment.ViewBinds.cs">
-    <Compile Include="ViewHolders\MainLogUserFeedbackViewHolder.cs" />
-    <Compile Include="Extensions\Reactive\ImageViewExtensions.cs" />
       <DependentUpon>SelectDefaultWorkspaceFragment.cs</DependentUpon>
     </Compile>
+    <Compile Include="ViewHolders\MainLogUserFeedbackViewHolder.cs" />
+    <Compile Include="Extensions\Reactive\ImageViewExtensions.cs" />      
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
