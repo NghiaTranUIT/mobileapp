@@ -13,5 +13,6 @@
         public string Id { get; set; }
         public string Label { get; set; }
         public NodeType Type { get; set; }
+        public SubGraph SubGraph { get; set; }
     }
 }
