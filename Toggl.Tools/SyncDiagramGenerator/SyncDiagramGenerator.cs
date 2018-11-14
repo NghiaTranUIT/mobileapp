@@ -18,6 +18,11 @@ namespace SyncDiagramGenerator
 {
     internal sealed class SyncDiagramGenerator
     {
+        private readonly static string[] commonInterfacePrefixes =
+        {
+            "IDatabase", "IThreadSafe"
+        };
+
         public (List<Node> Nodes, List<Edge> Edges) GenerateGraph()
         {
             Console.WriteLine("Configuring state machine");
@@ -151,9 +156,11 @@ namespace SyncDiagramGenerator
         private string fullGenericTypeName(Type type)
         {
             if (!type.IsGenericType)
-                return type.Name;
+                return cleanCommonInterfaces(type.Name);
 
-            var genericArgumentNames = type.GetGenericArguments().Select(fullGenericTypeName);
+            var genericArgumentNames = type.GetGenericArguments()
+                .Select(fullGenericTypeName)
+                .Distinct();
 
             if (typeof(ITuple).IsAssignableFrom(type))
             {
@@ -166,6 +173,17 @@ namespace SyncDiagramGenerator
                 cleanedName = cleanedName.Substring(0, backTickIndex);
 
             return $"{cleanedName}<{string.Join(", ", genericArgumentNames)}>";
+        }
+
+        private string cleanCommonInterfaces(string typeName)
+        {
+            foreach (var prefix in commonInterfacePrefixes)
+            {
+                if (typeName.StartsWith(prefix))
+                    return $"I{typeName.Substring(prefix.Length)}";
+            }
+
+            return typeName;
         }
 
         private static List<(object State, List<(IStateResult Result, string Name)> StateResults)>
