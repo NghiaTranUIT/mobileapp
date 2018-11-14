@@ -119,6 +119,10 @@ namespace SyncDiagramGenerator
                 case Node.NodeType.InvalidTransitionState:
                     attributes.Add(("color", "red"));
                     break;
+                case Node.NodeType.LooseEnd:
+                    attributes.Add(("color", "red"));
+                    attributes.Add(("style", "filled"));
+                    break;
             }
 
             return attributes;

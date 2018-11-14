@@ -230,6 +230,8 @@ namespace Toggl.Foundation
 
             transitions.ConfigureTransition(refetchInaccessibleProjects.FinishedPersisting, noDefaultWorkspaceDetectingState);
             transitions.ConfigureTransition(noDefaultWorkspaceDetectingState.NoDefaultWorkspaceDetected, trySetDefaultWorkspaceState);
+            transitions.ConfigureTransition(noDefaultWorkspaceDetectingState.Continue, new DeadEndState());
+            transitions.ConfigureTransition(trySetDefaultWorkspaceState.Continue, new DeadEndState());
 
             // process server errors
             transitions.ConfigureTransition(ensureFetchWorkspacesSucceeded.ErrorOccured, retryOrThrow);
@@ -266,7 +268,8 @@ namespace Toggl.Foundation
             var pushingTagsFinished = configureCreateOnlyPush(transitions, pushingPreferencesFinished, dataSource.Tags, analyticsService, api.Tags, Tag.Clean, Tag.Unsyncable, api, scheduler, delayCancellation);
             var pushingClientsFinished = configureCreateOnlyPush(transitions, pushingTagsFinished, dataSource.Clients, analyticsService, api.Clients, Client.Clean, Client.Unsyncable, api, scheduler, delayCancellation);
             var pushingProjectsFinished = configureCreateOnlyPush(transitions, pushingClientsFinished, dataSource.Projects, analyticsService, api.Projects, Project.Clean, Project.Unsyncable, api, scheduler, delayCancellation);
-            configurePush(transitions, pushingProjectsFinished, dataSource.TimeEntries, analyticsService, api.TimeEntries, api.TimeEntries, api.TimeEntries, TimeEntry.Clean, TimeEntry.Unsyncable, api, apiDelay, scheduler, delayCancellation);
+            var pushingTimeEntriesFinished = configurePush(transitions, pushingProjectsFinished, dataSource.TimeEntries, analyticsService, api.TimeEntries, api.TimeEntries, api.TimeEntries, TimeEntry.Clean, TimeEntry.Unsyncable, api, apiDelay, scheduler, delayCancellation);
+            transitions.ConfigureTransition(pushingTimeEntriesFinished, new DeadEndState());
         }
 
         private static void configureCleanUpTransitions(
@@ -306,6 +309,7 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(deleteInaccessibleClients.FinishedDeleting, trackInaccesssibleDataAfterCleanUp);
             transitions.ConfigureTransition(trackInaccesssibleDataAfterCleanUp.Continue, deleteInaccessibleWorkspaces);
             transitions.ConfigureTransition(deleteInaccessibleWorkspaces.FinishedDeleting, trackInaccesssibleWorkspacesAfterCleanUp);
+            transitions.ConfigureTransition(trackInaccesssibleWorkspacesAfterCleanUp.Continue, new DeadEndState());
         }
 
         private static IStateResult configurePush<TModel, TDatabase, TThreadsafe>(

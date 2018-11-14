@@ -6,8 +6,9 @@
         {
             Regular = 0,
             EntryPoint = 1,
-            DeadEnd = 2,
+            LooseEnd = 2,
             InvalidTransitionState = 3,
+            DeadEnd = 4,
         }
 
         public string Id { get; set; }
