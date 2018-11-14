@@ -121,7 +121,7 @@ namespace SyncDiagramGenerator
                     break;
                 case Node.NodeType.LooseEnd:
                     attributes.Add(("color", "red"));
-                    attributes.Add(("style", "filled"));
+                    attributes.Add(("style", "rounded,filled"));
                     break;
             }
 
