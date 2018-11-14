@@ -830,11 +830,6 @@
     <AndroidResource Include="Resources\drawable-xhdpi\bike.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\bike.png" />
     <AndroidResource Include="Resources\drawable-xxxhdpi\bike.png" />
-    <AndroidResource Include="Resources\drawable-hdpi\bg_noise_login.png" />
-    <AndroidResource Include="Resources\drawable-mdpi\bg_noise_login.png" />
-    <AndroidResource Include="Resources\drawable-xhdpi\bg_noise_login.png" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\bg_noise_login.png" />
-    <AndroidResource Include="Resources\drawable-xxxhdpi\bg_noise_login.png" />
     <AndroidResource Include="Resources\drawable-hdpi\paws.png" />
     <AndroidResource Include="Resources\drawable-mdpi\paws.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\paws.png" />
@@ -893,6 +888,7 @@
     <AndroidResource Include="Resources\values-v23\Strings.xml" />
     <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragment.axml" />
     <AndroidResource Include="Resources\layout\SelectDefaultWorkspaceFragmentCell.axml" />
+    <AndroidResource Include="Resources\drawable\bg_noise_login.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj">
