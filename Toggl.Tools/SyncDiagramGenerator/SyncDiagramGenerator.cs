@@ -11,6 +11,7 @@ using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Sync.States;
+using Toggl.Foundation.Sync.States.Push;
 using Toggl.PrimeRadiant;
 using Toggl.Ultrawave;
 
@@ -149,8 +150,23 @@ namespace SyncDiagramGenerator
                 s => new Node
                 {
                     Label = fullGenericTypeName(s.GetType()),
-                    Type = s is InvalidTransitionState ? Node.NodeType.InvalidTransitionState : Node.NodeType.Regular
+                    Type = nodeType(s)
                 });
+        }
+
+        private Node.NodeType nodeType(object state)
+        {
+            switch (state)
+            {
+                case InvalidTransitionState _:
+                    return Node.NodeType.InvalidTransitionState;
+                case CheckServerStatusState _:
+                    return Node.NodeType.RetryLoop;
+                case ResetAPIDelayState _:
+                    return Node.NodeType.APIDelayReset;
+                default:
+                    return Node.NodeType.Regular;
+            }
         }
 
         private string fullGenericTypeName(Type type)

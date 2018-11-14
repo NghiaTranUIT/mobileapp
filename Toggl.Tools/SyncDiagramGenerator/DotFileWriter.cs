@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace SyncDiagramGenerator
 {
@@ -13,14 +12,14 @@ namespace SyncDiagramGenerator
         {
             "PushState", "PushSingleState",
             "EnsureFetchListSucceededState", "EnsureFetchSingletonSucceededState",
-            "SevereApiExceptionsRethrowingState"
+            "SevereApiExceptionsRethrowingState",
+            "TryFetchInaccessibleProjectsState",
         };
 
         private static readonly string[] subGraphTerminationNodes =
         {
-            "FetchAllSinceState", "DeadEndState", "Loose End"
+            "FetchAllSinceState", "DeadEndState", "Loose End",
         };
-
 
         public void WriteToFile(string outPath, List<Node> nodes, List<Edge> edges)
         {
@@ -190,14 +189,42 @@ namespace SyncDiagramGenerator
 
         private static void writeEdge(Edge edge, StringBuilder builder)
         {
-            builder.AppendLine($"{edge.From.Id} -> {edge.To.Id} [label=\"{edge.Label}\"];");
+            var edgeAttributes = getAttributes(edge);
+            var attributeString = buildAttributeString(edgeAttributes);
+            builder.AppendLine($"{edge.From.Id} -> {edge.To.Id} [{attributeString}];");
         }
 
         private void writeNode(Node node, StringBuilder builder)
         {
             var nodeAttributes = getAttributes(node);
-            var attributeString = string.Join(",", nodeAttributes.Select(a => $"{a.Key}=\"{a.Value}\""));
+            var attributeString = buildAttributeString(nodeAttributes);
             builder.AppendLine($"{node.Id} [{attributeString}];");
+        }
+
+        private static string buildAttributeString(List<(string Key, string Value)> edgeAttributes)
+        {
+            return string.Join(",", edgeAttributes.Select(a => $"{a.Key}=\"{a.Value}\""));
+        }
+
+        private static List<(string Key, string Value)> getAttributes(Edge edge)
+        {
+            var attributes = new List<(string, string)>
+            {
+                ("label", edge.Label)
+            };
+
+            if (edge.From.Type == Node.NodeType.RetryLoop || edge.To.Type == Node.NodeType.RetryLoop)
+            {
+                attributes.Add(("color", "lightblue"));
+                attributes.Add(("fontcolor", "lightblue"));
+            }
+            else if (edge.From.Type == Node.NodeType.APIDelayReset || edge.To.Type == Node.NodeType.APIDelayReset)
+            {
+                attributes.Add(("color", "palegreen"));
+                attributes.Add(("fontcolor", "palegreen"));
+            }
+
+            return attributes;
         }
 
         private List<(string Key, string Value)> getAttributes(Node node)
@@ -217,6 +244,14 @@ namespace SyncDiagramGenerator
                     break;
                 case Node.NodeType.InvalidTransitionState:
                     attributes.Add(("color", "red"));
+                    break;
+                case Node.NodeType.RetryLoop:
+                    attributes.Add(("color", "lightblue"));
+                    attributes.Add(("style", "rounded,filled"));
+                    break;
+                case Node.NodeType.APIDelayReset:
+                    attributes.Add(("color", "palegreen"));
+                    attributes.Add(("style", "rounded,filled"));
                     break;
             }
 
