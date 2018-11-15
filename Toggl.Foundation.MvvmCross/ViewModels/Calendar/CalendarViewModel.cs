@@ -301,7 +301,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
 
         private async Task reloadData()
             => await interactorFactory
-                .GetCalendarItemsForDate(timeService.CurrentDateTime.Date)
+                .GetCalendarItemsForDate(timeService.CurrentDateTime.ToLocalTime().Date)
                 .Execute()
                 .Do(CalendarItems.ReplaceWith);
     }
