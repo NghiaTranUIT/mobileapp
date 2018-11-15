@@ -62,12 +62,11 @@ namespace Toggl.Daneel.Views.Calendar
             this.timeService = timeService;
             this.dataSource = dataSource;
 
-            date = timeService.CurrentDateTime.Date;
+            date = timeService.CurrentDateTime.ToLocalTime().Date;
 
             timeService
                 .MidnightObservable
-                .Do(dateTimeOffset => date = dateTimeOffset.Date)
-                .VoidSubscribe(InvalidateLayout)
+                .Subscribe(dateChanged)
                 .DisposedBy(disposeBag);
 
             timeService
@@ -272,6 +271,12 @@ namespace Toggl.Daneel.Views.Calendar
             var y = yHour + yMins - height / 2;
 
             return new CGRect(x, y, width, height);
+        }
+
+        private void dateChanged(DateTimeOffset dateTimeOffset)
+        {
+            date = dateTimeOffset.ToLocalTime().Date;
+            InvalidateLayout();
         }
     }
 }

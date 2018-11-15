@@ -10,6 +10,7 @@ using Foundation;
 using MvvmCross.Platforms.Ios.Binding.Views;
 using Toggl.Daneel.Cells.Calendar;
 using Toggl.Daneel.Views.Calendar;
+using Toggl.Foundation;
 using Toggl.Foundation.Calendar;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
@@ -32,14 +33,14 @@ namespace Toggl.Daneel.ViewSources
         private readonly string editingHourReuseIdentifier = nameof(HourSupplementaryView);
         private readonly string currentTimeReuseIdentifier = nameof(CurrentTimeSupplementaryView);
 
-        private readonly IObservable<DateTime> date;
+        private readonly ITimeService timeService;
         private readonly IObservable<TimeFormat> timeOfDayFormatObservable;
         private readonly ObservableGroupedOrderedCollection<CalendarItem> collection;
 
         private IList<CalendarItem> calendarItems;
         private IList<CalendarCollectionViewItemLayoutAttributes> layoutAttributes;
         private TimeFormat timeOfDayFormat = TimeFormat.TwelveHoursFormat;
-        private DateTime currentDate;
+        private DateTime date;
         private NSIndexPath editingItemIndexPath;
 
         private readonly CompositeDisposable disposeBag = new CompositeDisposable();
@@ -52,16 +53,16 @@ namespace Toggl.Daneel.ViewSources
         public IObservable<CalendarItem> ItemTapped => itemTappedSubject.AsObservable();
 
         public CalendarCollectionViewSource(
+            ITimeService timeService,
             UICollectionView collectionView,
-            IObservable<DateTime> date,
             IObservable<TimeFormat> timeOfDayFormat,
             ObservableGroupedOrderedCollection<CalendarItem> collection)
             : base(collectionView)
         {
-            Ensure.Argument.IsNotNull(date, nameof(date));
+            Ensure.Argument.IsNotNull(timeService, nameof(timeService));
             Ensure.Argument.IsNotNull(timeOfDayFormat, nameof(timeOfDayFormat));
             Ensure.Argument.IsNotNull(collection, nameof(collection));
-            this.date = date;
+            this.timeService = timeService;
             this.timeOfDayFormatObservable = timeOfDayFormat;
             this.collection = collection;
 
@@ -80,7 +81,9 @@ namespace Toggl.Daneel.ViewSources
                 .VoidSubscribe(onCollectionChanges)
                 .DisposedBy(disposeBag);
 
-            date.Subscribe(dateChanged)
+            timeService
+                .MidnightObservable
+                .Subscribe(dateChanged)
                 .DisposedBy(disposeBag);
 
             onCollectionChanges();
@@ -108,7 +111,7 @@ namespace Toggl.Daneel.ViewSources
             if (elementKind == CalendarCollectionViewLayout.HourSupplementaryViewKind)
             {
                 var reusableView = collectionView.DequeueReusableSupplementaryView(elementKind, hourReuseIdentifier, indexPath) as HourSupplementaryView;
-                var hour = currentDate.AddHours((int)indexPath.Item);
+                var hour = date.AddHours((int)indexPath.Item);
                 reusableView.SetLabel(hour.ToString(supplementaryHourFormat()));
                 return reusableView;
             }
@@ -232,9 +235,9 @@ namespace Toggl.Daneel.ViewSources
             CollectionView.ReloadData();
         }
 
-        private void dateChanged(DateTime date)
+        private void dateChanged(DateTimeOffset dateTimeOffset)
         {
-            this.currentDate = date;
+            this.date = dateTimeOffset.ToLocalTime().Date;
         }
 
         private void registerCells()
