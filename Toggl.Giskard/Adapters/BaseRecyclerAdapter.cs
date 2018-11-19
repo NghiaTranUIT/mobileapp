@@ -4,13 +4,14 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Android.Runtime;
+using Android.Support.V7.Util;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Toggl.Giskard.ViewHolders;
 
 namespace Toggl.Giskard.Adapters
 {
-    public abstract class BaseRecyclerAdapter<T> : RecyclerView.Adapter
+    public abstract class BaseRecyclerAdapter<T> : RecyclerView.Adapter where T: IEquatable<T>
     {
         private Subject<T> itemTapSubject = new Subject<T>();
         public IObservable<T> ItemTapObservable => itemTapSubject.AsObservable();
@@ -63,9 +64,35 @@ namespace Toggl.Giskard.Adapters
 
         protected virtual void SetItems(IList<T> items)
         {
-            this.items = items;
+            DiffUtil.DiffResult diffResult = DiffUtil.CalculateDiff(new BaseDiffCallBack(this.items, items));
+            diffResult.DispatchUpdatesTo(this);
+        }
 
-            NotifyDataSetChanged();
+        private sealed class BaseDiffCallBack : DiffUtil.Callback
+        {
+            private IList<T> oldItems;
+            private IList<T> newItems;
+
+            public BaseDiffCallBack(IList<T> oldItems, IList<T> newItems)
+            {
+                this.oldItems = oldItems;
+                this.newItems = newItems;
+            }
+
+            public override bool AreContentsTheSame(int oldItemPosition, int newItemPosition)
+            {
+                var oldItem = oldItems[oldItemPosition];
+                var newItem = newItems[newItemPosition];
+                return oldItem.Equals(newItem);
+            }
+
+            public override bool AreItemsTheSame(int oldItemPosition, int newItemPosition)
+            {
+                return ReferenceEquals(oldItems[oldItemPosition], newItems[newItemPosition]);
+            }
+
+            public override int NewListSize => oldItems.Count;
+            public override int OldListSize => newItems.Count;
         }
     }
 }
